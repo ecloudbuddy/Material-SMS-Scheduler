@@ -15,9 +15,9 @@ import android.widget.EditText;
 
 public class Home extends AppCompatActivity {
     public final static String myDataset[] = {"1","2","3","4","5"}; // TEST
-    private RecyclerView mRecyclerView;
+/*    private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
+    private RecyclerView.LayoutManager mLayoutManager;*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +25,8 @@ public class Home extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+
+/*        mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -37,15 +38,14 @@ public class Home extends AppCompatActivity {
 
         // specify an adapter (see also next example)
         //mAdapter = new MyAdapter(myDataset);
-        mRecyclerView.setAdapter(mAdapter);
-
+        mRecyclerView.setAdapter(mAdapter);*/
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent myIntent = new Intent(Home.this, AddMessage.class);
+                Home.this.startActivity(myIntent);
             }
         });
 
