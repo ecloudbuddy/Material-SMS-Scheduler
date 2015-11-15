@@ -5,4 +5,11 @@
     <string name="button_send">Send</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_add_message">Add Message</string>
+    <string name="phone_number">To</string>
+    <string name="message_content">Message</string>
+    <string name="pick_time">Pick a time</string>
+    <string name="pick_date">Pick a date</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

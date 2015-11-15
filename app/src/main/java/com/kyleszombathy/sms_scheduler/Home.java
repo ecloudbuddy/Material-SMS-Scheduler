@@ -14,7 +14,6 @@ import android.view.MenuItem;
 import android.widget.EditText;
 
 public class Home extends AppCompatActivity {
-    public final static String myDataset[] = {"1","2","3","4","5"}; // TEST
 /*    private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;*/
