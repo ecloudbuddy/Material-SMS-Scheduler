@@ -49,6 +49,15 @@
         android:text="@string/contact_search"
         android:onClick="openContactSearch"
         android:layout_below="@+id/button2"
+        android:layout_alignParentStart="true"
+        android:id="@+id/button3" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/test"
+        android:onClick="showContactsFragment"
+        android:layout_below="@+id/button3"
         android:layout_alignParentStart="true" />
 
 </RelativeLayout>
