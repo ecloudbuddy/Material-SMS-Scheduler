@@ -1,23 +1,19 @@
 package com.kyleszombathy.sms_scheduler;
 
-import android.app.FragmentTransaction;
-import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.EditText;
 
-
-public class AddMessage extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
+public class AddMessage extends AppCompatActivity
 {
     static final int PICK_CONTACT_REQUEST = 1;
     private static final String[] PROJECTION =
@@ -47,6 +43,23 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
         // Enable the Up button on toolbar
         if (ab != null) ab.setDisplayHomeAsUpEnabled(true);
 
+        // Setting up ContactsFragment
+        if (findViewById(R.id.fragment_container) != null) {
+            if (savedInstanceState != null) {
+                return;
+            }
+            // Creates a new Fragment to be placed in the activity layout
+            AddMessageFragment firstFragment = new AddMessageFragment();
+
+            // In case this activity was started with special instructions from an
+            // Intent, pass the Intent's extras to the fragment as arguments
+            firstFragment.setArguments(getIntent().getExtras());
+
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragment_container, firstFragment).commit();
+        }
+
         // Setting editText field
         et =(EditText)findViewById(R.id.phoneNumber);
         // TODO: Doesn't work yet, works only from button
@@ -66,19 +79,31 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
     }
 
     public void showTimePickerDialog(View v) {
-        DialogFragment newFragment = new TimePickerFragment();
+        TimePickerFragment newFragment = new TimePickerFragment();
         newFragment.show(getSupportFragmentManager(), "timePicker");
     }
 
     public void showDatePickerDialog(View v) {
-        DialogFragment newFragment = new DatePickerFragment();
+        DatePickerFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), "datePicker");
     }
 
     public void showContactsFragment(View v) {
-        FragmentTransaction ft = getFragmentManager().beginTransaction();
-        ft.replace(R.id.fragment2, new ContactsFragment());
-        ft.commit();
+    // Create fragment and give it an argument specifying the article it should show
+            Fragment newFragment = new ContactsFragment();
+            Bundle args = new Bundle();
+            //args.putInt(ContactsFragment.ARG_POSITION, position);
+            newFragment.setArguments(args);
+
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+    // Replace whatever is in the fragment_container view with this fragment,
+    // and add the transaction to the back stack so the user can navigate back
+            transaction.replace(R.id.fragment_container, newFragment);
+            transaction.addToBackStack(null);
+
+    // Commit the transaction
+            transaction.commit();
     }
 
     public void openContactSearch(View v) {
@@ -108,19 +133,4 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
         }
     }
 
-
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return null;
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-
-    }
 }

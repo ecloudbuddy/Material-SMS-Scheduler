@@ -1,34 +1,29 @@
 package com.kyleszombathy.sms_scheduler;
 
-
-import android.app.ListFragment;
-import android.app.LoaderManager;
 import android.content.Context;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.Contacts;
+import android.support.v4.app.ListFragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SearchView;
-import android.widget.SimpleCursorAdapter;
 
-/**
- * TODO: File still doesn't work, tutorial not completed. Tried to use tutorial, then switched halway Contact Provider implementation
- * Following guide from https://developer.android.com/training/contacts-provider/retrieve-names.html
- */
-public class ContactsFragment extends ListFragment implements
-        LoaderManager.LoaderCallbacks<Cursor>,
-        AdapterView.OnItemClickListener
-{
+public class ContactsFragment extends ListFragment
+        implements SearchView.OnQueryTextListener, SearchView.OnCloseListener,
+        LoaderManager.LoaderCallbacks<Cursor> {
+
     // This is the Adapter being used to display the list's data.
     SimpleCursorAdapter mAdapter;
 
@@ -37,15 +32,6 @@ public class ContactsFragment extends ListFragment implements
 
     // If non-null, this is the current filter the user has provided.
     String mCurFilter;
-
-
-/*    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_contacts, container, false);
-    }*/
-
 
     @Override public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -60,7 +46,7 @@ public class ContactsFragment extends ListFragment implements
         // Create an empty adapter we will use to display the loaded data.
         mAdapter = new SimpleCursorAdapter(getActivity(),
                 android.R.layout.simple_list_item_2, null,
-                new String[] { ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.Contacts.CONTACT_STATUS },
+                new String[] { Contacts.DISPLAY_NAME, Contacts.CONTACT_STATUS },
                 new int[] { android.R.id.text1, android.R.id.text2 }, 0);
         setListAdapter(mAdapter);
 
@@ -70,11 +56,6 @@ public class ContactsFragment extends ListFragment implements
         // Prepare the loader.  Either re-connect with an existing one,
         // or start a new one.
         getLoaderManager().initLoader(0, null, this);
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
     }
 
     public static class MySearchView extends SearchView {
@@ -98,8 +79,8 @@ public class ContactsFragment extends ListFragment implements
         item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM
                 | MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
         mSearchView = new MySearchView(getActivity());
-        mSearchView.setOnQueryTextListener((SearchView.OnQueryTextListener) this);
-        mSearchView.setOnCloseListener((SearchView.OnCloseListener) this);
+        mSearchView.setOnQueryTextListener(this);
+        mSearchView.setOnCloseListener(this);
         mSearchView.setIconifiedByDefault(true);
         item.setActionView(mSearchView);
     }
@@ -122,12 +103,12 @@ public class ContactsFragment extends ListFragment implements
         return true;
     }
 
-    public boolean onQueryTextSubmit(String query) {
+    @Override public boolean onQueryTextSubmit(String query) {
         // Don't care about this.
         return true;
     }
 
-
+    @Override
     public boolean onClose() {
         if (!TextUtils.isEmpty(mSearchView.getQuery())) {
             mSearchView.setQuery(null, true);
@@ -142,12 +123,12 @@ public class ContactsFragment extends ListFragment implements
 
     // These are the Contacts rows that we will retrieve.
     static final String[] CONTACTS_SUMMARY_PROJECTION = new String[] {
-            ContactsContract.Contacts._ID,
-            ContactsContract.Contacts.DISPLAY_NAME,
-            ContactsContract.Contacts.CONTACT_STATUS,
-            ContactsContract.Contacts.CONTACT_PRESENCE,
-            ContactsContract.Contacts.PHOTO_ID,
-            ContactsContract.Contacts.LOOKUP_KEY,
+            Contacts._ID,
+            Contacts.DISPLAY_NAME,
+            Contacts.CONTACT_STATUS,
+            Contacts.CONTACT_PRESENCE,
+            Contacts.PHOTO_ID,
+            Contacts.LOOKUP_KEY,
     };
 
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -157,21 +138,22 @@ public class ContactsFragment extends ListFragment implements
         // currently filtering.
         Uri baseUri;
         if (mCurFilter != null) {
-            baseUri = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_FILTER_URI,
+            baseUri = Uri.withAppendedPath(Contacts.CONTENT_FILTER_URI,
                     Uri.encode(mCurFilter));
         } else {
-            baseUri = ContactsContract.Contacts.CONTENT_URI;
+            baseUri = Contacts.CONTENT_URI;
         }
 
         // Now create and return a CursorLoader that will take care of
         // creating a Cursor for the data being displayed.
-        String select = "((" + ContactsContract.Contacts.DISPLAY_NAME + " NOTNULL) AND ("
-                + ContactsContract.Contacts.HAS_PHONE_NUMBER + "=1) AND ("
-                + ContactsContract.Contacts.DISPLAY_NAME + " != '' ))";
+        String select = "((" + Contacts.DISPLAY_NAME + " NOTNULL) AND ("
+                + Contacts.HAS_PHONE_NUMBER + "=1) AND ("
+                + Contacts.DISPLAY_NAME + " != '' ))";
         return new CursorLoader(getActivity(), baseUri,
                 CONTACTS_SUMMARY_PROJECTION, select, null,
                 ContactsContract.Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC");
     }
+
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
@@ -193,5 +175,4 @@ public class ContactsFragment extends ListFragment implements
         // longer using it.
         mAdapter.swapCursor(null);
     }
-
 }
