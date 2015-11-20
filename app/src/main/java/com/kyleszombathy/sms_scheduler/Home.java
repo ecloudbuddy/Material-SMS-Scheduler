@@ -1,22 +1,23 @@
 package com.kyleszombathy.sms_scheduler;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
+import android.view.View;
 
 public class Home extends AppCompatActivity {
 /*    private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;*/
+
+    private static final int PICK_CONTACT_REQUEST = 1;
+    private static final String EXTRA_MESSAGE = "imageUri";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,13 +44,26 @@ public class Home extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent myIntent = new Intent(Home.this, AddMessage.class);
-                Home.this.startActivity(myIntent);
+                Intent pickContactIntent = new Intent(Intent.ACTION_PICK, Uri.parse("content://contacts"));
+                pickContactIntent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE); // Show user only contacts w/ phone numbers
+                startActivityForResult(pickContactIntent, PICK_CONTACT_REQUEST);
             }
         });
 
     }
 
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PICK_CONTACT_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                // A contact was picked.
+                Uri uri = data.getData();
+
+                Intent intent = new Intent(Home.this, AddMessage.class);
+                intent.putExtra(EXTRA_MESSAGE, uri);
+                Home.this.startActivity(intent);
+            }
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

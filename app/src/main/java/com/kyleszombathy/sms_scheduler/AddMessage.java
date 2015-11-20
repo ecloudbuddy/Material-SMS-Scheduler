@@ -15,7 +15,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.widget.EditText;
+import android.widget.TextView;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -29,7 +29,7 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
             ContactsContract.CommonDataKinds.Phone.NUMBER/*,
             ContactsContract.CommonDataKinds.Photo.PHOTO*/
     };
-    private static final int PICK_CONTACT_REQUEST = 0;
+    private static final int PICK_CONTACT_REQUEST = 1;
 
     private static final String SELECTION = ContactsContract.Data.LOOKUP_KEY + " = ?";
     private String[] mSelectionArgs = { "" };
@@ -40,13 +40,16 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
     LinkedList <Long> phoneNum = new LinkedList<>();
 
     private Uri uri;
-    private EditText et;
-    private final int DETAILS_QUERY_ID = 0;
+    TextView t;
+
+    private int DETAILS_QUERY_ID = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_message);
+        Intent intent = getIntent();
+        uri = intent.getParcelableExtra("imageUri");
 
         // Setting up toolbar
         Toolbar myChildToolbar =
@@ -57,23 +60,26 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
         // Enable the Up button on toolbar
         if (ab != null) ab.setDisplayHomeAsUpEnabled(true);
 
-        // Setting up default fragment
-        if (findViewById(R.id.fragment_container) != null) {
-            if (savedInstanceState != null) {
-                return;
-            }
-            // Creates a new Fragment to be placed in the activity layout
-            AddMessageFragment firstFragment = new AddMessageFragment();
-            // In case this activity was started with special instructions from an
-            // Intent, pass the Intent's extras to the fragment as arguments
-            firstFragment.setArguments(getIntent().getExtras());
-            // Add the fragment to the 'fragment_container' FrameLayout
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragment_container, firstFragment).commit();
-        }
+        //Set up fragment to display
+        AddMessageFragment firstFragment = new AddMessageFragment();
+        // Pass extras to fragment
+        firstFragment.setArguments(getIntent().getExtras());
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.replace(R.id.fragment_container, firstFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
 
+
+
+
+        getLoaderManager().initLoader(DETAILS_QUERY_ID, null, this);
+    }
+
+    @Override
+    protected void onResume () {
+        super.onResume();
         // Setting editText field
-        et =(EditText)findViewById(R.id.phoneNumber);
+        t=(TextView)findViewById(R.id.recipients);
     }
 
     public void showTimePickerDialog(View v) {
@@ -115,7 +121,6 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
             if (resultCode == RESULT_OK) {
                 // A contact was picked.
                 uri = data.getData();
-                System.out.println("\n\n\n\n");
 
                 getLoaderManager().initLoader(DETAILS_QUERY_ID, null, this);
             }
@@ -146,14 +151,16 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
         System.out.println("ID: " + Arrays.toString(ID.toArray()));
         System.out.println("Name: " + Arrays.toString(name.toArray()));
         System.out.println("Phone: " + Arrays.toString(phoneNum.toArray()));
-        data.close();
+        t.setText(Arrays.toString(name.toArray()), TextView.BufferType.NORMAL);
+
+        DETAILS_QUERY_ID++;
     }
 
     public void onLoaderReset(Loader<Cursor> loader) {
         // This is called when the last Cursor provided to onLoadFinished()
         // above is about to be closed.  We need to make sure we are no
         // longer using it.
-        //mAdapter.swapCursor(null);
+        loader = null;
     }
 
 }
