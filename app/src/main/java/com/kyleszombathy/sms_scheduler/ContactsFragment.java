@@ -1,24 +1,25 @@
 package com.kyleszombathy.sms_scheduler;
 
+
+import android.app.ListFragment;
+import android.app.LoaderManager;
 import android.content.Context;
+import android.content.CursorLoader;
+import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Contacts;
-import android.support.v4.app.ListFragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SearchView;
+import android.widget.SimpleCursorAdapter;
+
 
 public class ContactsFragment extends ListFragment
         implements SearchView.OnQueryTextListener, SearchView.OnCloseListener,
@@ -46,7 +47,7 @@ public class ContactsFragment extends ListFragment
         // Create an empty adapter we will use to display the loaded data.
         mAdapter = new SimpleCursorAdapter(getActivity(),
                 android.R.layout.simple_list_item_2, null,
-                new String[] { Contacts.DISPLAY_NAME, Contacts.CONTACT_STATUS },
+                new String[] { ContactsContract.Contacts.DISPLAY_NAME, Contacts.CONTACT_STATUS },
                 new int[] { android.R.id.text1, android.R.id.text2 }, 0);
         setListAdapter(mAdapter);
 
@@ -118,7 +119,7 @@ public class ContactsFragment extends ListFragment
 
     @Override public void onListItemClick(ListView l, View v, int position, long id) {
         // Insert desired behavior here.
-        Log.i("FragmentComplexList", "Item clicked: " + id);
+        //Log.i("FragmentComplexList", "Item clicked: " + id);
     }
 
     // These are the Contacts rows that we will retrieve.
