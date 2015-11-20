@@ -24,8 +24,8 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
 {
     // These are the Contacts rows that we will retrieve.
     private static final String[] PROJECTION = new String[] {
-            ContactsContract.Data._ID,
-            ContactsContract.CommonDataKinds.Identity.IDENTITY,
+            ContactsContract.Contacts._ID,
+            ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
             ContactsContract.CommonDataKinds.Phone.NUMBER/*,
             ContactsContract.CommonDataKinds.Photo.PHOTO*/
     };
@@ -37,7 +37,7 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
 
     LinkedList <Integer> ID = new LinkedList<>();
     LinkedList <String> name = new LinkedList<>();
-    LinkedList <Integer> phoneNum = new LinkedList<>();
+    LinkedList <Long> phoneNum = new LinkedList<>();
 
     private Uri uri;
     private EditText et;
@@ -130,13 +130,23 @@ public class AddMessage extends AppCompatActivity implements LoaderManager.Loade
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        System.out.println(Arrays.toString(data.getColumnNames()));
-        ID.add(data.getInt(1));
-/*        name.add(data.getString(1));
-        phoneNum.add(data.getInt(2));*/
+        data.moveToPosition(0);
+        ID.add(data.getInt(0));
+        name.add(data.getString(1));
+        String str = data.getString(2);
+        String temp = "";
+        // Gets int from string of phone number
+        for (int i =0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (Character.isDigit(c)) {
+                temp += c;
+            }
+        }
+        phoneNum.add(Long.parseLong(temp));
         System.out.println("ID: " + Arrays.toString(ID.toArray()));
-/*        System.out.println("Name: " + Arrays.toString(name.toArray()));
-        System.out.println("Phone: " + Arrays.toString(phoneNum.toArray()));*/
+        System.out.println("Name: " + Arrays.toString(name.toArray()));
+        System.out.println("Phone: " + Arrays.toString(phoneNum.toArray()));
+        data.close();
     }
 
     public void onLoaderReset(Loader<Cursor> loader) {
