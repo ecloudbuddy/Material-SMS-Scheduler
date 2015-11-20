@@ -1,34 +1,47 @@
 package com.kyleszombathy.sms_scheduler;
 
-
 import android.app.Fragment;
+import android.app.FragmentTransaction;
+import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
-import android.app.FragmentTransaction;
+import android.provider.ContactsContract.Data;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.EditText;
 
-public class AddMessage extends AppCompatActivity
+import java.util.Arrays;
+import java.util.LinkedList;
+
+public class AddMessage extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>
 {
-    static final int PICK_CONTACT_REQUEST = 1;
-    private static final String[] PROJECTION =
-            {
-                    ContactsContract.Data._ID,
-                    ContactsContract.CommonDataKinds.Identity.IDENTITY,
-                    ContactsContract.CommonDataKinds.Phone.NUMBER,
-                    ContactsContract.CommonDataKinds.Photo.PHOTO
-            };
+    // These are the Contacts rows that we will retrieve.
+    private static final String[] PROJECTION = new String[] {
+            ContactsContract.Data._ID,
+            ContactsContract.CommonDataKinds.Identity.IDENTITY,
+            ContactsContract.CommonDataKinds.Phone.NUMBER/*,
+            ContactsContract.CommonDataKinds.Photo.PHOTO*/
+    };
+    private static final int PICK_CONTACT_REQUEST = 0;
+
     private static final String SELECTION = ContactsContract.Data.LOOKUP_KEY + " = ?";
-    String mSelectionClause = null;
     private String[] mSelectionArgs = { "" };
-    private String mLookupKey;
-    EditText et;
+    private static final String SORT_ORDER = Data.MIMETYPE;
+
+    LinkedList <Integer> ID = new LinkedList<>();
+    LinkedList <String> name = new LinkedList<>();
+    LinkedList <Integer> phoneNum = new LinkedList<>();
+
+    private Uri uri;
+    private EditText et;
+    private final int DETAILS_QUERY_ID = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,34 +62,18 @@ public class AddMessage extends AppCompatActivity
             if (savedInstanceState != null) {
                 return;
             }
-        // Creates a new Fragment to be placed in the activity layout
-        AddMessageFragment firstFragment = new AddMessageFragment();
-
-        // In case this activity was started with special instructions from an
-        // Intent, pass the Intent's extras to the fragment as arguments
-        firstFragment.setArguments(getIntent().getExtras());
-
-        // Add the fragment to the 'fragment_container' FrameLayout
-        getSupportFragmentManager().beginTransaction()
-                .add(R.id.fragment_container, firstFragment).commit();
+            // Creates a new Fragment to be placed in the activity layout
+            AddMessageFragment firstFragment = new AddMessageFragment();
+            // In case this activity was started with special instructions from an
+            // Intent, pass the Intent's extras to the fragment as arguments
+            firstFragment.setArguments(getIntent().getExtras());
+            // Add the fragment to the 'fragment_container' FrameLayout
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.fragment_container, firstFragment).commit();
         }
 
         // Setting editText field
         et =(EditText)findViewById(R.id.phoneNumber);
-        // TODO: Doesn't work yet, works only from button
-/*        et.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction()==KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_ENTER) {
-                    //et.setText("test", TextView.BufferType.EDITABLE);
-                    Intent pickContactIntent = new Intent(Intent.ACTION_PICK, Uri.parse("content://contacts"));
-                    pickContactIntent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE); // Show user only contacts w/ phone numbers
-                    startActivityForResult(pickContactIntent, PICK_CONTACT_REQUEST);
-                    return true;
-                }
-                return false;
-            }
-        });*/
     }
 
     public void showTimePickerDialog(View v) {
@@ -99,7 +96,7 @@ public class AddMessage extends AppCompatActivity
     // Create fragment and give it an argument specifying the article it should show
             Fragment newFragment = new ContactsFragment();
             Bundle args = new Bundle();
-            //args.putInt(ContactsFragment.ARG_POSITION, position);
+            //args.putInt(ContactsFragment., position);
             newFragment.setArguments(args);
 
             FragmentTransaction transaction = getFragmentManager().beginTransaction();
@@ -113,25 +110,40 @@ public class AddMessage extends AppCompatActivity
             transaction.commit();
     }
 
-
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == PICK_CONTACT_REQUEST) {
             if (resultCode == RESULT_OK) {
                 // A contact was picked.
-                Uri contactUri = data.getData();
-                System.out.println(contactUri);
-                String[] projection = {ContactsContract.CommonDataKinds.Phone.NUMBER};
-                // TODO: CurorLoader Implementation https://developer.android.com/training/basics/intents/result.html
-                CursorLoader loader = new CursorLoader(getApplicationContext(), contactUri, projection, null, null, null);
+                uri = data.getData();
+                System.out.println("\n\n\n\n");
 
-
-                System.out.println(loader.toString());
-
-/*                String contactName = data.getStringExtra("android.intent.extra.shortcut.NAME");
-                System.out.println(contactUri);
-                et.setText(contactName, TextView.BufferType.EDITABLE);*/
+                getLoaderManager().initLoader(DETAILS_QUERY_ID, null, this);
             }
         }
+    }
+
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        // Create and return a CursorLoader that will take care of
+        // creating a Cursor for the data being displayed.
+        return new CursorLoader(this, uri, PROJECTION, null, null, null);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        System.out.println(Arrays.toString(data.getColumnNames()));
+        ID.add(data.getInt(1));
+/*        name.add(data.getString(1));
+        phoneNum.add(data.getInt(2));*/
+        System.out.println("ID: " + Arrays.toString(ID.toArray()));
+/*        System.out.println("Name: " + Arrays.toString(name.toArray()));
+        System.out.println("Phone: " + Arrays.toString(phoneNum.toArray()));*/
+    }
+
+    public void onLoaderReset(Loader<Cursor> loader) {
+        // This is called when the last Cursor provided to onLoadFinished()
+        // above is about to be closed.  We need to make sure we are no
+        // longer using it.
+        //mAdapter.swapCursor(null);
     }
 
 }
