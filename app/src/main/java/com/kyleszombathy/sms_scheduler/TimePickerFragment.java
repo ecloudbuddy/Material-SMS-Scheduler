@@ -1,6 +1,7 @@
 package com.kyleszombathy.sms_scheduler;
 
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.Fragment;
 import android.app.TimePickerDialog;
@@ -35,6 +36,23 @@ public class TimePickerFragment extends DialogFragment
 
     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
         // Do something with the time chosen by the user
-        // TODO: Record Time variable for database
+        this.mListener.onComplete(hourOfDay, minute);
+    }
+
+    public static interface OnCompleteListener {
+        public abstract void onComplete(int hourOfDay, int minute);
+    }
+
+    private OnCompleteListener mListener;
+
+    // make sure the Activity implemented it
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            this.mListener = (OnCompleteListener)activity;
+        }
+        catch (final ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnCompleteListener");
+        }
     }
 }

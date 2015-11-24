@@ -18,6 +18,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.Spinner;
@@ -32,7 +33,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 
 public class AddMessage extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<Cursor>, AdapterView.OnItemSelectedListener
+        implements LoaderManager.LoaderCallbacks<Cursor>, AdapterView.OnItemSelectedListener,
+        DatePickerFragment.OnCompleteListener, TimePickerFragment.OnCompleteListener
 {
     // These are the Contacts rows that we will retrieve.
     private static final String[] PROJECTION = new String[] {
@@ -51,13 +53,16 @@ public class AddMessage extends AppCompatActivity
     ArrayList<String> name = new ArrayList<>();
     ArrayList<Long> phoneNum = new ArrayList<>();
     private int arrayListCount = 0;
+    private int curYear, curMonth, curDay, curHourOfDay, curMinute;
+    private int year, month, day, hourOfDay, minute;
+    private String messageContentString;
 
     private Uri uri;
 
     // For getting character count
     private int smsLength = 160;
-    private TextView mTextView;
-    private EditText mEditText;
+    private TextView counterTextView;
+    private EditText messageContentEditText;
     private final TextWatcher mTextEditorWatcher = new TextWatcher() {
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         }
@@ -65,11 +70,11 @@ public class AddMessage extends AppCompatActivity
             //This sets a textview to the current length
             int length = s.length();
             if (length <= smsLength) {
-                mTextView.setText(String.valueOf(smsLength - length));
+                counterTextView.setText(String.valueOf(smsLength - length));
             }
             else {
-                mTextView.setText(String.valueOf(length/smsLength) + ", "
-                        + String.valueOf(smsLength - length%smsLength));
+                counterTextView.setText(String.valueOf(length / smsLength) + ", "
+                        + String.valueOf(smsLength - length % smsLength));
             }
 
         }
@@ -77,6 +82,8 @@ public class AddMessage extends AppCompatActivity
         }
     };
 
+
+    Button saveButton;
     private int DETAILS_QUERY_ID = 0;
 
     // Contact Picker
@@ -88,7 +95,7 @@ public class AddMessage extends AppCompatActivity
         setContentView(R.layout.activity_add_message);
 
         // Setting up toolbar
-        Toolbar myChildToolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar myChildToolbar = (Toolbar) findViewById(R.id.toolbarAddMessage);
         setSupportActionBar(myChildToolbar);
         // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
@@ -109,38 +116,70 @@ public class AddMessage extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         // Get character count
-        mTextView = (TextView) findViewById(R.id.count);
-        mEditText = (EditText) findViewById(R.id.messageContent);
-        mEditText.addTextChangedListener(mTextEditorWatcher);
+        counterTextView = (TextView) findViewById(R.id.count);
+        messageContentEditText = (EditText) findViewById(R.id.messageContent);
+        messageContentEditText.addTextChangedListener(mTextEditorWatcher);
 
         // Creates an autocomplete for phone number contacts
         phoneRetv = (RecipientEditTextView) findViewById(R.id.phone_retv);
         phoneRetv.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
         phoneRetv.setAdapter(new BaseRecipientAdapter(BaseRecipientAdapter.QUERY_TYPE_PHONE, this));
 
+        // Get current date/time
+        setCurrentTime();
+
         // Set up date spinner
-        ArrayList<CharSequence> entries =
+        ArrayList<CharSequence> dateEntries =
                 new ArrayList<CharSequence>(Arrays.<CharSequence>asList(
                         getString(R.string.today),
                         getString(R.string.tomorrow),
                         getString(R.string.next) + " " + getDayOfWeekString(),
                         getString(R.string.pick_date)));
-        ArrayAdapter<CharSequence> adapter =
-                new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, entries);
+        ArrayAdapter<CharSequence> dateAdapter =
+                new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, dateEntries);
         Spinner dateSpinner = (Spinner) findViewById(R.id.date_spinner);
         // Specify the layout to use when the list of choices appears
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
-        dateSpinner.setAdapter(adapter);
+        dateSpinner.setAdapter(dateAdapter);
         dateSpinner.setOnItemSelectedListener(this);
+
+        // Set up time spinner
+        ArrayList<CharSequence> timeEntries =
+                new ArrayList<CharSequence>(Arrays.<CharSequence>asList(
+                        getString(R.string.morning),
+                        getString(R.string.afternoon),
+                        getString(R.string.evening),
+                        getString(R.string.night),
+                        getString(R.string.pick_time)));
+        ArrayAdapter<CharSequence> timeAdapter =
+                new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, timeEntries);
+        Spinner timeSpinner = (Spinner) findViewById(R.id.time_spinner);
+        // Specify the layout to use when the list of choices appears
+        timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        timeSpinner.setAdapter(timeAdapter);
+        timeSpinner.setOnItemSelectedListener(this);
+
+        // Save button action
+        saveButton = (Button)findViewById(R.id.save_button);
+        saveButton.setOnClickListener(
+                new View.OnClickListener() {
+                    public void onClick(View view) {
+                        messageContentString = messageContentEditText.getText().toString();
+
+                        //TODO: ADD TO SQL TABLE
+                    }
+                });
+
     }
 
-    public void showTimePickerDialog(View v) {
+    public void showTimePickerDialog() {
         TimePickerFragment newFragment = new TimePickerFragment();
         newFragment.show(getSupportFragmentManager(), "timePicker");
     }
 
-    public void showDatePickerDialog(View v) {
+    public void showDatePickerDialog() {
         DatePickerFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), "datePicker");
     }
@@ -252,13 +291,75 @@ public class AddMessage extends AppCompatActivity
         }
     }
 
+    //Gets current time
+    public void setCurrentTime(){
+        Calendar calendar = Calendar.getInstance();
+        curYear = calendar.get(Calendar.YEAR);
+        curMonth = calendar.get(Calendar.MONTH);
+        curDay = calendar.get(Calendar.DAY_OF_MONTH);
+        curHourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
+        curMinute = calendar.get(Calendar.MINUTE);
+    }
+
     // Item selected from spinner
     public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-        System.out.println(parent.getItemAtPosition(pos));
+        System.out.println(parent.toString());
+        if(parent.getItemAtPosition(pos).equals(getString(R.string.today))) {
+            year = curYear;
+            month = curMonth;
+            day = curDay;
+        }
+        else if(parent.getItemAtPosition(pos).equals(getString(R.string.tomorrow))) {
+            year = curYear;
+            month = curMonth;
+            day = curDay + 1;
+        }
+        else if(parent.getItemAtPosition(pos).equals(getString(R.string.next) + " " + getDayOfWeekString())) {
+            year = curYear;
+            month = curMonth;
+            day = curDay + 7;
+        }
+        else if(parent.getItemAtPosition(pos).equals(getString(R.string.pick_date))) {
+            showDatePickerDialog();
+        }
+        else if(parent.getItemAtPosition(pos).equals(getString(R.string.morning))) {
+            hourOfDay = 9;
+            minute = 0;
+        }
+        else if(parent.getItemAtPosition(pos).equals(getString(R.string.afternoon))) {
+            hourOfDay = 13;
+            minute = 0;
+        }
+        else if(parent.getItemAtPosition(pos).equals(getString(R.string.evening))) {
+            hourOfDay = 17;
+            minute = 0;
+        }
+        else if(parent.getItemAtPosition(pos).equals(getString(R.string.night))) {
+            hourOfDay = 20;
+            minute = 0;
+        }
+        else if(parent.getItemAtPosition(pos).equals(getString(R.string.pick_time))) {
+            showTimePickerDialog();
+        }
     }
 
+    // If nothing selected on spinner
     public void onNothingSelected(AdapterView<?> parent) {
-        // DATE = today
+        year = curYear;
+        month = curMonth;
+        day = curDay;
     }
 
+    // Retrieves data from DatePickerFragment
+    public void onComplete(int year, int month, int day) {
+        year = this.year;
+        month = this.month;
+        day = this.day;
+    }
+
+    @Override
+    public void onComplete(int hourOfDay, int minute) {
+        hourOfDay = this.hourOfDay;
+        minute = this.minute;
+    }
 }
