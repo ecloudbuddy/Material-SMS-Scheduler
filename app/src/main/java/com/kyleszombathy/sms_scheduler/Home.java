@@ -1,11 +1,11 @@
 package com.kyleszombathy.sms_scheduler;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -18,6 +18,11 @@ public class Home extends AppCompatActivity {
 
     private static final int PICK_CONTACT_REQUEST = 1;
     private static final String EXTRA_MESSAGE = "imageUri";
+
+    private RecyclerView mRecyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private String[] recyclerDataset = {"Cheese", "Pepperoni", "Black Olives"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,31 +44,26 @@ public class Home extends AppCompatActivity {
         // specify an adapter (see also next example)
         //mAdapter = new MyAdapter(myDataset);
         mRecyclerView.setAdapter(mAdapter);*/
+        // Setting up RecyclerView
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        mAdapter = new AddMessageRecyclerAdapter(recyclerDataset);
+        mRecyclerView.setAdapter(mAdapter);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent pickContactIntent = new Intent(Intent.ACTION_PICK, Uri.parse("content://contacts"));
-                pickContactIntent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE); // Show user only contacts w/ phone numbers
-                startActivityForResult(pickContactIntent, PICK_CONTACT_REQUEST);
+                Intent intent = new Intent(Home.this, AddMessage.class);
+                Home.this.startActivity(intent);
             }
         });
 
     }
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PICK_CONTACT_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                // A contact was picked.
-                Uri uri = data.getData();
-
-                Intent intent = new Intent(Home.this, AddMessage.class);
-                intent.putExtra(EXTRA_MESSAGE, uri);
-                Home.this.startActivity(intent);
-            }
-        }
-    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
