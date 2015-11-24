@@ -29,4 +29,7 @@
     <string name="evening">Evening</string>
     <string name="night">Night</string>
     <string name="pick_time">Pick a time…</string>
+    <!--Error Messages-->
+    <string name="error_recipient">Must enter a recipient</string>
+    <string name="error_message_content">Must enter a message</string>
 </resources>

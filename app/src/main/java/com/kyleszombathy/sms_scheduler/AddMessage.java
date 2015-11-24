@@ -15,6 +15,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -51,11 +53,11 @@ public class AddMessage extends AppCompatActivity
 
     ArrayList<Integer> ID = new ArrayList<>();
     ArrayList<String> name = new ArrayList<>();
-    ArrayList<Long> phoneNum = new ArrayList<>();
+    ArrayList<String> phoneNum = new ArrayList<>();
     private int arrayListCount = 0;
     private int curYear, curMonth, curDay, curHourOfDay, curMinute;
     private int year, month, day, hourOfDay, minute;
-    private String messageContentString;
+    private String messageContentString = "";
 
     private Uri uri;
 
@@ -73,7 +75,7 @@ public class AddMessage extends AppCompatActivity
                 counterTextView.setText(String.valueOf(smsLength - length));
             }
             else {
-                counterTextView.setText(String.valueOf(length / smsLength) + ", "
+                counterTextView.setText(String.valueOf(length / smsLength) + " / "
                         + String.valueOf(smsLength - length % smsLength));
             }
 
@@ -95,12 +97,13 @@ public class AddMessage extends AppCompatActivity
         setContentView(R.layout.activity_add_message);
 
         // Setting up toolbar
-        Toolbar myChildToolbar = (Toolbar) findViewById(R.id.toolbarAddMessage);
+        Toolbar myChildToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(myChildToolbar);
         // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
         // Enable the Up button on toolbar
         if (ab != null) ab.setDisplayHomeAsUpEnabled(true);
+
 
         // Set up initial fragment to display
         AddMessageFragment firstFragment = new AddMessageFragment();
@@ -119,6 +122,7 @@ public class AddMessage extends AppCompatActivity
         counterTextView = (TextView) findViewById(R.id.count);
         messageContentEditText = (EditText) findViewById(R.id.messageContent);
         messageContentEditText.addTextChangedListener(mTextEditorWatcher);
+
 
         // Creates an autocomplete for phone number contacts
         phoneRetv = (RecipientEditTextView) findViewById(R.id.phone_retv);
@@ -160,18 +164,46 @@ public class AddMessage extends AppCompatActivity
         // Apply the adapter to the spinner
         timeSpinner.setAdapter(timeAdapter);
         timeSpinner.setOnItemSelectedListener(this);
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_send:
+                messageContentString = messageContentEditText.getText().toString();
+                DrawableRecipientChip[] chips = phoneRetv.getSortedRecipients();
+                //Error handling
+                if (chips.length == 0) {
+                    phoneRetv.setHint(R.string.error_recipient);
+                    phoneRetv.setHintTextColor(getResources().getColor(R.color.error_primary));
+                }
+                if (messageContentString.length() == 0) {
+                    messageContentEditText.setHint(R.string.error_message_content);
+                    messageContentEditText.setHintTextColor(getResources().getColor(R.color.error_primary));
+                }
+                for (int i = 0; i < chips.length; i++) {
+                    String str = chips[i].toString();
+                    phoneNum.add(getPhoneNumberFromString(str));
+                    name.add(getNameFromString(str));
+                }
 
-        // Save button action
-        saveButton = (Button)findViewById(R.id.save_button);
-        saveButton.setOnClickListener(
-                new View.OnClickListener() {
-                    public void onClick(View view) {
-                        messageContentString = messageContentEditText.getText().toString();
+                //TODO: CREATE SQL TABLE HERE
 
-                        //TODO: ADD TO SQL TABLE
-                    }
-                });
+                // Return to Home
+                //finish();
+                return true;
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
 
+        }
+    }
+
+    @Override // Inserts menu send button
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_add_message, menu);
+        return true;
     }
 
     public void showTimePickerDialog() {
@@ -182,37 +214,6 @@ public class AddMessage extends AppCompatActivity
     public void showDatePickerDialog() {
         DatePickerFragment newFragment = new DatePickerFragment();
         newFragment.show(getSupportFragmentManager(), "datePicker");
-    }
-
-    public void onSendButtonPress(View v) {
-        // Get all current chips
-        DrawableRecipientChip[] chips = phoneRetv.getSortedRecipients();
-    }
-
-    public void openContactSearch(View v) {
-/*        Intent pickContactIntent = new Intent(Intent.ACTION_PICK, Uri.parse("content://contacts"));
-        // Show user only contacts w/ phone numbers
-        pickContactIntent.setType(ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE);
-        startActivityForResult(pickContactIntent, PICK_CONTACT_REQUEST);*/
-    }
-
-    // "test" button
-    public void showContactsFragment(View v) {
-/*        // Create fragment and give it an argument specifying the article it should show
-        Fragment newFragment = new ContactsFragment();
-        Bundle args = new Bundle();
-        //args.putInt(ContactsFragment., position);
-        newFragment.setArguments(args);
-
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-
-        // Replace whatever is in the fragment_container view with this fragment,
-        // and add the transaction to the back stack so the user can navigate back
-        transaction.replace(R.id.fragment_container, newFragment);
-        transaction.addToBackStack(null);
-
-        // Commit the transaction
-        transaction.commit();*/
     }
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -291,14 +292,34 @@ public class AddMessage extends AppCompatActivity
         }
     }
 
+    public String getPhoneNumberFromString(String str) {
+        String temp = "";
+        for (int i =0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (Character.isDigit(c)) {
+                temp += c;
+            }
+        } return temp;
+    }
+
+    public String getNameFromString(String str) {
+        String temp = "";
+        for (int i =0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (Character.isAlphabetic(c) ) {
+                temp += c;
+            }
+        } return temp;
+    }
+
     //Gets current time
     public void setCurrentTime(){
         Calendar calendar = Calendar.getInstance();
-        curYear = calendar.get(Calendar.YEAR);
-        curMonth = calendar.get(Calendar.MONTH);
-        curDay = calendar.get(Calendar.DAY_OF_MONTH);
-        curHourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
-        curMinute = calendar.get(Calendar.MINUTE);
+        year = curYear = calendar.get(Calendar.YEAR);
+        month = curMonth = calendar.get(Calendar.MONTH);
+        day = curDay = calendar.get(Calendar.DAY_OF_MONTH);
+        hourOfDay = curHourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
+        minute = curMinute = calendar.get(Calendar.MINUTE);
     }
 
     // Item selected from spinner

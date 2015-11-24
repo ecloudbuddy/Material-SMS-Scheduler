@@ -6,4 +6,5 @@
     <color name="primary_material_light_1">#9e9e9e</color>
     <color name="primary_text_default_material_light">#de000000</color>
     <color name="primary_text_material_light">#000000</color>
+    <color name="error_primary">#FFFF0000</color>
 </resources>
