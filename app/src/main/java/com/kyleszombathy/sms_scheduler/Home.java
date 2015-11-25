@@ -1,17 +1,21 @@
 package com.kyleszombathy.sms_scheduler;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toolbar;
 
-public class Home extends AppCompatActivity {
+import com.github.amlcurran.showcaseview.ShowcaseView;
+import com.github.amlcurran.showcaseview.targets.Target;
+import com.github.amlcurran.showcaseview.targets.ViewTarget;
+
+public class Home extends Activity {
 /*    private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;*/
@@ -22,28 +26,18 @@ public class Home extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private String[] recyclerDataset = {"Cheese", "Pepperoni", "Black Olives"};
+    private String[] recyclerDataset = {};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        setActionBar(toolbar);
 
-/*        mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
+        // Showcase TODO
+        //showcase();
 
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        mRecyclerView.setHasFixedSize(true);
-
-        // use a linear layout manager
-        mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
-
-        // specify an adapter (see also next example)
-        //mAdapter = new MyAdapter(myDataset);
-        mRecyclerView.setAdapter(mAdapter);*/
         // Setting up RecyclerView
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
@@ -53,6 +47,7 @@ public class Home extends AppCompatActivity {
         mAdapter = new AddMessageRecyclerAdapter(recyclerDataset);
         mRecyclerView.setAdapter(mAdapter);
 
+        // Floating action button
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,6 +57,17 @@ public class Home extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void showcase() {
+        Target viewTarget = new ViewTarget(R.id.fab, this);
+        new ShowcaseView.Builder(this)
+                .withMaterialShowcase()
+                .setTarget(viewTarget)
+                .setContentTitle("Welcome to SMS Scheduler")
+                .setContentText("Click here to add a message")
+                .singleShot(42)
+                .build();
     }
 
     @Override

@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="library-5.3.0">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.github.amlcurran.showcaseview/library/5.3.0/jars/classes.jar!/" />
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/com.github.amlcurran.showcaseview/library/5.3.0/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.github.amlcurran.showcaseview/library/5.3.0/a49e3a91798ecaade36979e440668179c2fd62c/library-5.3.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

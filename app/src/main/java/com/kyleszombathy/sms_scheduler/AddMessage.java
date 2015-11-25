@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.provider.ContactsContract.Data;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -29,6 +30,8 @@ import android.widget.TextView;
 import com.android.ex.chips.BaseRecipientAdapter;
 import com.android.ex.chips.RecipientEditTextView;
 import com.android.ex.chips.recipientchip.DrawableRecipientChip;
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,6 +74,7 @@ public class AddMessage extends AppCompatActivity
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             //This sets a textview to the current length
             int length = s.length();
+            mtil.setErrorEnabled(false);
             if (length <= smsLength) {
                 counterTextView.setText(String.valueOf(smsLength - length));
             }
@@ -83,6 +87,24 @@ public class AddMessage extends AppCompatActivity
         public void afterTextChanged(Editable s) {
         }
     };
+
+    private final TextWatcher phoneTextEditorWatcher = new TextWatcher() {
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            DrawableRecipientChip[] chips = phoneRetv.getSortedRecipients();
+            if (chips.length > 0) {
+                rtil.setErrorEnabled(false);
+            }
+        }
+        public void afterTextChanged(Editable s) {
+        }
+    };
+
+    //Other
+    private TextView errorMessageContent;
+    TextInputLayout rtil;
+    TextInputLayout mtil;
 
 
     Button saveButton;
@@ -118,6 +140,10 @@ public class AddMessage extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        errorMessageContent = (TextView) findViewById(R.id.error_message);
+        rtil = (TextInputLayout) findViewById(R.id.recipient_text_input_layout);
+        mtil = (TextInputLayout) findViewById(R.id.message_text_input_layout);
+
         // Get character count
         counterTextView = (TextView) findViewById(R.id.count);
         messageContentEditText = (EditText) findViewById(R.id.messageContent);
@@ -165,25 +191,43 @@ public class AddMessage extends AppCompatActivity
         timeSpinner.setAdapter(timeAdapter);
         timeSpinner.setOnItemSelectedListener(this);
     }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_send:
                 messageContentString = messageContentEditText.getText().toString();
                 DrawableRecipientChip[] chips = phoneRetv.getSortedRecipients();
+
                 //Error handling
                 if (chips.length == 0) {
-                    phoneRetv.setHint(R.string.error_recipient);
-                    phoneRetv.setHintTextColor(getResources().getColor(R.color.error_primary));
+                    rtil.setErrorEnabled(true);
+                    rtil.setError(getResources().getString(R.string.error_recipient));
+                    YoYo.with(Techniques.Shake)
+                            .duration(700)
+                            .playOn(findViewById(R.id.recipient_text_input_layout));
+                    phoneRetv.addTextChangedListener(phoneTextEditorWatcher);
                 }
                 if (messageContentString.length() == 0) {
-                    messageContentEditText.setHint(R.string.error_message_content);
-                    messageContentEditText.setHintTextColor(getResources().getColor(R.color.error_primary));
+                    mtil.setErrorEnabled(true);
+                    mtil.setError(getResources().getString(R.string.error_message_content));
+
+                    YoYo.with(Techniques.Shake)
+                            .duration(700)
+                            .playOn(findViewById(R.id.message_text_input_layout));
                 }
-                for (int i = 0; i < chips.length; i++) {
-                    String str = chips[i].toString();
-                    phoneNum.add(getPhoneNumberFromString(str));
-                    name.add(getNameFromString(str));
+
+                // Insert phone numbers and names into arraylist
+                for (DrawableRecipientChip chip : chips) {
+                    String str = chip.toString();
+                    String tempName = getNameFromString(str);
+                    String tempPhone = getPhoneNumberFromString(str);
+                    phoneNum.add(tempPhone);
+                    if(tempName.length() == 0) {
+                        name.add(tempPhone);
+                    } else {
+                        name.add(tempName);
+                    }
                 }
 
                 //TODO: CREATE SQL TABLE HERE

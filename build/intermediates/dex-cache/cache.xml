@@ -2,18 +2,11 @@
 <items version="2" >
 
     <item
-        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\com.rengwuxian.materialedittext\library\2.1.4\jars\classes.jar"
+        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\me.zhanghai.android.materialedittext\library\1.0.1\jars\classes.jar"
         jumboMode="false"
         revision="23.0.2"
-        sha1="288913b440a3c61c30aa171095453a605432277a">
-        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-97e828eacfbb6df94f758fcb744460395756bc09.jar" />
-    </item>
-    <item
-        jar="C:\Users\Kyle\.gradle\caches\modules-2\files-2.1\com.nineoldandroids\library\2.4.0\e9b63380f3a242dbdbf103a2355ad7e43bad17cb\library-2.4.0.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="e9b63380f3a242dbdbf103a2355ad7e43bad17cb">
-        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\library-2.4.0-7b4ffe19c55eed5480314724dbdc343935806325.jar" />
+        sha1="a2657200d76d4e8d27a6d5120b519d2941767aab">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-05599792f67c901fedc351b086688012e394da57.jar" />
     </item>
 
 </items>
