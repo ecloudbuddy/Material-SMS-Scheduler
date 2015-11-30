@@ -2,11 +2,11 @@
 <items version="2" >
 
     <item
-        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\me.zhanghai.android.materialedittext\library\1.0.1\jars\classes.jar"
+        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\com.github.ganfra\material-spinner\1.1.1\jars\classes.jar"
         jumboMode="false"
         revision="23.0.2"
-        sha1="a2657200d76d4e8d27a6d5120b519d2941767aab">
-        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-05599792f67c901fedc351b086688012e394da57.jar" />
+        sha1="d0df3bf618b078d102a4234ceff33c44026e64b9">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-da1f85a8b39b4d5121a7431e83dcf58bb796b890.jar" />
     </item>
 
 </items>

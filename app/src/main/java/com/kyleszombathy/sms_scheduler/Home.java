@@ -1,14 +1,17 @@
 package com.kyleszombathy.sms_scheduler;
 
+import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.transition.Fade;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Toolbar;
 
 import com.github.amlcurran.showcaseview.ShowcaseView;
@@ -31,7 +34,14 @@ public class Home extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Setting up transitions
+        getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
+        getWindow().setExitTransition(new Fade());
+
         setContentView(R.layout.activity_home);
+        ObjectAnimator mAnimator;
+        //mAnimator = ObjectAnimator.ofFloat(Home.this, View.X, View.Y, path);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setActionBar(toolbar);
 
@@ -44,16 +54,16 @@ public class Home extends Activity {
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        mAdapter = new AddMessageRecyclerAdapter(recyclerDataset);
+        mAdapter = new HomeRecyclerAdapter(recyclerDataset);
         mRecyclerView.setAdapter(mAdapter);
 
-        // Floating action button
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+
+        // Floating action button start activity
+        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(Home.this, AddMessage.class);
-                Home.this.startActivity(intent);
+            public void onClick(View v) {
+                startActivity(new Intent(Home.this, AddMessage.class),
+                        ActivityOptions.makeSceneTransitionAnimation(Home.this).toBundle());
             }
         });
 

@@ -9,7 +9,7 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -24,62 +24,65 @@
     android:weightSum="1">
    <!-- tools:showIn="@layout/activity_add_message"-->
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Content"
-            android:id="@+id/subtitle1"
-            android:height="48dp" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/subtitle_content"
+        android:id="@+id/subtitle1"
+        android:height="48dp" />
 
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/recipient_text_input_layout"
+
+    <com.android.ex.chips.RecipientEditTextView
+        android:id="@+id/phone_retv"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.android.ex.chips.RecipientEditTextView
-            android:id="@+id/phone_retv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/phone_numbers"
-            android:typeface="normal"
-            android:minHeight="58dp"/>
-
-    </android.support.design.widget.TextInputLayout>
-
-    <android.support.design.widget.TextInputLayout
-        android:id="@+id/message_text_input_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <EditText
-            android:id="@+id/messageContent"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/message_content"
-            android:minHeight="58dp"
-            android:inputType="textCapSentences|textAutoCorrect|textMultiLine"/>
-
-    </android.support.design.widget.TextInputLayout>
+        android:layout_height="wrap_content"
+        android:hint="@string/phone_numbers"
+        android:typeface="normal"
+        android:paddingBottom="16dp"
+        android:paddingTop="16dp"
+        android:layout_below="@+id/subtitle1"
+        android:layout_alignParentStart="true" />
 
     <RelativeLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="16dp">
+        android:layout_height="16dp"
+        android:id="@+id/relativeLayout2"
+        android:layout_below="@+id/phone_retv"
+        android:layout_alignParentStart="true">
 
-        <Space
-            android:layout_width="6dp"
-            android:layout_height="8dp"
-            android:id="@+id/space" />
+    </RelativeLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:id="@+id/error_message"
-            android:layout_alignParentTop="true"
-            android:layout_toEndOf="@+id/space" />
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:id="@+id/space"
+        android:layout_below="@+id/phone_retv"
+        android:layout_alignParentEnd="true" />
+
+    <EditText
+        android:id="@+id/messageContent"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/message_content"
+        android:inputType="textCapSentences|textAutoCorrect|textMultiLine"
+        android:paddingTop="16dp"
+        android:nestedScrollingEnabled="true"
+        android:paddingBottom="16dp"
+        android:layout_below="@+id/space"
+        android:layout_alignParentStart="true"
+        android:maxHeight="175dp"
+        android:scrollIndicators="right" />
+
+    <RelativeLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="16dp"
+        android:id="@+id/relativeLayout"
+        android:layout_below="@+id/messageContent"
+        android:layout_alignParentStart="true">
 
         <TextView
             android:layout_width="wrap_content"
@@ -92,39 +95,43 @@
 
     </RelativeLayout>
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Date/Time"
-            android:id="@+id/subtitle2"
-            android:height="48dp" />
-    </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/set_date_time"
+        android:id="@+id/subtitle2"
+        android:height="48dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/relativeLayout" />
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
-        android:gravity="center">
+        android:layout_height="match_parent"
+        android:gravity="top"
+        android:layout_below="@+id/subtitle2"
+        android:layout_alignParentStart="true">
 
-        <Spinner
+        <fr.ganfra.materialspinner.MaterialSpinner
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:id="@+id/date_spinner"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            app:ms_arrowSize="16dp"
+            />
 
-        <Spinner
+        <fr.ganfra.materialspinner.MaterialSpinner
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:id="@+id/time_spinner" />
+            android:id="@+id/time_spinner"
+            app:ms_arrowSize="16dp"
+            />
 
     </LinearLayout>
+</RelativeLayout>
 
-</LinearLayout>
+

@@ -9,7 +9,7 @@ import android.widget.TextView;
  * Created by Kyle on 11/23/2015.
  */
 
-public class AddMessageRecyclerAdapter extends RecyclerView.Adapter<AddMessageRecyclerAdapter.ViewHolder> {
+public class HomeRecyclerAdapter extends RecyclerView.Adapter<HomeRecyclerAdapter.ViewHolder> {
     private String[] mDataset;
 
     // Provide a reference to the views for each data item
@@ -25,13 +25,13 @@ public class AddMessageRecyclerAdapter extends RecyclerView.Adapter<AddMessageRe
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public AddMessageRecyclerAdapter(String[] myDataset) {
+    public HomeRecyclerAdapter(String[] myDataset) {
         mDataset = myDataset;
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public AddMessageRecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
+    public HomeRecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                    int viewType) {
         // create a new view
         TextView v = (TextView) LayoutInflater.from(parent.getContext())

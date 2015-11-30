@@ -4,7 +4,7 @@
     tools:context="com.kyleszombathy.sms_scheduler.AddMessage">
     <item
         android:id="@+id/action_send"
-        android:icon="@android:drawable/ic_menu_send"
+        android:icon="@drawable/ic_done_black_24dp"
         android:title="send"
-        compat:showAsAction="ifRoom"/>
+        compat:showAsAction="ifRoom" />
 </menu>

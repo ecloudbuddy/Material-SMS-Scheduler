@@ -19,8 +19,9 @@
         android:id="@+id/recycler_view"
         android:scrollbars="vertical"
         android:minHeight="50dp"
-        android:padding="5dp"/>
+        android:padding="5dp" />
 
 
 </LinearLayout>
+
 
