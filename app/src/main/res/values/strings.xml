@@ -4,7 +4,7 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_add_message">Add Message</string>
     <string name="message_content"> Message</string>
-    <string name="phone_numbers">Recipient(s)</string>
+    <string name="phone_numbers">To</string>
     <!--For date spinner-->
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
@@ -30,4 +30,5 @@
     <string name="set_date_time">Set Date/Time</string>
     <string name="subtitle_content">Content</string>
     <string name="success">Message saved</string>
+    <string name="invalid_entry">One or more entries are invalid</string>
 </resources>

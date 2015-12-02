@@ -4,9 +4,12 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateFormat;
 import android.transition.Fade;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -17,6 +20,10 @@ import android.widget.Toolbar;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.Target;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
+import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
+
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
 
 public class Home extends Activity {
 /*    private RecyclerView mRecyclerView;
@@ -26,10 +33,14 @@ public class Home extends Activity {
     private static final int PICK_CONTACT_REQUEST = 1;
     private static final String EXTRA_MESSAGE = "imageUri";
 
-    private RecyclerView mRecyclerView;
+    private UltimateRecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private String[] recyclerDataset = {};
+    private ArrayList<String> nameDataset = new ArrayList<>();
+    private ArrayList<String> messageContentDataset = new ArrayList<>();
+    private ArrayList<String> dateDataset = new ArrayList<>();
+    private ArrayList<String> timeDataSet = new ArrayList<>();
+    private boolean multipleRecipients;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,16 +59,9 @@ public class Home extends Activity {
         // Showcase TODO
         //showcase();
 
-        // Setting up RecyclerView
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-
-        mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
-
-        mAdapter = new HomeRecyclerAdapter(recyclerDataset);
-        mRecyclerView.setAdapter(mAdapter);
-
-
+        readFromSQLDatabase();
+        setUpRecyclerView();
+        
         // Floating action button start activity
         findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -67,6 +71,95 @@ public class Home extends Activity {
             }
         });
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    private void readFromSQLDatabase() {
+        MessageDbHelper mDbHelper = new MessageDbHelper(Home.this);
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        // Define a projection that specifies which columns from the database
+        // you will actually use after this query.
+        String[] projection = {
+            MessageContract.MessageEntry.COLUMN_NAME_NAME,
+            MessageContract.MessageEntry.COLUMN_NAME_MESSAGE,
+            MessageContract.MessageEntry.COLUMN_NAME_YEAR,
+            MessageContract.MessageEntry.COLUMN_NAME_MONTH,
+            MessageContract.MessageEntry.COLUMN_NAME_DAY,
+            MessageContract.MessageEntry.COLUMN_NAME_HOUR,
+            MessageContract.MessageEntry.COLUMN_NAME_MINUTE,
+            MessageContract.MessageEntry.COLUMN_NAME_NULLABLE
+        };
+
+        // How you want the results sorted in the resulting Cursor
+        String sortOrder =
+                MessageContract.MessageEntry.COLUMN_NAME_NAME + " DESC";
+
+        Cursor cursor = db.query(
+                MessageContract.MessageEntry.TABLE_NAME,  // The table to query
+                projection,                               // The columns to return
+                null,                                     // The columns for the WHERE clause
+                null,                                     // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                sortOrder                                 // The sort order
+        );
+        cursor.moveToFirst();
+        for (int i = 0; i < cursor.getCount(); i++) {
+            extractName(cursor.getString(cursor.getColumnIndexOrThrow
+                    (MessageContract.MessageEntry.COLUMN_NAME_NAME)));
+            int year = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (MessageContract.MessageEntry.COLUMN_NAME_YEAR));
+            int month = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (MessageContract.MessageEntry.COLUMN_NAME_MONTH));
+            int day = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (MessageContract.MessageEntry.COLUMN_NAME_DAY));
+            int hour = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (MessageContract.MessageEntry.COLUMN_NAME_HOUR));
+            int minute = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (MessageContract.MessageEntry.COLUMN_NAME_MINUTE));
+            messageContentDataset.add(cursor.getString(cursor.getColumnIndexOrThrow
+                    (MessageContract.MessageEntry.COLUMN_NAME_MESSAGE)));
+            System.out.println(year);
+            setFullDateAndTime(year, month, day, hour, minute);
+            cursor.moveToNext();
+        }
+        cursor.close();
+    }
+
+    private void extractName(String string) {
+        string = string.replace("[", "");
+        string = string.replace("]", "");
+        if(string.contains(",")) {
+            multipleRecipients = true;
+        }
+        nameDataset.add(string);
+    }
+
+    public void setFullDateAndTime(int year, int month, int day, int hour, int minute) {
+        GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
+        java.text.DateFormat dateFormat = DateFormat.getDateFormat(getApplicationContext());
+        java.text.DateFormat timeFormat = DateFormat.getTimeFormat(getApplicationContext());
+        dateDataset.add(dateFormat.format(date.getTime()));
+        timeDataSet.add(timeFormat.format(date.getTime()));
+    }
+
+    private void setUpRecyclerView() {
+        // Setting up RecyclerView
+        mRecyclerView = (UltimateRecyclerView) findViewById(R.id.recycler_view);
+        mRecyclerView.setHasFixedSize(true);
+
+        mLayoutManager = new LinearLayoutManager(this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
+
+        mAdapter = new HomeRecyclerAdapter(
+                nameDataset, messageContentDataset, dateDataset, timeDataSet);
+        mRecyclerView.setAdapter(mAdapter);
     }
 
     private void showcase() {
@@ -79,6 +172,16 @@ public class Home extends Activity {
                 .singleShot(42)
                 .build();
     }
+    @Override
+    public void onRestart() {
+        super.onRestart();
+        //When BACK BUTTON is pressed, the activity on the stack is restarted
+        //Do what you want on the refresh procedure here
+        finish();
+        startActivity(getIntent());
+        System.out.println("Reloading");
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

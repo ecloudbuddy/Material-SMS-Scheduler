@@ -21,7 +21,8 @@
     tools:context="com.kyleszombathy.sms_scheduler.AddMessageFragment"
     android:theme="@style/AppTheme"
     android:orientation="vertical"
-    android:weightSum="1">
+    android:weightSum="1"
+    >
    <!-- tools:showIn="@layout/activity_add_message"-->
 
     <TextView
@@ -29,9 +30,11 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/primary_text_material_light"
         android:text="@string/subtitle_content"
         android:id="@+id/subtitle1"
-        android:height="48dp" />
+        android:height="48dp"
+        />
 
 
     <com.android.ex.chips.RecipientEditTextView
@@ -39,11 +42,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="@string/phone_numbers"
-        android:typeface="normal"
         android:paddingBottom="16dp"
         android:paddingTop="16dp"
         android:layout_below="@+id/subtitle1"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentStart="true"
+        />
 
     <RelativeLayout
         android:orientation="horizontal"
@@ -51,7 +54,15 @@
         android:layout_height="16dp"
         android:id="@+id/relativeLayout2"
         android:layout_below="@+id/phone_retv"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        >
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/error_color"
+            android:id="@+id/phone_retv_error"
+            />
 
     </RelativeLayout>
 
@@ -60,7 +71,8 @@
         android:layout_height="8dp"
         android:id="@+id/space"
         android:layout_below="@+id/phone_retv"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"
+        />
 
     <EditText
         android:id="@+id/messageContent"
@@ -74,7 +86,8 @@
         android:layout_below="@+id/space"
         android:layout_alignParentStart="true"
         android:maxHeight="175dp"
-        android:scrollIndicators="right" />
+        android:scrollIndicators="right"
+        />
 
     <RelativeLayout
         android:orientation="horizontal"
@@ -82,7 +95,16 @@
         android:layout_height="16dp"
         android:id="@+id/relativeLayout"
         android:layout_below="@+id/messageContent"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="@color/error_color"
+            android:id="@+id/messageContentError"
+            />
 
         <TextView
             android:layout_width="wrap_content"
@@ -91,7 +113,8 @@
             android:text="160"
             android:id="@+id/count"
             android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true" />
+            android:layout_alignParentEnd="true"
+            />
 
     </RelativeLayout>
 
@@ -101,11 +124,13 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/primary_text_material_light"
         android:text="@string/set_date_time"
         android:id="@+id/subtitle2"
         android:height="48dp"
         android:layout_alignParentStart="true"
-        android:layout_below="@+id/relativeLayout" />
+        android:layout_below="@+id/relativeLayout"
+        />
 
     <LinearLayout
         android:orientation="horizontal"
@@ -113,7 +138,8 @@
         android:layout_height="match_parent"
         android:gravity="top"
         android:layout_below="@+id/subtitle2"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        >
 
         <fr.ganfra.materialspinner.MaterialSpinner
             android:layout_width="0dp"
@@ -121,6 +147,9 @@
             android:id="@+id/date_spinner"
             android:layout_weight="1"
             app:ms_arrowSize="16dp"
+            app:ms_enableFloatingLabel="true"
+            app:ms_hintColor="@color/primary_text_material_light"
+            app:ms_enableErrorLabel="true"
             />
 
         <fr.ganfra.materialspinner.MaterialSpinner
@@ -129,6 +158,8 @@
             android:layout_weight="1"
             android:id="@+id/time_spinner"
             app:ms_arrowSize="16dp"
+            app:ms_enableFloatingLabel="true"
+            app:ms_enableErrorLabel="true"
             />
 
     </LinearLayout>

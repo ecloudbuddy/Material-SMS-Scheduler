@@ -1,11 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:textAppearance="?android:attr/textAppearanceMedium"
-    android:id="@+id/recycler_text_view"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="72dp"
+    android:padding="6dip"
+    android:id="@+id/recycler_text_view">
 
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="72dp"
+        android:layout_height="fill_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true"
+        android:contentDescription="Image"
+        android:src="@drawable/ic_person_black_24dp" />
 
-    >
+    <TextView
+        android:id="@+id/messageContentDisplay"
+        android:layout_width="fill_parent"
+        android:layout_height="26dip"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@id/icon"
+        android:layout_toStartOf="@+id/time_date_container"
+        android:ellipsize="marquee"
+        android:singleLine="true"
+        android:text="testing this text"
+        android:textSize="12sp" />
 
-</TextView>
+    <TextView
+        android:id="@+id/nameDisplay"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/messageContentDisplay"
+        android:layout_alignParentTop="true"
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_toEndOf="@id/icon"
+        android:layout_toStartOf="@+id/time_date_container"
+        android:gravity="center_vertical"
+        android:text="Example application"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:id="@+id/time_date_container"
+        android:layout_width="80dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/dateDisplay"
+            android:text="date"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/timeDisplay"
+            android:text="time"/>
+
+    </LinearLayout>
+
+</RelativeLayout>
