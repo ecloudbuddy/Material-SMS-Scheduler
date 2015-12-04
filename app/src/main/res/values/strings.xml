@@ -3,21 +3,16 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_add_message">Add Message</string>
+    <!--Main page content-->
     <string name="message_content"> Message</string>
     <string name="phone_numbers">To</string>
+    <string name="set_date_time">Set Date/Time</string>
+    <string name="subtitle_content">Content</string>
     <!--For date spinner-->
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="next">Next</string>
     <string name="pick_date">Pick a Date…</string>
-    <!--Days of week-->
-    <string name="sunday">Sunday</string>
-    <string name="monday">Monday</string>
-    <string name="tuesday">Tuesday</string>
-    <string name="wednesday">Wednesday</string>
-    <string name="thursday">Thursday</string>
-    <string name="friday">Friday</string>
-    <string name="saturday">Saturday</string>
     <!--For time spinner-->
     <string name="morning"  >Morning   - </string>
     <string name="afternoon">Afternoon - </string>
@@ -27,8 +22,18 @@
     <!--Error Messages-->
     <string name="error_recipient">Must enter a recipient</string>
     <string name="error_message_content">Must enter a message</string>
-    <string name="set_date_time">Set Date/Time</string>
-    <string name="subtitle_content">Content</string>
-    <string name="success">Message saved</string>
     <string name="invalid_entry">One or more entries are invalid</string>
+    <!--Other-->
+    <string name="tab">\u0009</string>
+    <!--tooltips-->
+    <string name="success">Message saved</string>
+    <!--Days of week-->
+    <string name="sunday">Sunday</string>
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wednesday">Wednesday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
+    <string name="saturday">Saturday</string>
+
 </resources>

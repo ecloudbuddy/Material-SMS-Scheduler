@@ -92,8 +92,7 @@ public class Home extends Activity {
             MessageContract.MessageEntry.COLUMN_NAME_MONTH,
             MessageContract.MessageEntry.COLUMN_NAME_DAY,
             MessageContract.MessageEntry.COLUMN_NAME_HOUR,
-            MessageContract.MessageEntry.COLUMN_NAME_MINUTE,
-            MessageContract.MessageEntry.COLUMN_NAME_NULLABLE
+            MessageContract.MessageEntry.COLUMN_NAME_MINUTE
         };
 
         // How you want the results sorted in the resulting Cursor
@@ -109,6 +108,7 @@ public class Home extends Activity {
                 null,                                     // don't filter by row groups
                 sortOrder                                 // The sort order
         );
+
         cursor.moveToFirst();
         for (int i = 0; i < cursor.getCount(); i++) {
             extractName(cursor.getString(cursor.getColumnIndexOrThrow
@@ -125,8 +125,8 @@ public class Home extends Activity {
                     (MessageContract.MessageEntry.COLUMN_NAME_MINUTE));
             messageContentDataset.add(cursor.getString(cursor.getColumnIndexOrThrow
                     (MessageContract.MessageEntry.COLUMN_NAME_MESSAGE)));
-            System.out.println(year);
-            setFullDateAndTime(year, month, day, hour, minute);
+
+            setFullDateAndTime(year, day, month+1, hour, minute);
             cursor.moveToNext();
         }
         cursor.close();
@@ -160,6 +160,19 @@ public class Home extends Activity {
         mAdapter = new HomeRecyclerAdapter(
                 nameDataset, messageContentDataset, dateDataset, timeDataSet);
         mRecyclerView.setAdapter(mAdapter);
+
+/*        mRecyclerView.setDefaultOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        simpleRecyclerViewAdapter.insert(moreNum++ + "  Refresh things", 0);
+                        mRecyclerView.setRefreshing(false);
+                    }
+                }, 1000);
+            }
+        });*/
     }
 
     private void showcase() {

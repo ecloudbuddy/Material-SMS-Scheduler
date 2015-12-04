@@ -152,6 +152,10 @@
             app:ms_enableErrorLabel="true"
             />
 
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="match_parent" />
+
         <fr.ganfra.materialspinner.MaterialSpinner
             android:layout_width="0dp"
             android:layout_height="wrap_content"
