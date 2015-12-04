@@ -33,6 +33,10 @@ import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.telephony.SmsManager;
+
 
 import com.android.ex.chips.BaseRecipientAdapter;
 import com.android.ex.chips.RecipientEditTextView;
@@ -354,6 +358,7 @@ public class AddMessage extends AppCompatActivity
 
                 if (verifyData()) {
                     addDataToSQL();
+                    scheduleMessage();
                     hideKeyboard();
                     createSnackBar(getString(R.string.success));
                     Intent returnIntent = new Intent();
@@ -422,7 +427,17 @@ public class AddMessage extends AppCompatActivity
                 .playOn(findViewById(R.id.phone_retv));
         return false;
     }
+    private void scheduleMessage() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.MONTH, month);
+        cal.set(Calendar.DAY_OF_MONTH, day);
+        cal.set(Calendar.HOUR_OF_DAY, hour);
+        cal.set(Calendar.MINUTE, minute);
+        cal.set(Calendar.SECOND, 0);
+        SmsManager smsManager = SmsManager.getDefault();
+        smsManager.sendTextMessage(phone.toString(), null, messageContentString, null, null);
 
+    }
     private void addDataToSQL() {
         // SQLite database accessor
         MessageDbHelper mDbHelper = new MessageDbHelper(AddMessage.this);
