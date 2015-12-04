@@ -31,6 +31,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.kyleszombathy.sms_scheduler.Home" />
         </activity>
+
+        <receiver android:name=".AlarmReceiver"/>
     </application>
 
 </manifest>

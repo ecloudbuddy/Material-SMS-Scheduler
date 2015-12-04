@@ -428,21 +428,21 @@ public class AddMessage extends AppCompatActivity
         return false;
     }
     private void scheduleMessage() {
-        setCurrentDate();
-        setCurrentTime();
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.MONTH, month);
         cal.set(Calendar.DAY_OF_MONTH, day);
         cal.set(Calendar.HOUR_OF_DAY, hour);
-        cal.set(Calendar.MINUTE, minute + 1);
+        cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
 
         Intent intentAlarm = new Intent(this, AlarmReceiver.class);
-        intentAlarm.putExtra("pNum", phone.toString());
-        intentAlarm.putExtra("message", messageContentString);
+        Bundle extras = new Bundle();
+        extras.putString("pNum", phone.toString());
+        extras.putString("message", messageContentString);
+        intentAlarm.putExtras(extras);
         PendingIntent pInt = PendingIntent.getBroadcast(this.getApplicationContext(), 1234, intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarm.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pInt);
+        alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pInt);
 
     }
     private void addDataToSQL() {
