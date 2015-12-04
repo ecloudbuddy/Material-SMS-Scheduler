@@ -12,7 +12,7 @@ import android.content.Intent;
  * device will not trigger this receiver.
  */
 // BEGIN_INCLUDE(autostart)
-public class MessageBootReceiver extends BroadcastReceiver {
+/*public class MessageBootReceiver extends BroadcastReceiver {
     MessageAlarmReceiver alarm = new MessageAlarmReceiver();
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -21,5 +21,5 @@ public class MessageBootReceiver extends BroadcastReceiver {
             alarm.setAlarm(context);
         }
     }
-}
+}*/
 //END_INCLUDE(autostart)

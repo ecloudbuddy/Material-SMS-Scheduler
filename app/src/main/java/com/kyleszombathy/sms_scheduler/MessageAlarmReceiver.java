@@ -2,19 +2,31 @@ package com.kyleszombathy.sms_scheduler;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.telephony.SmsManager;
 
 import java.util.Calendar;
 
-/**
+/*public class AlarmReceiver extends BroadcastReceiver {
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        String phone = intent.getStringExtra("pNum");
+        String messageContentString = intent.getStringExtra("message");
+        SmsManager smsManager = SmsManager.getDefault();
+        smsManager.sendTextMessage(phone, null, messageContentString, null, null);
+    }
+}*/
+/*
  * When the alarm fires, this WakefulBroadcastReceiver receives the broadcast Intent
  * and then starts the IntentService {@code MessageSchedulingService} to do some work.
  */
-public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
+/*public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     private AlarmManager alarmMgr;
     private PendingIntent alarmIntent;
 
@@ -36,12 +48,12 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
          * In this example, we simply create a new intent to deliver to the service.
          * This intent holds an extra identifying the wake lock.
          */
-        Intent service = new Intent(context, MessageSchedulingService.class);
+/*        Intent service = new Intent(context, MessageSchedulingService.class);
 
         // Start the service, keeping the device awake while it is launching.
         startWakefulService(context, service);
         // END_INCLUDE(alarm_onreceive)
-    }
+    }*/
 
     // BEGIN_INCLUDE(set_alarm)
     /**
@@ -49,6 +61,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
      * alarm fires, the app broadcasts an Intent to this WakefulBroadcastReceiver.
      * @param context
      */
+/*
     public void setAlarm(Context context) {
         alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, MessageAlarmReceiver.class);
@@ -59,6 +72,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         // Set the alarm's trigger time to 8:30 a.m.
         calendar.set(Calendar.HOUR_OF_DAY, 8);
         calendar.set(Calendar.MINUTE, 30);
+*/
 
         /*
          * If you don't have precise time requirements, use an inexact repeating alarm
@@ -93,6 +107,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
 
         // Set the alarm to fire at approximately 8:30 a.m., according to the device's
         // clock, and to repeat once a day.
+/*
         alarmMgr.setInexactRepeating(AlarmManager.RTC_WAKEUP,
                 calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, alarmIntent);
 
@@ -105,6 +120,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                 PackageManager.DONT_KILL_APP);
     }
+*/
     // END_INCLUDE(set_alarm)
 
     /**
@@ -112,14 +128,15 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
      * @param context
      */
     // BEGIN_INCLUDE(cancel_alarm)
-    public void cancelAlarm(Context context) {
+/*    public void cancelAlarm(Context context) {
         // If the alarm has been set, cancel it.
         if (alarmMgr!= null) {
             alarmMgr.cancel(alarmIntent);
-        }
+        }*/
 
         // Disable {@code MessageBootReceiver} so that it doesn't automatically restart the
         // alarm when the device is rebooted.
+/*
         ComponentName receiver = new ComponentName(context, MessageBootReceiver.class);
         PackageManager pm = context.getPackageManager();
 
@@ -129,3 +146,4 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     }
     // END_INCLUDE(cancel_alarm)
 }
+*/
