@@ -93,7 +93,7 @@ public class AddMessage extends AppCompatActivity
     private boolean phoneRetvSelected = false;
 
     // For getting character count
-    private int smsLength = 160;
+    private int smsMaxLength = 140;
     private TextView counterTextView;
     private EditText messageContentEditText;
 
@@ -117,11 +117,11 @@ public class AddMessage extends AppCompatActivity
                         getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
                 messageContentErrorMessage.setText("");
             }
-            if (length <= smsLength) {
-                counterTextView.setText(String.valueOf(smsLength - length));
+            if (length <= smsMaxLength) {
+                counterTextView.setText(String.valueOf(smsMaxLength - length));
             } else {
-                counterTextView.setText(String.valueOf(smsLength - length % smsLength)
-                        + " / " + String.valueOf(1 + (length / smsLength)));
+                counterTextView.setText(String.valueOf(smsMaxLength - length % smsMaxLength)
+                        + " / " + String.valueOf(1 + (length / smsMaxLength)));
             }
         }
         public void afterTextChanged(Editable s) {}
@@ -447,10 +447,11 @@ public class AddMessage extends AppCompatActivity
 
         Intent intentAlarm = new Intent(this, AlarmReceiver.class);
         Bundle extras = new Bundle();
-        extras.putString("pNum", phone.toString());
+        extras.putStringArrayList("pNum", phone);
         extras.putString("message", messageContentString);
         intentAlarm.putExtras(extras);
-        PendingIntent pInt = PendingIntent.getBroadcast(this.getApplicationContext(), 1234, intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pInt = PendingIntent.getBroadcast(
+                this.getApplicationContext(), 1234, intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pInt);
 
@@ -494,6 +495,8 @@ public class AddMessage extends AppCompatActivity
                 MessageContract.MessageEntry.TABLE_NAME,
                 MessageContract.MessageEntry.COLUMN_NAME_NULLABLE,
                 values);
+
+        mDbHelper.close();
     }
     //================Time&Date Methods================//
     private void getCurrentDateString() {
@@ -566,13 +569,15 @@ public class AddMessage extends AppCompatActivity
     public String getPhoneNumberFromString(String str) {
         // Extracts number within <> brackets
         String[] retval = str.split("<|>");
-        String temp = "";
+        // In case we need to extract the exact number out
+/*        String temp = "";
         for (int i =0; i < retval[1].length(); i++) {
             char c = retval[1].charAt(i);
             if (Character.isDigit(c)) {
                 temp += c;
             }
-        } return temp;
+        } */
+        return retval[1];
     }
 
     public String getNameFromString(String str) {

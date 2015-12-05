@@ -48,39 +48,64 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="AddMessage.java" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/AddMessage.java">
+      <file leaf-file-name="Home.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/Home.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.35476464">
-              <caret line="463" column="26" selection-start-line="463" selection-start-column="26" selection-end-line="463" selection-end-column="26" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="132" column="26" selection-start-line="132" selection-start-column="26" selection-end-line="132" selection-end-column="26" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#9831#9832#0" expanded="true" />
-                <element signature="e#9866#9867#0" expanded="true" />
-                <element signature="e#10551#10576#0" expanded="true" />
-                <element signature="e#10597#10625#0" expanded="true" />
-                <element signature="e#10646#10670#0" expanded="true" />
-                <element signature="e#10720#10749#0" expanded="true" />
-                <element signature="e#10769#10796#0" expanded="true" />
-                <element signature="e#10838#10867#0" expanded="true" />
-                <element signature="e#10909#10936#0" expanded="true" />
-                <element signature="e#10974#10999#0" expanded="true" />
-                <element signature="e#11038#11067#0" expanded="true" />
-                <element signature="e#11127#11141#0" expanded="true" />
-                <element signature="e#11262#11276#0" expanded="true" />
-                <element signature="e#13899#13900#0" expanded="true" />
-                <element signature="e#13937#13938#0" expanded="true" />
-                <element signature="e#14605#14632#0" expanded="true" />
-                <element signature="e#15599#15647#0" expanded="true" />
-                <element signature="e#16269#16346#0" expanded="true" />
-                <element signature="e#17387#17437#0" expanded="true" />
-                <element signature="e#21485#21511#0" expanded="true" />
-                <element signature="e#21570#21596#0" expanded="true" />
-                <element signature="e#21656#21683#0" expanded="true" />
-                <element signature="e#21745#21774#0" expanded="true" />
-                <element signature="e#21835#21863#0" expanded="true" />
-                <element signature="e#21922#21948#0" expanded="true" />
-                <element signature="e#22009#22037#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="activity_home.xml" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/activity_home.xml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.48456058">
+              <caret line="24" column="33" selection-start-line="24" selection-start-column="33" selection-end-line="24" selection-end-column="33" />
+              <folding />
+            </state>
+          </provider>
+          <provider editor-type-id="android-designer">
+            <state />
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="AddMessage.java" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/AddMessage.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="498" column="26" selection-start-line="498" selection-start-column="26" selection-end-line="498" selection-end-column="26" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#9849#9850#0" expanded="true" />
+                <element signature="e#9884#9885#0" expanded="true" />
+                <element signature="e#10569#10594#0" expanded="true" />
+                <element signature="e#10615#10643#0" expanded="true" />
+                <element signature="e#10664#10688#0" expanded="true" />
+                <element signature="e#10738#10767#0" expanded="true" />
+                <element signature="e#10787#10814#0" expanded="true" />
+                <element signature="e#10856#10885#0" expanded="true" />
+                <element signature="e#10927#10954#0" expanded="true" />
+                <element signature="e#10992#11017#0" expanded="true" />
+                <element signature="e#11056#11085#0" expanded="true" />
+                <element signature="e#11145#11159#0" expanded="true" />
+                <element signature="e#11280#11294#0" expanded="true" />
+                <element signature="e#13917#13918#0" expanded="true" />
+                <element signature="e#13955#13956#0" expanded="true" />
+                <element signature="e#14623#14650#0" expanded="true" />
+                <element signature="e#15617#15665#0" expanded="true" />
+                <element signature="e#16287#16364#0" expanded="true" />
+                <element signature="e#17405#17455#0" expanded="true" />
+                <element signature="e#21546#21572#0" expanded="true" />
+                <element signature="e#21631#21657#0" expanded="true" />
+                <element signature="e#21717#21744#0" expanded="true" />
+                <element signature="e#21806#21835#0" expanded="true" />
+                <element signature="e#21896#21924#0" expanded="true" />
+                <element signature="e#21983#22009#0" expanded="true" />
+                <element signature="e#22070#22098#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -90,7 +115,7 @@
         <entry file="file://$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/AlarmReceiver.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="25" column="13" selection-start-line="25" selection-start-column="13" selection-end-line="25" selection-end-column="13" />
+              <caret line="22" column="39" selection-start-line="22" selection-start-column="39" selection-end-line="22" selection-end-column="39" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -1708,14 +1733,14 @@
         <option value="$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/MessageDbHelper.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/MessageSchedulingService.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/fragment_add_message.xml" />
-        <option value="$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/Home.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/values/strings.xml" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/DatePickerFragment.java" />
-        <option value="$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/AlarmReceiver.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/MessageAlarmReceiver.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/MessageBootReceiver.java" />
         <option value="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" />
+        <option value="$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/AlarmReceiver.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/AddMessage.java" />
+        <option value="$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/Home.java" />
       </list>
     </option>
   </component>
@@ -1783,6 +1808,28 @@
               <option name="myItemId" value="app" />
               <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidModuleNode" />
             </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="res" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidResFolderNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SMS_Scheduler_Copy" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="app" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidModuleNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="res" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidResFolderNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="layout" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidResFolderTypeNode" />
+            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -1814,6 +1861,16 @@
             <PATH_ELEMENT>
               <option name="myItemId" value="sms_scheduler" />
               <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidPsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SMS_Scheduler_Copy" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="app" />
+              <option name="myItemType" value="com.android.tools.idea.navigator.nodes.AndroidModuleNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
@@ -2089,6 +2146,7 @@
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32995737" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Android Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4115684" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18869936" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19186047" sideWeight="0.49785638" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32925472" sideWeight="0.5" order="13" side_tool="false" content_ui="tabs" />
@@ -2108,7 +2166,6 @@
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18869936" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32925472" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -2144,32 +2201,32 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#9831#9832#0" expanded="true" />
-            <element signature="e#9866#9867#0" expanded="true" />
-            <element signature="e#10551#10576#0" expanded="true" />
-            <element signature="e#10597#10625#0" expanded="true" />
-            <element signature="e#10646#10670#0" expanded="true" />
-            <element signature="e#10720#10749#0" expanded="true" />
-            <element signature="e#10769#10796#0" expanded="true" />
-            <element signature="e#10838#10867#0" expanded="true" />
-            <element signature="e#10909#10936#0" expanded="true" />
-            <element signature="e#10974#10999#0" expanded="true" />
-            <element signature="e#11038#11067#0" expanded="true" />
-            <element signature="e#11127#11141#0" expanded="true" />
-            <element signature="e#11262#11276#0" expanded="true" />
-            <element signature="e#13899#13900#0" expanded="true" />
-            <element signature="e#13937#13938#0" expanded="true" />
-            <element signature="e#14605#14632#0" expanded="true" />
-            <element signature="e#15599#15647#0" expanded="true" />
-            <element signature="e#16269#16346#0" expanded="true" />
-            <element signature="e#17387#17437#0" expanded="true" />
-            <element signature="e#21485#21511#0" expanded="true" />
-            <element signature="e#21570#21596#0" expanded="true" />
-            <element signature="e#21656#21683#0" expanded="true" />
-            <element signature="e#21745#21774#0" expanded="true" />
-            <element signature="e#21835#21863#0" expanded="true" />
-            <element signature="e#21922#21948#0" expanded="true" />
-            <element signature="e#22009#22037#0" expanded="true" />
+            <element signature="e#9849#9850#0" expanded="true" />
+            <element signature="e#9884#9885#0" expanded="true" />
+            <element signature="e#10569#10594#0" expanded="true" />
+            <element signature="e#10615#10643#0" expanded="true" />
+            <element signature="e#10664#10688#0" expanded="true" />
+            <element signature="e#10738#10767#0" expanded="true" />
+            <element signature="e#10787#10814#0" expanded="true" />
+            <element signature="e#10856#10885#0" expanded="true" />
+            <element signature="e#10927#10954#0" expanded="true" />
+            <element signature="e#10992#11017#0" expanded="true" />
+            <element signature="e#11056#11085#0" expanded="true" />
+            <element signature="e#11145#11159#0" expanded="true" />
+            <element signature="e#11280#11294#0" expanded="true" />
+            <element signature="e#13917#13918#0" expanded="true" />
+            <element signature="e#13955#13956#0" expanded="true" />
+            <element signature="e#14623#14650#0" expanded="true" />
+            <element signature="e#15617#15665#0" expanded="true" />
+            <element signature="e#16287#16364#0" expanded="true" />
+            <element signature="e#17405#17455#0" expanded="true" />
+            <element signature="e#21546#21572#0" expanded="true" />
+            <element signature="e#21631#21657#0" expanded="true" />
+            <element signature="e#21717#21744#0" expanded="true" />
+            <element signature="e#21806#21835#0" expanded="true" />
+            <element signature="e#21896#21924#0" expanded="true" />
+            <element signature="e#21983#22009#0" expanded="true" />
+            <element signature="e#22070#22098#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2200,32 +2257,32 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#9831#9832#0" expanded="true" />
-            <element signature="e#9866#9867#0" expanded="true" />
-            <element signature="e#10551#10576#0" expanded="true" />
-            <element signature="e#10597#10625#0" expanded="true" />
-            <element signature="e#10646#10670#0" expanded="true" />
-            <element signature="e#10720#10749#0" expanded="true" />
-            <element signature="e#10769#10796#0" expanded="true" />
-            <element signature="e#10838#10867#0" expanded="true" />
-            <element signature="e#10909#10936#0" expanded="true" />
-            <element signature="e#10974#10999#0" expanded="true" />
-            <element signature="e#11038#11067#0" expanded="true" />
-            <element signature="e#11127#11141#0" expanded="true" />
-            <element signature="e#11262#11276#0" expanded="true" />
-            <element signature="e#13899#13900#0" expanded="true" />
-            <element signature="e#13937#13938#0" expanded="true" />
-            <element signature="e#14605#14632#0" expanded="true" />
-            <element signature="e#15599#15647#0" expanded="true" />
-            <element signature="e#16269#16346#0" expanded="true" />
-            <element signature="e#17387#17437#0" expanded="true" />
-            <element signature="e#21485#21511#0" expanded="true" />
-            <element signature="e#21570#21596#0" expanded="true" />
-            <element signature="e#21656#21683#0" expanded="true" />
-            <element signature="e#21745#21774#0" expanded="true" />
-            <element signature="e#21835#21863#0" expanded="true" />
-            <element signature="e#21922#21948#0" expanded="true" />
-            <element signature="e#22009#22037#0" expanded="true" />
+            <element signature="e#9849#9850#0" expanded="true" />
+            <element signature="e#9884#9885#0" expanded="true" />
+            <element signature="e#10569#10594#0" expanded="true" />
+            <element signature="e#10615#10643#0" expanded="true" />
+            <element signature="e#10664#10688#0" expanded="true" />
+            <element signature="e#10738#10767#0" expanded="true" />
+            <element signature="e#10787#10814#0" expanded="true" />
+            <element signature="e#10856#10885#0" expanded="true" />
+            <element signature="e#10927#10954#0" expanded="true" />
+            <element signature="e#10992#11017#0" expanded="true" />
+            <element signature="e#11056#11085#0" expanded="true" />
+            <element signature="e#11145#11159#0" expanded="true" />
+            <element signature="e#11280#11294#0" expanded="true" />
+            <element signature="e#13917#13918#0" expanded="true" />
+            <element signature="e#13955#13956#0" expanded="true" />
+            <element signature="e#14623#14650#0" expanded="true" />
+            <element signature="e#15617#15665#0" expanded="true" />
+            <element signature="e#16287#16364#0" expanded="true" />
+            <element signature="e#17405#17455#0" expanded="true" />
+            <element signature="e#21546#21572#0" expanded="true" />
+            <element signature="e#21631#21657#0" expanded="true" />
+            <element signature="e#21717#21744#0" expanded="true" />
+            <element signature="e#21806#21835#0" expanded="true" />
+            <element signature="e#21896#21924#0" expanded="true" />
+            <element signature="e#21983#22009#0" expanded="true" />
+            <element signature="e#22070#22098#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -2420,17 +2477,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/activity_home.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="23" column="76" selection-start-line="23" selection-start-column="76" selection-end-line="23" selection-end-column="76" />
-          <folding />
-        </state>
-      </provider>
-      <provider editor-type-id="android-designer">
-        <state />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/content_add_message.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-11.724138">
@@ -2504,16 +2550,6 @@
         <state />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/Home.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="181" column="29" selection-start-line="181" selection-start-column="29" selection-end-line="181" selection-end-column="29" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/MessageDbHelper.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -2584,7 +2620,7 @@
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/AlarmReceiver.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="25" column="13" selection-start-line="25" selection-start-column="13" selection-end-line="25" selection-end-column="13" />
+          <caret line="22" column="39" selection-start-line="22" selection-start-column="39" selection-end-line="22" selection-end-column="39" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -2593,38 +2629,59 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/AddMessage.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.35476464">
-          <caret line="463" column="26" selection-start-line="463" selection-start-column="26" selection-end-line="463" selection-end-column="26" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="498" column="26" selection-start-line="498" selection-start-column="26" selection-end-line="498" selection-end-column="26" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#9831#9832#0" expanded="true" />
-            <element signature="e#9866#9867#0" expanded="true" />
-            <element signature="e#10551#10576#0" expanded="true" />
-            <element signature="e#10597#10625#0" expanded="true" />
-            <element signature="e#10646#10670#0" expanded="true" />
-            <element signature="e#10720#10749#0" expanded="true" />
-            <element signature="e#10769#10796#0" expanded="true" />
-            <element signature="e#10838#10867#0" expanded="true" />
-            <element signature="e#10909#10936#0" expanded="true" />
-            <element signature="e#10974#10999#0" expanded="true" />
-            <element signature="e#11038#11067#0" expanded="true" />
-            <element signature="e#11127#11141#0" expanded="true" />
-            <element signature="e#11262#11276#0" expanded="true" />
-            <element signature="e#13899#13900#0" expanded="true" />
-            <element signature="e#13937#13938#0" expanded="true" />
-            <element signature="e#14605#14632#0" expanded="true" />
-            <element signature="e#15599#15647#0" expanded="true" />
-            <element signature="e#16269#16346#0" expanded="true" />
-            <element signature="e#17387#17437#0" expanded="true" />
-            <element signature="e#21485#21511#0" expanded="true" />
-            <element signature="e#21570#21596#0" expanded="true" />
-            <element signature="e#21656#21683#0" expanded="true" />
-            <element signature="e#21745#21774#0" expanded="true" />
-            <element signature="e#21835#21863#0" expanded="true" />
-            <element signature="e#21922#21948#0" expanded="true" />
-            <element signature="e#22009#22037#0" expanded="true" />
+            <element signature="e#9849#9850#0" expanded="true" />
+            <element signature="e#9884#9885#0" expanded="true" />
+            <element signature="e#10569#10594#0" expanded="true" />
+            <element signature="e#10615#10643#0" expanded="true" />
+            <element signature="e#10664#10688#0" expanded="true" />
+            <element signature="e#10738#10767#0" expanded="true" />
+            <element signature="e#10787#10814#0" expanded="true" />
+            <element signature="e#10856#10885#0" expanded="true" />
+            <element signature="e#10927#10954#0" expanded="true" />
+            <element signature="e#10992#11017#0" expanded="true" />
+            <element signature="e#11056#11085#0" expanded="true" />
+            <element signature="e#11145#11159#0" expanded="true" />
+            <element signature="e#11280#11294#0" expanded="true" />
+            <element signature="e#13917#13918#0" expanded="true" />
+            <element signature="e#13955#13956#0" expanded="true" />
+            <element signature="e#14623#14650#0" expanded="true" />
+            <element signature="e#15617#15665#0" expanded="true" />
+            <element signature="e#16287#16364#0" expanded="true" />
+            <element signature="e#17405#17455#0" expanded="true" />
+            <element signature="e#21546#21572#0" expanded="true" />
+            <element signature="e#21631#21657#0" expanded="true" />
+            <element signature="e#21717#21744#0" expanded="true" />
+            <element signature="e#21806#21835#0" expanded="true" />
+            <element signature="e#21896#21924#0" expanded="true" />
+            <element signature="e#21983#22009#0" expanded="true" />
+            <element signature="e#22070#22098#0" expanded="true" />
           </folding>
         </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/com/kyleszombathy/sms_scheduler/Home.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="132" column="26" selection-start-line="132" selection-start-column="26" selection-end-line="132" selection-end-column="26" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/activity_home.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.48456058">
+          <caret line="24" column="33" selection-start-line="24" selection-start-column="33" selection-end-line="24" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+      <provider editor-type-id="android-designer">
+        <state />
       </provider>
     </entry>
   </component>

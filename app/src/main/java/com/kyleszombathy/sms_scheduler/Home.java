@@ -130,6 +130,7 @@ public class Home extends Activity {
             cursor.moveToNext();
         }
         cursor.close();
+        mDbHelper.close();
     }
 
     private void extractName(String string) {

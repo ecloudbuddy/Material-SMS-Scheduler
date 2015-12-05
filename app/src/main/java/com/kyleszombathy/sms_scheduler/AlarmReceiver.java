@@ -1,26 +1,43 @@
 package com.kyleszombathy.sms_scheduler;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.SmsManager;
 
-import java.util.Calendar;
+import java.util.ArrayList;
 
 public class AlarmReceiver extends BroadcastReceiver {
 
+    private SmsManager smsManager = SmsManager.getDefault();
+
     @Override
     public void onReceive(Context context, Intent intent) {
-        String phone = intent.getStringExtra("pNum");
+        ArrayList<String> phoneNumbers = intent.getStringArrayListExtra("pNum");
         String messageContentString = intent.getStringExtra("message");
-        SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage(phone, null, messageContentString, null, null);
+
+        // Splits message
+        ArrayList<String> messageArrayList = new ArrayList<>();
+        messageArrayList = smsManager.divideMessage(messageContentString);
+
+        // Sends to multiple recipients
+        for (int i=0; i < phoneNumbers.size(); i++) {
+            sendSMSMessage(phoneNumbers.get(i), messageArrayList);
+        }
+
+        // TODO: Error handling
     }
+
+    private void sendSMSMessage(String phoneNumber, ArrayList<String> messageArrayList) {
+        // Sends single or multiple messages based off message length
+        if (messageArrayList.size() == 1) {
+            smsManager.sendTextMessage(phoneNumber, null, messageArrayList.get(0), null, null);
+        } else {
+            smsManager.sendMultipartTextMessage(phoneNumber, null, messageArrayList, null, null);
+        }
+    }
+
+
 }
 /*
  * When the alarm fires, this WakefulBroadcastReceiver receives the broadcast Intent
