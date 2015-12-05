@@ -1,7 +1,9 @@
 package com.kyleszombathy.sms_scheduler;
 
+import android.app.AlarmManager;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
@@ -33,10 +35,6 @@ import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.app.AlarmManager;
-import android.app.PendingIntent;
-import android.telephony.SmsManager;
-
 
 import com.android.ex.chips.BaseRecipientAdapter;
 import com.android.ex.chips.RecipientEditTextView;
@@ -382,15 +380,9 @@ public class AddMessage extends AppCompatActivity
         } else if (chips.length > 0) {
             for (DrawableRecipientChip chip : chips) {
                 String str = chip.toString();
-                String nameTemp = getNameFromString(str);
                 String phoneTemp = getPhoneNumberFromString(str);
 
-                if (phoneTemp.length() != 0) {
-                    // Adds values to global
-                    phone.add(phoneTemp);
-                    name.add(nameTemp);
-                    fullChipString.add(str);
-                } else {
+                if (phoneTemp.length() == 0) {
                     // Invalid contact without number
                     phoneRetvErrorMessage.setText(getResources().getString(R.string.invalid_entry));
                     phoneRetv.getBackground().setColorFilter(getResources().
@@ -415,10 +407,27 @@ public class AddMessage extends AppCompatActivity
             result = false;
         }
 
+        // If okay from here, add results to global
+        if (result) {
+            for (DrawableRecipientChip chip : chips) {
+                String str = chip.toString();
+                String nameTemp = getNameFromString(str);
+                String phoneTemp = getPhoneNumberFromString(str);
+
+                if (phoneTemp.length() != 0) {
+                    // Adds values to global
+                    phone.add(phoneTemp);
+                    name.add(nameTemp);
+                    fullChipString.add(str);
+                }
+            }
+        }
+
         return result;
     }
 
     private boolean errorChipsEmpty() {
+        // Sets error message
         phoneRetvErrorMessage.setText(getResources().getString(R.string.error_recipient));
         phoneRetv.getBackground().setColorFilter(getResources().
                 getColor(R.color.error_color), PorterDuff.Mode.SRC_ATOP);
@@ -427,6 +436,7 @@ public class AddMessage extends AppCompatActivity
                 .playOn(findViewById(R.id.phone_retv));
         return false;
     }
+
     private void scheduleMessage() {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.MONTH, month);
@@ -484,7 +494,6 @@ public class AddMessage extends AppCompatActivity
                 MessageContract.MessageEntry.TABLE_NAME,
                 MessageContract.MessageEntry.COLUMN_NAME_NULLABLE,
                 values);
-        System.out.println(newRowId);
     }
     //================Time&Date Methods================//
     private void getCurrentDateString() {
@@ -555,9 +564,11 @@ public class AddMessage extends AppCompatActivity
     }
 
     public String getPhoneNumberFromString(String str) {
+        // Extracts number within <> brackets
+        String[] retval = str.split("<|>");
         String temp = "";
-        for (int i =0; i < str.length(); i++) {
-            char c = str.charAt(i);
+        for (int i =0; i < retval[1].length(); i++) {
+            char c = retval[1].charAt(i);
             if (Character.isDigit(c)) {
                 temp += c;
             }
@@ -565,7 +576,6 @@ public class AddMessage extends AppCompatActivity
     }
 
     public String getNameFromString(String str) {
-        System.out.println(str);
         String temp = "";
         for (int i =0; i < str.length(); i++) {
             char c = str.charAt(i);
