@@ -1,9 +1,7 @@
 package com.kyleszombathy.sms_scheduler;
 
-import android.app.AlarmManager;
 import android.app.FragmentTransaction;
 import android.app.LoaderManager;
-import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.CursorLoader;
@@ -70,9 +68,8 @@ public class AddMessage extends AppCompatActivity
     private int arrayListCount = 0;
     private int DETAILS_QUERY_ID = 0;
 
+    // User input info
     private int year, month, day, hour, minute;
-    private String fullTime;
-    private String fullDate;
     private ArrayList<String> name = new ArrayList<>();
     private ArrayList<String> phone = new ArrayList<>();
     private ArrayList<String> fullChipString = new ArrayList<>();
@@ -97,8 +94,14 @@ public class AddMessage extends AppCompatActivity
     private TextView counterTextView;
     private EditText messageContentEditText;
 
+    // Alarm Manager
+    int alarmNumber;
+
     // For getting current time
     private Calendar calendar = Calendar.getInstance();
+
+    // SQL info
+    long sqlRowId;
 
     // Other
     private TextView phoneRetvErrorMessage;
@@ -159,12 +162,17 @@ public class AddMessage extends AppCompatActivity
     //=============Activity Creation Methods================//
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Window transition animations
         getWindow().setAllowEnterTransitionOverlap(true);
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         getWindow().setEnterTransition(new Fade());
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_message);
+
+        // Get extras
+        Intent i = getIntent();
+        alarmNumber = i.getIntExtra("alarmNumber", -1);
 
         // Setting up toolbar
         Toolbar myChildToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -363,6 +371,8 @@ public class AddMessage extends AppCompatActivity
                     setResult(RESULT_OK, returnIntent);
                     finish();
                     return true;
+                } else {
+                    return false;
                 }
             default:
                 return super.onOptionsItemSelected(item);
@@ -438,28 +448,37 @@ public class AddMessage extends AppCompatActivity
     }
 
     private void scheduleMessage() {
+        // Create calendar with class values
         Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year);
         cal.set(Calendar.MONTH, month);
         cal.set(Calendar.DAY_OF_MONTH, day);
         cal.set(Calendar.HOUR_OF_DAY, hour);
         cal.set(Calendar.MINUTE, minute);
-        cal.set(Calendar.SECOND, 0);
 
+        // Starts alarm
+        MessageAlarmReceiver receiver = new MessageAlarmReceiver();
+        receiver.setAlarm(this, cal, phone, messageContentString, alarmNumber);
+
+
+/*        // Create intent
         Intent intentAlarm = new Intent(this, AlarmReceiver.class);
+        // Add extras
         Bundle extras = new Bundle();
         extras.putStringArrayList("pNum", phone);
         extras.putString("message", messageContentString);
         intentAlarm.putExtras(extras);
-        PendingIntent pInt = PendingIntent.getBroadcast(
-                this.getApplicationContext(), 1234, intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this.getApplicationContext(), alarmNumber, intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pInt);
-
+        alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);*/
     }
+
     private void addDataToSQL() {
         // SQLite database accessor
         MessageDbHelper mDbHelper = new MessageDbHelper(AddMessage.this);
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
         System.out.println(name.toString());
         System.out.println(phone.toString());
         System.out.println(year);
@@ -467,6 +486,7 @@ public class AddMessage extends AppCompatActivity
         System.out.println(day);
         System.out.println(hour);
         System.out.println(minute);
+        System.out.println(alarmNumber);
 
         // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
@@ -488,10 +508,13 @@ public class AddMessage extends AppCompatActivity
                 COLUMN_NAME_HOUR, hour);
         values.put(MessageContract.MessageEntry.
                 COLUMN_NAME_MINUTE, minute);
+        values.put(MessageContract.MessageEntry.
+                COLUMN_NAME_ALARM_NUMBER, alarmNumber);
+        values.put(MessageContract.MessageEntry.
+                COLUMN_NAME_SENT, 0);
 
         // Insert the new row, returning the primary key value of the new row
-        long newRowId;
-        newRowId = db.insert(
+        sqlRowId = db.insert(
                 MessageContract.MessageEntry.TABLE_NAME,
                 MessageContract.MessageEntry.COLUMN_NAME_NULLABLE,
                 values);

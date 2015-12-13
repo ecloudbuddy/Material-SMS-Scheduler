@@ -1,59 +1,127 @@
 package com.kyleszombathy.sms_scheduler;
 
 import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.SmsManager;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
-/*public class AlarmReceiver extends BroadcastReceiver {
 
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        String phone = intent.getStringExtra("pNum");
-        String messageContentString = intent.getStringExtra("message");
-        SmsManager smsManager = SmsManager.getDefault();
-        smsManager.sendTextMessage(phone, null, messageContentString, null, null);
-    }
-}*/
+
 /*
  * When the alarm fires, this WakefulBroadcastReceiver receives the broadcast Intent
  * and then starts the IntentService {@code MessageSchedulingService} to do some work.
  */
-/*public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
-    private AlarmManager alarmMgr;
-    private PendingIntent alarmIntent;
+public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
+    private AlarmManager alarm;
+    private PendingIntent pendingIntent;
+    private SmsManager smsManager = SmsManager.getDefault();
+    public static final int NOTIFICATION_ID = 1;
+    private NotificationManager mNotificationManager;
+    NotificationCompat.Builder builder;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        // BEGIN_INCLUDE(alarm_onreceive)
-        /*
-         * If your receiver intent includes extras that need to be passed along to the
-         * service, use setComponent() to indicate that the service should handle the
-         * receiver's intent. For example:
-         *
-         * ComponentName comp = new ComponentName(context.getPackageName(),
-         *      MyService.class.getName());
-         *
-         * // This intent passed in this call will include the wake lock extra as well as
-         * // the receiver intent contents.
-         * startWakefulService(context, (intent.setComponent(comp)));
-         *
-         * In this example, we simply create a new intent to deliver to the service.
-         * This intent holds an extra identifying the wake lock.
-         */
-/*        Intent service = new Intent(context, MessageSchedulingService.class);
+        ArrayList<String> phone = intent.getStringArrayListExtra("pNum");
+        String messageContent = intent.getStringExtra("message");
+        int alarmNumber = intent.getIntExtra("alarmNumber", -1);
 
-        // Start the service, keeping the device awake while it is launching.
-        startWakefulService(context, service);
-        // END_INCLUDE(alarm_onreceive)
+        System.out.println(phone.toString());
+        System.out.println(messageContent);
+        // Splits message
+        ArrayList<String> messageArrayList;
+        messageArrayList = smsManager.divideMessage(messageContent);
+
+        // Sends to multiple recipients
+        for (int i=0; i < phone.size(); i++) {
+            sendSMSMessage(phone.get(i), messageArrayList);
+            markAsSent(context, alarmNumber);
+            sendNotification(context, "Message sent to ");
+        }
+    }
+
+    private void markAsSent(Context context, int alarmNumber) {
+        MessageDbHelper mDbHelper = new MessageDbHelper(context);
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        // New value for one column
+        ContentValues values = new ContentValues();
+        values.put(MessageContract.MessageEntry.COLUMN_NAME_SENT, 1);
+
+        // Which row to update, based on the ID
+        String selection = MessageContract.MessageEntry.COLUMN_NAME_ALARM_NUMBER + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(alarmNumber) };
+
+        int count = db.update(
+                MessageContract.MessageEntry.TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
+    }
+
+    private void sendSMSMessage(String phoneNumber, ArrayList<String> messageArrayList) {
+        // Sends single or multiple messages based off message length
+        if (messageArrayList.size() == 1) {
+            smsManager.sendTextMessage(phoneNumber, null, messageArrayList.get(0), null, null);
+        } else {
+            smsManager.sendMultipartTextMessage(phoneNumber, null, messageArrayList, null, null);
+        }
+    }
+
+/*    private void extractName(String names) {
+        String nameCondensedString = "";
+        ArrayList<String> nameList = new ArrayList<>();
+        names = names.replace("[", "");
+        names = names.replace("]", "");
+
+        if(names.contains(",")) {
+            multipleRecipients = true;
+            for (String name: names.split(",")) {
+                nameList.add(name);
+            }
+            nameCondensedString = nameList.remove(0) + ", " + nameList.remove(0);
+        } else {
+            nameCondensedString = names;
+        }
+
+        int nameListSize = nameList.size();
+        if (nameListSize > 0) {
+            nameCondensedString += " +" + (nameListSize);
+        }
+        nameDataset.add(nameCondensedString);
     }*/
+
+    // Post a notification indicating whether a doodle was found.
+    private void sendNotification(Context context, String msg) {
+        mNotificationManager = (NotificationManager)
+                context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
+                new Intent(context, Home.class), 0);
+
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentTitle(context.getString(R.string.message_success))
+                        .setStyle(new NotificationCompat.BigTextStyle()
+                                .bigText(msg))
+                        .setContentText(msg);
+
+        mBuilder.setContentIntent(contentIntent);
+        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+    }
+
 
     // BEGIN_INCLUDE(set_alarm)
     /**
@@ -61,55 +129,26 @@ import java.util.Calendar;
      * alarm fires, the app broadcasts an Intent to this WakefulBroadcastReceiver.
      * @param context
      */
-/*
-    public void setAlarm(Context context) {
-        alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(context, MessageAlarmReceiver.class);
-        alarmIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
+    public void setAlarm(Context context, Calendar calendar,
+                         ArrayList<String> phone, String messageContent,
+                         int alarmNumber) {
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        // Set the alarm's trigger time to 8:30 a.m.
-        calendar.set(Calendar.HOUR_OF_DAY, 8);
-        calendar.set(Calendar.MINUTE, 30);
-*/
+        // Creates new alarm
+        alarm = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        Intent intentAlarm = new Intent(context, MessageAlarmReceiver.class);
+        // Add extras
+        Bundle extras = new Bundle();
+        extras.putStringArrayList("pNum", phone);
+        extras.putString("message", messageContent);
+        extras.putInt("alarmNumber", alarmNumber);
+        intentAlarm.putExtras(extras);
 
-        /*
-         * If you don't have precise time requirements, use an inexact repeating alarm
-         * the minimize the drain on the device battery.
-         *
-         * The call below specifies the alarm type, the trigger time, the interval at
-         * which the alarm is fired, and the alarm's associated PendingIntent.
-         * It uses the alarm type RTC_WAKEUP ("Real Time Clock" wake up), which wakes up
-         * the device and triggers the alarm according to the time of the device's clock.
-         *
-         * Alternatively, you can use the alarm type ELAPSED_REALTIME_WAKEUP to trigger
-         * an alarm based on how much time has elapsed since the device was booted. This
-         * is the preferred choice if your alarm is based on elapsed time--for example, if
-         * you simply want your alarm to fire every 60 minutes. You only need to use
-         * RTC_WAKEUP if you want your alarm to fire at a particular date/time. Remember
-         * that clock-based time may not translate well to other locales, and that your
-         * app's behavior could be affected by the user changing the device's time setting.
-         *
-         * Here are some examples of ELAPSED_REALTIME_WAKEUP:
-         *
-         * // Wake up the device to fire a one-time alarm in one minute.
-         * alarmMgr.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-         *         SystemClock.elapsedRealtime() +
-         *         60*1000, alarmIntent);
-         *
-         * // Wake up the device to fire the alarm in 30 minutes, and every 30 minutes
-         * // after that.
-         * alarmMgr.setInexactRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP,
-         *         AlarmManager.INTERVAL_HALF_HOUR,
-         *         AlarmManager.INTERVAL_HALF_HOUR, alarmIntent);
-         */
-
-        // Set the alarm to fire at approximately 8:30 a.m., according to the device's
-        // clock, and to repeat once a day.
-/*
-        alarmMgr.setInexactRepeating(AlarmManager.RTC_WAKEUP,
-                calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, alarmIntent);
+        pendingIntent = PendingIntent.getBroadcast(
+                context,
+                alarmNumber,
+                intentAlarm,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        alarm.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
 
         // Enable {@code MessageBootReceiver} to automatically restart the alarm when the
         // device is rebooted.
@@ -120,7 +159,6 @@ import java.util.Calendar;
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                 PackageManager.DONT_KILL_APP);
     }
-*/
     // END_INCLUDE(set_alarm)
 
     /**
@@ -128,15 +166,14 @@ import java.util.Calendar;
      * @param context
      */
     // BEGIN_INCLUDE(cancel_alarm)
-/*    public void cancelAlarm(Context context) {
+    public void cancelAlarm(Context context) {
         // If the alarm has been set, cancel it.
-        if (alarmMgr!= null) {
-            alarmMgr.cancel(alarmIntent);
-        }*/
+        if (alarm != null) {
+            alarm.cancel(pendingIntent);
+        }
 
         // Disable {@code MessageBootReceiver} so that it doesn't automatically restart the
         // alarm when the device is rebooted.
-/*
         ComponentName receiver = new ComponentName(context, MessageBootReceiver.class);
         PackageManager pm = context.getPackageManager();
 
@@ -146,4 +183,3 @@ import java.util.Calendar;
     }
     // END_INCLUDE(cancel_alarm)
 }
-*/

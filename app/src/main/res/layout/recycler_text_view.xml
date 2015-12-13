@@ -17,7 +17,7 @@
     <TextView
         android:id="@+id/messageContentDisplay"
         android:layout_width="fill_parent"
-        android:layout_height="26dip"
+        android:layout_height="26dp"
         android:layout_alignParentBottom="true"
         android:layout_toEndOf="@id/icon"
         android:layout_toStartOf="@+id/time_date_container"
@@ -29,7 +29,7 @@
     <TextView
         android:id="@+id/nameDisplay"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:layout_above="@id/messageContentDisplay"
         android:layout_alignParentTop="true"
         android:layout_alignWithParentIfMissing="true"
@@ -37,29 +37,37 @@
         android:layout_toStartOf="@+id/time_date_container"
         android:gravity="center_vertical"
         android:text="Example application"
-        android:textSize="16sp" />
+        android:textSize="14sp" />
 
     <LinearLayout
         android:orientation="vertical"
         android:id="@+id/time_date_container"
-        android:layout_width="80dp"
+        android:layout_width="72dp"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true">
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/nameDisplay">
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="8dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:id="@+id/dateDisplay"
-            android:text="date"/>
+            android:text="11/11/11"/>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="8dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:id="@+id/timeDisplay"
-            android:text="time"/>
+            android:text="11:11 PM"/>
 
     </LinearLayout>
 

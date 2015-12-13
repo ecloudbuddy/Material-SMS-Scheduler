@@ -3,6 +3,8 @@ package com.kyleszombathy.sms_scheduler;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.ActivityOptions;
+import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -24,6 +26,7 @@ import com.marshalchen.ultimaterecyclerview.UltimateRecyclerView;
 
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.Random;
 
 public class Home extends Activity {
 /*    private RecyclerView mRecyclerView;
@@ -31,7 +34,7 @@ public class Home extends Activity {
     private RecyclerView.LayoutManager mLayoutManager;*/
 
     private static final int PICK_CONTACT_REQUEST = 1;
-    private static final String EXTRA_MESSAGE = "imageUri";
+    private static final String EXTRA_MESSAGE = "alarmNumber";
 
     private UltimateRecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
@@ -40,11 +43,19 @@ public class Home extends Activity {
     private ArrayList<String> messageContentDataset = new ArrayList<>();
     private ArrayList<String> dateDataset = new ArrayList<>();
     private ArrayList<String> timeDataSet = new ArrayList<>();
+    private int alarmNumber;
+    private final int MAX_INT = Integer.MAX_VALUE ;
+    private final int MIN_INT = 1;
+    Random rand;
     private boolean multipleRecipients;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Random alarm number
+        alarmNumber = MIN_INT + (int)(Math.random() * ((MAX_INT - MIN_INT) + 1));
+
         // Setting up transitions
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         getWindow().setExitTransition(new Fade());
@@ -66,7 +77,16 @@ public class Home extends Activity {
         findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(Home.this, AddMessage.class),
+                Intent intent = new Intent(new Intent(Home.this, AddMessage.class));
+                intent.putExtra(EXTRA_MESSAGE, alarmNumber);
+
+                TaskStackBuilder stackBuilder = TaskStackBuilder.create(Home.this);
+                stackBuilder.addParentStack(AddMessage.class);
+                stackBuilder.addNextIntent(intent);
+                PendingIntent resultPendingIntent =
+                        stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                startActivity(intent,
                         ActivityOptions.makeSceneTransitionAnimation(Home.this).toBundle());
             }
         });
@@ -106,10 +126,12 @@ public class Home extends Activity {
                 null,                                     // The values for the WHERE clause
                 null,                                     // don't group the rows
                 null,                                     // don't filter by row groups
-                sortOrder                                 // The sort order
+                null                                      // The sort order
         );
 
+        // Moves to first row
         cursor.moveToFirst();
+
         for (int i = 0; i < cursor.getCount(); i++) {
             extractName(cursor.getString(cursor.getColumnIndexOrThrow
                     (MessageContract.MessageEntry.COLUMN_NAME_NAME)));
@@ -126,28 +148,53 @@ public class Home extends Activity {
             messageContentDataset.add(cursor.getString(cursor.getColumnIndexOrThrow
                     (MessageContract.MessageEntry.COLUMN_NAME_MESSAGE)));
 
-            setFullDateAndTime(year, day, month+1, hour, minute);
+            setFullDateAndTime(year, month, day, hour, minute);
             cursor.moveToNext();
         }
+
         cursor.close();
         mDbHelper.close();
     }
 
-    private void extractName(String string) {
-        string = string.replace("[", "");
-        string = string.replace("]", "");
-        if(string.contains(",")) {
+    private void extractName(String names) {
+        String nameCondensedString = "";
+        ArrayList<String> nameList = new ArrayList<>();
+        names = names.replace("[", "");
+        names = names.replace("]", "");
+
+        if(names.contains(",")) {
             multipleRecipients = true;
+            for (String name: names.split(",")) {
+                nameList.add(name);
+            }
+            nameCondensedString = nameList.remove(0) + ", " + nameList.remove(0);
+        } else {
+            nameCondensedString = names;
         }
-        nameDataset.add(string);
+
+        int nameListSize = nameList.size();
+        if (nameListSize > 0) {
+            nameCondensedString += " +" + (nameListSize);
+        }
+        nameDataset.add(nameCondensedString);
     }
 
     public void setFullDateAndTime(int year, int month, int day, int hour, int minute) {
+        //Calendar date = new GregorianCalendar(year, month, day, hour, minute);
         GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
-        java.text.DateFormat dateFormat = DateFormat.getDateFormat(getApplicationContext());
-        java.text.DateFormat timeFormat = DateFormat.getTimeFormat(getApplicationContext());
-        dateDataset.add(dateFormat.format(date.getTime()));
-        timeDataSet.add(timeFormat.format(date.getTime()));
+
+        String dateString = DateFormat.getDateFormat(getApplicationContext()).format(date.getTime());
+        String timeString = DateFormat.getTimeFormat(getApplicationContext()).format(date.getTime());
+
+        // Delete "20" in year
+        StringBuilder sb = new StringBuilder(dateString);
+        sb.deleteCharAt(sb.length() - 3);
+        sb.deleteCharAt(sb.length() - 3);
+        dateString = sb.toString();
+
+
+        dateDataset.add(dateString);
+        timeDataSet.add(timeString);
     }
 
     private void setUpRecyclerView() {
@@ -162,18 +209,6 @@ public class Home extends Activity {
                 nameDataset, messageContentDataset, dateDataset, timeDataSet);
         mRecyclerView.setAdapter(mAdapter);
 
-/*        mRecyclerView.setDefaultOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        simpleRecyclerViewAdapter.insert(moreNum++ + "  Refresh things", 0);
-                        mRecyclerView.setRefreshing(false);
-                    }
-                }, 1000);
-            }
-        });*/
     }
 
     private void showcase() {
@@ -186,6 +221,7 @@ public class Home extends Activity {
                 .singleShot(42)
                 .build();
     }
+
     @Override
     public void onRestart() {
         super.onRestart();
@@ -193,7 +229,6 @@ public class Home extends Activity {
         //Do what you want on the refresh procedure here
         finish();
         startActivity(getIntent());
-        System.out.println("Reloading");
     }
 
 

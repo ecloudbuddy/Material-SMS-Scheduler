@@ -24,7 +24,7 @@
     <string name="error_message_content">Must enter a message</string>
     <string name="invalid_entry">One or more entries are invalid</string>
     <!--Other-->
-    <string name="tab">\u0009</string>
+
     <!--tooltips-->
     <string name="success">Message saved</string>
     <!--Days of week-->
@@ -35,5 +35,8 @@
     <string name="thursday">Thursday</string>
     <string name="friday">Friday</string>
     <string name="saturday">Saturday</string>
+    <!--Notifications-->
+    <string name="testing">testing testing 123</string>
+    <string name="message_success">Scheduled Message Sent</string>
 
 </resources>

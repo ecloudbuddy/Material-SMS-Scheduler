@@ -24,8 +24,8 @@ public final class MessageContract {
         public static final String COLUMN_NAME_DAY = "day";
         public static final String COLUMN_NAME_HOUR = "hour";
         public static final String COLUMN_NAME_MINUTE = "minute";
-        public static final String COLUMN_NAME_TIME_FULL = "timeFull";
-        public static final String COLUMN_NAME_DATE_FULL = "dateFull";
+        public static final String COLUMN_NAME_ALARM_NUMBER = "alarmNumber";
+        public static final String COLUMN_NAME_SENT = "sent";
         public static final String COLUMN_NAME_NULLABLE = "nullable";
     }
 }

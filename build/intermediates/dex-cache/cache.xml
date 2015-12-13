@@ -2,123 +2,32 @@
 <items version="2" >
 
     <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.github.amlcurran.showcaseview\library\5.3.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="b6da39caedecf838342b319d19b20e0e178220df">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-5eb22219f85374ce01803cb9c2d69f2495b27b67.jar" />
-    </item>
-    <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.daimajia.easing\library\1.0.1\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="d7e947f993bf32a00fcb3078cdda8bb11c930afb">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-6bc1c6095a6633aaae4ad47654acee5ad67e58cc.jar" />
-    </item>
-    <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.android.support\support-v4\23.1.1\jars\libs\internal_impl-23.1.1.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="a4de9c81ae239414e1ed0f86441b02abaf29bca9">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\internal_impl-23.1.1-547c2752243aabc2bc7bee2a062cd4911f30782e.jar" />
-    </item>
-    <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\23.1.1\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="5c5699834e9722f1c288fea2de82725d078ba127">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-c59bb8490a150df5439463f16a40955afacebd58.jar" />
-    </item>
-    <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\in.srain.cube\ultra-ptr\1.0.10\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="f7aa9a64408679b54260b859ae8eb723b69ecd30">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-b7a8397f00a24242ed95dde15aa075d7cf5bff02.jar" />
-    </item>
-    <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.github.ganfra\material-spinner\1.1.1\jars\classes.jar"
+        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\com.github.ganfra\material-spinner\1.1.1\jars\classes.jar"
         jumboMode="false"
         revision="23.0.2"
         sha1="d0df3bf618b078d102a4234ceff33c44026e64b9">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-7e65d5dd82b18e2acb794bc657bc1195f5030283.jar" />
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\classes-da1f85a8b39b4d5121a7431e83dcf58bb796b890.jar" />
     </item>
     <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\me.zhanghai.android.materialedittext\library\1.0.1\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="a2657200d76d4e8d27a6d5120b519d2941767aab">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-ca26312d1626e6eed33b25682a952c6ccfe7e168.jar" />
-    </item>
-    <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.android.support\cardview-v7\23.1.1\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="5e412e954a24c5310a459c09870e4e2081aceb03">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-37f6173e64d817801b3eee69fc88c119269acb6e.jar" />
-    </item>
-    <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.marshalchen.ultimaterecyclerview\library\0.3.18\jars\classes.jar"
+        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\com.marshalchen.ultimaterecyclerview\library\0.3.18\jars\classes.jar"
         jumboMode="false"
         revision="23.0.2"
         sha1="d4f1743ab355c997e244931d7708caf2b7109e0d">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-34ef83f0148bc3cc3dc4bd5f01f0415c4d8e6341.jar" />
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\classes-ea4b2f0456dc7fdf6e4892868ae40b71620d60e5.jar" />
     </item>
     <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.android.support\support-v4\23.1.1\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="6cbc7773921fcfedbe55657578f0cbfe614778dc">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-4b2f42e38ebe4b7913f9d84711678fb951a4ed44.jar" />
-    </item>
-    <item
-        jar="C:\Users\Jonah Johnson\.gradle\caches\modules-2\files-2.1\com.nineoldandroids\library\2.4.0\e9b63380f3a242dbdbf103a2355ad7e43bad17cb\library-2.4.0.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="e9b63380f3a242dbdbf103a2355ad7e43bad17cb">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\library-2.4.0-83b67f362e05e9d5c0913987c75b8ddb33407326.jar" />
-    </item>
-    <item
-        jar="C:\Users\Jonah Johnson\.gradle\caches\modules-2\files-2.1\com.github.bumptech.glide\glide\3.6.0\a7537446a030da8eb0da4c71424d16c2589f6c4a\glide-3.6.0.jar"
+        jar="C:\Users\Kyle\.gradle\caches\modules-2\files-2.1\com.github.bumptech.glide\glide\3.6.0\a7537446a030da8eb0da4c71424d16c2589f6c4a\glide-3.6.0.jar"
         jumboMode="false"
         revision="23.0.2"
         sha1="a7537446a030da8eb0da4c71424d16c2589f6c4a">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\glide-3.6.0-21629e1eda79d58d295d0daad8aa5b2110c1951a.jar" />
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\glide-3.6.0-2bd477df2332ff9f6cbfc31939df5566597df074.jar" />
     </item>
     <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.android.support\recyclerview-v7\23.1.1\jars\classes.jar"
+        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\in.srain.cube\ultra-ptr\1.0.10\jars\classes.jar"
         jumboMode="false"
         revision="23.0.2"
-        sha1="09c5e804bc67fc0580360043dff067df574a60d4">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-d338fe264772995f2679b82973844fce8e2f3183.jar" />
-    </item>
-    <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.klinkerapps\android-chips\1.0.1\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="4f0820209fcf4b204b40a29c9074c55b33921ab9">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-c81cbd45a0a8a98a5a124f8274ef1764586db6b4.jar" />
-    </item>
-    <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.daimajia.androidanimations\library\1.1.3\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="8cec50fc9cc847bad0d6ed7d93814f4b34744521">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-b8b5e3fe9794eadfc4635678e7e2d3a1b3f856cf.jar" />
-    </item>
-    <item
-        jar="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\exploded-aar\com.android.support\design\23.1.1\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="379471b2bd17d9737c050345c08e8c7d16589784">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\classes-f8a944c86523a1e02b6eb6026971f0adc48d0204.jar" />
-    </item>
-    <item
-        jar="C:\Android\sdk\extras\android\m2repository\com\android\support\support-annotations\23.1.1\support-annotations-23.1.1.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="8d680ba5a623724d1fb0e81c36a790f023a6cede">
-        <dex dex="D:\Documents\GitHub\SMS_Scheduler\app\build\intermediates\pre-dexed\debug\support-annotations-23.1.1-6ededcc9b39f46fbcdd6efbd1a4d51bb6afd2a15.jar" />
+        sha1="f7aa9a64408679b54260b859ae8eb723b69ecd30">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\classes-63d813c82f9a56bec3d84b5beb6484289b38b1e6.jar" />
     </item>
 
 </items>

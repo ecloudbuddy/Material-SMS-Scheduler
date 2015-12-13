@@ -24,8 +24,8 @@ public class MessageDbHelper extends SQLiteOpenHelper {
                     MessageContract.MessageEntry.COLUMN_NAME_DAY + INTEGER_TYPE + COMMA_SEP +
                     MessageContract.MessageEntry.COLUMN_NAME_HOUR + INTEGER_TYPE + COMMA_SEP +
                     MessageContract.MessageEntry.COLUMN_NAME_MINUTE + INTEGER_TYPE + COMMA_SEP +
-                    MessageContract.MessageEntry.COLUMN_NAME_TIME_FULL + TEXT_TYPE + COMMA_SEP +
-                    MessageContract.MessageEntry.COLUMN_NAME_DATE_FULL + TEXT_TYPE + COMMA_SEP +
+                    MessageContract.MessageEntry.COLUMN_NAME_ALARM_NUMBER + INTEGER_TYPE + COMMA_SEP +
+                    MessageContract.MessageEntry.COLUMN_NAME_SENT + INTEGER_TYPE + COMMA_SEP +
                     MessageContract.MessageEntry.COLUMN_NAME_NULLABLE + TEXT_TYPE +
                     " )";
     private static final String SQL_DELETE_ENTRIES =
