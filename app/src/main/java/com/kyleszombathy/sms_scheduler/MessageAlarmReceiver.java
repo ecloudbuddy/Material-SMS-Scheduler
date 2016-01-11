@@ -4,13 +4,12 @@ import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.SmsManager;
 
@@ -29,7 +28,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     private SmsManager smsManager = SmsManager.getDefault();
     public static final int NOTIFICATION_ID = 1;
     private NotificationManager mNotificationManager;
-    NotificationCompat.Builder builder;
+    private Context context;
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -52,23 +51,13 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     }
 
     private void markAsSent(Context context, int alarmNumber) {
-        MessageDbHelper mDbHelper = new MessageDbHelper(context);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // New value for one column
-        ContentValues values = new ContentValues();
-        values.put(MessageContract.MessageEntry.COLUMN_NAME_SENT, 1);
-
-        // Which row to update, based on the ID
-        String selection = MessageContract.MessageEntry.COLUMN_NAME_ALARM_NUMBER + " LIKE ?";
-        String[] selectionArgs = { String.valueOf(alarmNumber) };
-
-        int count = db.update(
-                MessageContract.MessageEntry.TABLE_NAME,
-                values,
-                selection,
-                selectionArgs);
+            // Sends broadcast to Home
+            Intent intent = new Intent("custom-event-name");
+            // You can also include some extra data.
+            intent.putExtra("alarmNumber", alarmNumber);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
+
 
     private void sendSMSMessage(String phoneNumber, ArrayList<String> messageArrayList) {
         // Sends single or multiple messages based off message length
@@ -78,29 +67,6 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
             smsManager.sendMultipartTextMessage(phoneNumber, null, messageArrayList, null, null);
         }
     }
-
-/*    private void extractName(String names) {
-        String nameCondensedString = "";
-        ArrayList<String> nameList = new ArrayList<>();
-        names = names.replace("[", "");
-        names = names.replace("]", "");
-
-        if(names.contains(",")) {
-            multipleRecipients = true;
-            for (String name: names.split(",")) {
-                nameList.add(name);
-            }
-            nameCondensedString = nameList.remove(0) + ", " + nameList.remove(0);
-        } else {
-            nameCondensedString = names;
-        }
-
-        int nameListSize = nameList.size();
-        if (nameListSize > 0) {
-            nameCondensedString += " +" + (nameListSize);
-        }
-        nameDataset.add(nameCondensedString);
-    }*/
 
     // Post a notification indicating whether a doodle was found.
     private void sendNotification(Context context, String msg) {
@@ -122,16 +88,10 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
-
-    // BEGIN_INCLUDE(set_alarm)
-    /**
-     * Sets a repeating alarm that runs once a day at approximately 8:30 a.m. When the
-     * alarm fires, the app broadcasts an Intent to this WakefulBroadcastReceiver.
-     * @param context
-     */
     public void setAlarm(Context context, Calendar calendar,
                          ArrayList<String> phone, String messageContent,
                          int alarmNumber) {
+        this.context = context;
 
         // Creates new alarm
         alarm = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);

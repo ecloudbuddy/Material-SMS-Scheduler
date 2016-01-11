@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="ReminderDatePicker">
+        <attr name="flags">
+            <!-- FLAGs: -->
+            <flag name="past" value="1" />
+            <flag name="month" value="2" />
+            <flag name="more_time" value="4" />
+            <flag name="numbers" value="8" />
+            <flag name="weekday_names" value="16" />
+            <flag name="hide_time" value="32" />
+            <!-- MODEs: -->
+            <flag name="mode_google" value="0" />
+            <flag name="mode_everything" value="31" />
+        </attr>
+    </declare-styleable>
+</resources>

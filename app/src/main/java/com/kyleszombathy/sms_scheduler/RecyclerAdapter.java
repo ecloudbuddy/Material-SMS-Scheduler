@@ -7,12 +7,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Kyle on 11/23/2015.
  */
 
-public class HomeRecyclerAdapter extends RecyclerView.Adapter<HomeRecyclerAdapter.ViewHolder> {
+public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
     private ArrayList<String> nameDataset;
     private ArrayList<String> messageContentDataset;
     private ArrayList<String> dateDataset;
@@ -37,22 +38,30 @@ public class HomeRecyclerAdapter extends RecyclerView.Adapter<HomeRecyclerAdapte
         }
     }
 
-    public void add(int position, String item) {
-        nameDataset.add(position, item);
+    public void add(int position, String name,
+                    String messageContent,
+                    String date,
+                    String time) {
+        nameDataset.add(position, name);
+        messageContentDataset.add(messageContent);
+        dateDataset.add(date);
+        timeDataSet.add(time);
         notifyItemInserted(position);
     }
 
-    public void remove(String item) {
-        int position = nameDataset.indexOf(item);
+    public void remove(int position) {
         nameDataset.remove(position);
+        messageContentDataset.remove(position);
+        dateDataset.remove(position);
+        timeDataSet.remove(position);
         notifyItemRemoved(position);
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public HomeRecyclerAdapter(ArrayList<String> nameDataset,
-                               ArrayList<String> messageContentDataset,
-                               ArrayList<String> dateDataset,
-                               ArrayList<String> timeDataSet) {
+    public RecyclerAdapter(ArrayList<String> nameDataset,
+                           ArrayList<String> messageContentDataset,
+                           ArrayList<String> dateDataset,
+                           ArrayList<String> timeDataSet) {
         this.nameDataset = nameDataset;
         this.messageContentDataset = messageContentDataset;
         this.dateDataset = dateDataset;
@@ -61,7 +70,7 @@ public class HomeRecyclerAdapter extends RecyclerView.Adapter<HomeRecyclerAdapte
 
     // Create new views (invoked by the layout manager)
     @Override
-    public HomeRecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
+    public RecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
                                                    int viewType) {
         // create a new view
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_text_view, parent, false);
@@ -75,10 +84,6 @@ public class HomeRecyclerAdapter extends RecyclerView.Adapter<HomeRecyclerAdapte
     public void onBindViewHolder(ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        final String name = nameDataset.get(position);
-        final String messageContent = messageContentDataset.get(position);
-        final String date = dateDataset.get(position);
-        final String time = timeDataSet.get(position);
         holder.nameHeader.setText(nameDataset.get(position));
         holder.messageContentHeader.setText(messageContentDataset.get(position));
         holder.dateHeader.setText(dateDataset.get(position));
@@ -91,4 +96,20 @@ public class HomeRecyclerAdapter extends RecyclerView.Adapter<HomeRecyclerAdapte
         return nameDataset.size();
     }
 
+    public void clear() {
+        nameDataset.clear();
+        messageContentDataset.clear();
+        dateDataset.clear();
+        timeDataSet.clear();
+        notifyDataSetChanged();
+    }
+
+    // Add a list of items
+    public void addAll(List<String> name, List<String> message, List<String> date, List<String> time) {
+        nameDataset.addAll(name);
+        messageContentDataset.addAll(message);
+        dateDataset.addAll(date);
+        timeDataSet.addAll(time);
+        notifyDataSetChanged();
+    }
 }

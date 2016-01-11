@@ -1,37 +1,29 @@
 package com.kyleszombathy.sms_scheduler;
 
 import android.app.FragmentTransaction;
-import android.app.LoaderManager;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.provider.ContactsContract.Data;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.format.DateFormat;
 import android.transition.Fade;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.android.ex.chips.BaseRecipientAdapter;
@@ -39,55 +31,32 @@ import com.android.ex.chips.RecipientEditTextView;
 import com.android.ex.chips.recipientchip.DrawableRecipientChip;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import fr.ganfra.materialspinner.MaterialSpinner;
 
 public class AddMessage extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<Cursor>, AdapterView.OnItemSelectedListener,
+        implements
         DatePickerFragment.OnCompleteListener, TimePickerFragment.OnCompleteListener
 {
-    //=============Variables & Declarations================//
-    // For contact info retrieval. Disabled
-    private Uri uri;
-    private static final String[] PROJECTION = new String[] {
-            ContactsContract.Contacts._ID,
-            ContactsContract.Contacts.DISPLAY_NAME_PRIMARY,
-            ContactsContract.CommonDataKinds.Phone.NUMBER/*,
-            ContactsContract.CommonDataKinds.Photo.PHOTO*/
-    };
-    private static final int PICK_CONTACT_REQUEST = 1;
-    private static final String SELECTION = ContactsContract.Data.LOOKUP_KEY + " = ?";
-    private String[] mSelectionArgs = { "" };
-    private static final String SORT_ORDER = Data.MIMETYPE;
-    private ArrayList<Integer> ID = new ArrayList<>();
-    private int arrayListCount = 0;
-    private int DETAILS_QUERY_ID = 0;
-
     // User input info
     private int year, month, day, hour, minute;
     private ArrayList<String> name = new ArrayList<>();
     private ArrayList<String> phone = new ArrayList<>();
     private ArrayList<String> fullChipString = new ArrayList<>();
 
-    // Spinners
-    private ArrayList<CharSequence> dateEntries;
-    private ArrayList<CharSequence> timeEntries;
-    private Spinner dateSpinner, timeSpinner;
-    private String morningTime, afternoonTime, eveningTime, nightTime;
-    private CharSequence today, tomorrow, nextWeek, pickDate,
-            morning, afternoon, evening, night, pickTime;
-    int morningInt = 9; int afternoonInt = 13;
-    int eveningInt = 17; int nightInt = 20;
+    // ReminderDatePicker Libarary
+    private ReminderDatePicker datePicker;
 
     // Contact Picker
     private RecipientEditTextView phoneRetv;
     private DrawableRecipientChip[] chips;
-    private boolean phoneRetvSelected = false;
+    private ArrayList<String> photoUri = new ArrayList<>();
 
     // For getting character count
     private int smsMaxLength = 140;
@@ -96,6 +65,7 @@ public class AddMessage extends AppCompatActivity
 
     // Alarm Manager
     int alarmNumber;
+    int editMessageNewAlarmNumber;
 
     // For getting current time
     private Calendar calendar = Calendar.getInstance();
@@ -107,56 +77,8 @@ public class AddMessage extends AppCompatActivity
     private TextView phoneRetvErrorMessage;
     private TextView messageContentErrorMessage;
     private String messageContentString = "";
-
-    //======================Listeners=======================//
-    // Watches message content, makes a counter, and handles errors
-    private final TextWatcher messageContentEditTextWatcher = new TextWatcher() {
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            //This sets a textview to the current length
-            int length = s.length();
-            if (length == 1) {
-                messageContentEditText.getBackground().setColorFilter(getResources().
-                        getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
-                messageContentErrorMessage.setText("");
-            }
-            if (length <= smsMaxLength) {
-                counterTextView.setText(String.valueOf(smsMaxLength - length));
-            } else {
-                counterTextView.setText(String.valueOf(smsMaxLength - length % smsMaxLength)
-                        + " / " + String.valueOf(1 + (length / smsMaxLength)));
-            }
-        }
-        public void afterTextChanged(Editable s) {}
-    };
-
-    // Removes error text from phoneRetv
-    private final TextWatcher phoneRetvEditTextWatcher = new TextWatcher() {
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-        }
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            // Because chips get innacurate count unless it's currently selected
-            if (phoneRetvSelected) {
-                chips = phoneRetv.getSortedRecipients();
-            }
-            phoneRetv.getBackground().setColorFilter(getResources().
-                    getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
-            phoneRetvErrorMessage.setText("");
-        }
-        public void afterTextChanged(Editable s) {
-        }
-    };
-
-    // Listens for selection of phoneRetv
-    private View.OnFocusChangeListener phoneRetvFocusListner = new View.OnFocusChangeListener() {
-        public void onFocusChange(View v, boolean hasFocus) {
-            if (hasFocus){
-                phoneRetvSelected = true;
-            } else {
-                phoneRetvSelected = false;
-            }
-        }
-    };
+    private boolean editMessage = false;
+    private String phoneNumbTempString = "";
 
 
     //=============Activity Creation Methods================//
@@ -172,7 +94,10 @@ public class AddMessage extends AppCompatActivity
 
         // Get extras
         Intent i = getIntent();
-        alarmNumber = i.getIntExtra("alarmNumber", -1);
+        Bundle extras = i.getExtras();
+        alarmNumber = extras.getInt("alarmNumber", -1);
+        editMessageNewAlarmNumber = extras.getInt("NEW_ALARM", -1);
+        editMessage = extras.getBoolean("EDIT_MESSAGE", false);
 
         // Setting up toolbar
         Toolbar myChildToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -192,28 +117,197 @@ public class AddMessage extends AppCompatActivity
         transaction.commit();
     }
 
+
     @Override
     // When fragment is made
     protected void onResume() {
         super.onResume();
-        phoneRetvErrorMessage = (TextView) findViewById(R.id.phone_retv_error);
-        messageContentErrorMessage = (TextView) findViewById(R.id.messageContentError);
 
-        // Get character count
+        // Sets listeners for character count
         counterTextView = (TextView) findViewById(R.id.count);
         messageContentEditText = (EditText) findViewById(R.id.messageContent);
         messageContentEditText.addTextChangedListener(messageContentEditTextWatcher);
+        // Removes any ghost errors
+        messageContentErrorMessage = (TextView) findViewById(R.id.messageContentError);
+        messageContentEditText.getBackground().setColorFilter(getResources().
+                getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
+        messageContentErrorMessage.setText("");
 
-        setUpAutocomplete();
-        setCurrentDate();
-        setCurrentTime();
-        setUpSpinners();
+        // Setup phoneRetv autocomplete contacts and listeners
+        phoneRetv = (RecipientEditTextView) findViewById(R.id.phone_retv);
+        phoneRetv.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
+        phoneRetv.setAdapter(new BaseRecipientAdapter(BaseRecipientAdapter.QUERY_TYPE_PHONE, this));
+        phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
+        // Removes any ghost errors
+        phoneRetvErrorMessage = (TextView) findViewById(R.id.phone_retv_error);
+        phoneRetv.getBackground().setColorFilter(getResources().
+                getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
+        phoneRetvErrorMessage.setText("");
+
+        // Sets up Date and Time pickers
+        datePicker = (ReminderDatePicker) findViewById(R.id.date_picker);
+        datePicker.setCustomDatePicker(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showDatePickerDialog();
+            }
+        });
+        datePicker.setCustomTimePicker(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showTimePickerDialog();
+            }
+        });
+
+        // If we are editing the message
+        if (editMessage) {
+            try {
+                getValuesFromSQL();
+                phoneRetv.requestFocus();
+                // Ran after view is created
+                phoneRetv.getViewTreeObserver().addOnGlobalLayoutListener(
+                        new ViewTreeObserver.OnGlobalLayoutListener() {
+                            @Override
+                            public void onGlobalLayout() {
+
+                                for (int i = 0; i < name.size(); i++) {
+                                    System.out.println(name.get(i));
+                                    System.out.println(phone.get(i));
+                                    System.out.println(photoUri.get(i));
+                                    byte[] byteArray = getPhotoValuesFromSQL(photoUri.get(i));
+                                    phoneRetv.submitItem(name.get(i), phone.get(i), Uri.parse(photoUri.get(i)), byteArray);
+                                }
+
+                                name.clear();
+                                phone.clear();
+                                photoUri.clear();
+                                alarmNumber = editMessageNewAlarmNumber;
+                                phoneRetv.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                            }
+                });
+                messageContentEditText.setText(messageContentString);
+                datePicker.setSelectedDate(new GregorianCalendar(year, month, day));
+                datePicker.setSelectedTime(hour, minute);
+            } catch (Exception e) {
+                // To catch sql error. It's okay if this happens
+            }
+        }
+    }
+
+    private byte[] getPhotoValuesFromSQL(String uri) {
+        MessageDbHelper mDbHelper = new MessageDbHelper(AddMessage.this);
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        String[] projection = {
+                MessageContract.MessageEntry.PHOTO_URI_1,
+                MessageContract.MessageEntry.PHOTO_BYTES
+        };
+
+        // Which row to update, based on the ID
+        String selection = MessageContract.MessageEntry.PHOTO_URI_1 + " LIKE ?";
+        String[] selectionArgs = { uri };
+
+        String photoBytes = null;
+
+        try {
+            Cursor cursor = db.query(
+                    MessageContract.MessageEntry.TABLE_PHOTO,  // The table to query
+                    projection,                               // The columns to return
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                      // The sort order
+            );
+            cursor.moveToFirst();
+            photoBytes = cursor.getString(cursor.getColumnIndexOrThrow
+                    (MessageContract.MessageEntry.PHOTO_BYTES));
+            cursor.close();
+        } catch (Exception e) {
+            // It's okay
+        }
+        db.close();
+        mDbHelper.close();
+
+        if (photoBytes == null) {
+            return null;
+        } else {
+            return new byte[0];
+        }
     }
 
     @Override // Inserts menu send button
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_add_message, menu);
         return true;
+    }
+
+    //===============Edit Message SQL Retrieval===============//
+    private void getValuesFromSQL() {
+        MessageDbHelper mDbHelper = new MessageDbHelper(AddMessage.this);
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        // Which row to update, based on the ID
+        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(alarmNumber) };
+        String[] projection = {
+                MessageContract.MessageEntry.NAME,
+                MessageContract.MessageEntry.MESSAGE,
+                MessageContract.MessageEntry.PHONE,
+                MessageContract.MessageEntry.YEAR,
+                MessageContract.MessageEntry.MONTH,
+                MessageContract.MessageEntry.DAY,
+                MessageContract.MessageEntry.HOUR,
+                MessageContract.MessageEntry.MINUTE,
+                MessageContract.MessageEntry.PHOTO_URI,
+                MessageContract.MessageEntry.ALARM_NUMBER
+        };
+
+        Cursor cursor = db.query(
+                MessageContract.MessageEntry.TABLE_NAME,  // The table to query
+                projection,                               // The columns to return
+                selection,                                // The columns for the WHERE clause
+                selectionArgs,                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                      // The sort order
+        );
+
+        // Moves to first row
+        cursor.moveToFirst();
+        name = parseString(cursor.getString(cursor.getColumnIndexOrThrow
+                (MessageContract.MessageEntry.NAME)));
+        phoneNumbTempString = cursor.getString(cursor.getColumnIndexOrThrow
+                (MessageContract.MessageEntry.PHONE));
+        phone = parseString(phoneNumbTempString);
+        year = cursor.getInt(cursor.getColumnIndexOrThrow
+                (MessageContract.MessageEntry.YEAR));
+        month = cursor.getInt(cursor.getColumnIndexOrThrow
+                (MessageContract.MessageEntry.MONTH));
+        day = cursor.getInt(cursor.getColumnIndexOrThrow
+                (MessageContract.MessageEntry.DAY));
+        hour = cursor.getInt(cursor.getColumnIndexOrThrow
+                (MessageContract.MessageEntry.HOUR));
+        minute = cursor.getInt(cursor.getColumnIndexOrThrow
+                (MessageContract.MessageEntry.MINUTE));
+        photoUri = parseString(cursor.getString(cursor.getColumnIndexOrThrow
+                (MessageContract.MessageEntry.PHOTO_URI)));
+        messageContentString = cursor.getString(cursor.getColumnIndexOrThrow
+                (MessageContract.MessageEntry.MESSAGE));
+
+        // Close everything so android doesn't complain
+        cursor.close();
+        mDbHelper.close();
+    }
+
+    public ArrayList<String> parseString(String s) {
+        if(s == null) {
+            return null;
+        }
+        s = s.replace("[", "");
+        s = s.replace("]", "");
+        String[] chars = s.split(",");
+        return new ArrayList(Arrays.asList(chars));
     }
 
     //=============Dialog Fragments===============//
@@ -230,127 +324,14 @@ public class AddMessage extends AppCompatActivity
 
     // Retrieves data from DatePickerFragment on completion
     public void onComplete(int year, int month, int day) {
-        this.year = year;
-        this.month = month;
-        this.day = day;
+        GregorianCalendar calendar = new GregorianCalendar(year, month, day);
+        datePicker.setSelectedDate(calendar);
     }
 
     @Override
     // Retrieves data from TimePickerFragment on completion
     public void onComplete(int hourOfDay, int minute) {
-        this.hour = hourOfDay;
-        this.minute = minute;
-    }
-
-    //===========Setter Uppers & Spinner methods==========//
-    // Setup phoneRetv autocomplete contacts
-    private void setUpAutocomplete() {
-        phoneRetv = (RecipientEditTextView) findViewById(R.id.phone_retv);
-        phoneRetv.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
-        phoneRetv.setAdapter(new BaseRecipientAdapter(BaseRecipientAdapter.QUERY_TYPE_PHONE, this));
-        phoneRetv.setOnFocusChangeListener(phoneRetvFocusListner);
-        phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
-    }
-
-    public void setUpSpinners() {
-        setUpSpinners(null);
-    }
-
-    public void setUpSpinners(String date) {
-        if (!DateFormat.is24HourFormat(this)) {
-            morningTime = Integer.toString(morningInt) + ":00 AM";
-            afternoonTime = Integer.toString(afternoonInt - 12) + ":00 PM";
-            eveningTime = Integer.toString(eveningInt - 12) + ":00 PM";
-            nightTime = Integer.toString(nightInt - 12) + ":00 PM";
-        } else {
-            morningTime = "0" + Integer.toString(morningInt) + ":00";
-            afternoonTime = Integer.toString(afternoonInt) + ":00";
-            eveningTime = Integer.toString(eveningInt) + ":00";
-            nightTime = Integer.toString(nightInt) + ":00";
-        }
-
-        today = getString(R.string.today);
-        tomorrow = getString(R.string.tomorrow);
-        nextWeek = getString(R.string.next) + " " + getDayOfWeekString();
-        pickDate = getString(R.string.pick_date);
-        morning = getString(R.string.morning) + " " + morningTime;
-        afternoon = getString(R.string.afternoon) + " " + afternoonTime;
-        evening = getString(R.string.evening) + " " + eveningTime;
-        night = getString(R.string.night) + " " + nightTime;
-        pickTime = getString(R.string.pick_time);
-
-        dateEntries = new ArrayList<CharSequence>(Arrays.<CharSequence>asList (
-                today, tomorrow, nextWeek, pickDate));
-        timeEntries = new ArrayList<CharSequence>(Arrays.<CharSequence>asList(
-                morning, afternoon, evening, night, pickTime));
-        if(date != null) {
-            dateEntries.add(0, date);
-        }
-        ArrayAdapter<CharSequence> dateAdapter =
-                new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, dateEntries);
-        ArrayAdapter<CharSequence> timeAdapter =
-                new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, timeEntries);
-        dateAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        dateSpinner = (MaterialSpinner) findViewById(R.id.date_spinner);
-        timeSpinner = (MaterialSpinner) findViewById(R.id.time_spinner);
-        dateSpinner.setAdapter(dateAdapter);
-        timeSpinner.setAdapter(timeAdapter);
-        dateSpinner.setOnItemSelectedListener(this);
-        timeSpinner.setOnItemSelectedListener(this);
-        dateSpinner.setSelection(getIndex(dateSpinner, tomorrow.toString()));
-    }
-
-    // Gets index of string in spinner
-    private int getIndex(Spinner spinner, String myString){
-        int index = 0;
-        for (int i=0;i<spinner.getCount();i++){
-            if (spinner.getItemAtPosition(i).equals(myString)){
-                index = i;
-            }
-        }
-        return index;
-    }
-
-    // Listens for item selected in spinners
-    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-        hideKeyboard();
-        // Couldn't get cases to work so just used else ifs, sorry lol
-        if(parent.getItemAtPosition(pos).equals(tomorrow)) {
-            setXDaysInFuture(1);
-        } else if(parent.getItemAtPosition(pos).equals(today)) {
-            setCurrentDate();
-            updateDateSpinner();
-            updateTimeSpinner();
-        } else if(parent.getItemAtPosition(pos).equals(nextWeek)) {
-            setXDaysInFuture(7);
-        } else if(parent.getItemAtPosition(pos).equals(pickDate)) {
-            showDatePickerDialog();
-        } else if(parent.getItemAtPosition(pos).equals(morning)) {
-            setHour(morningInt);
-        } else if(parent.getItemAtPosition(pos).equals(afternoon)) {
-            setHour(afternoonInt);
-        } else if(parent.getItemAtPosition(pos).equals(evening)) {
-            setHour(eveningInt);
-        } else if(parent.getItemAtPosition(pos).equals(night)) {
-            setHour(nightInt);
-        } else if(parent.getItemAtPosition(pos).equals(pickTime)) {
-            showTimePickerDialog();
-        }
-    }
-
-    private void updateDateSpinner() {
-        getCurrentDateString();
-    }
-
-
-
-    private void updateTimeSpinner() {
-
-    }
-
-    // If nothing selected on spinner
-    public void onNothingSelected(AdapterView<?> parent) {
+        datePicker.setSelectedTime(hourOfDay, minute);
     }
 
     //=============Finishing and adding to SQL================//
@@ -361,13 +342,40 @@ public class AddMessage extends AppCompatActivity
         switch (item.getItemId()) {
             case R.id.action_send:
                 messageContentString = messageContentEditText.getText().toString();
+                // Hack to get phoeRetv to display the correct contants updated
+                messageContentEditText.requestFocus();
+                phoneRetv.requestFocus();
+                chips = phoneRetv.getSortedRecipients();
+                // Get time from datePicker
+                Calendar cal = datePicker.getSelectedDate();
+                year = cal.get(Calendar.YEAR);
+                month = cal.get(Calendar.MONTH);
+                day = cal.get(Calendar.DAY_OF_MONTH);
+                hour = cal.get(Calendar.HOUR_OF_DAY);
+                minute = cal.get(Calendar.MINUTE);
 
                 if (verifyData()) {
+                    // Add to sql database and schedule the alarm
                     addDataToSQL();
+                    addPhotoDataToSQL();
                     scheduleMessage();
                     hideKeyboard();
                     createSnackBar(getString(R.string.success));
+
+                    // Create bundle of extras to pass back to Home
                     Intent returnIntent = new Intent();
+                    Bundle extras = new Bundle();
+                    extras.putString("NAME_EXTRA", name.toString());
+                    extras.putString("CONTENT_EXTRA", messageContentString);
+                    extras.putInt("ALARM_EXTRA", alarmNumber);
+                    extras.putInt("YEAR_EXTRA", year);
+                    extras.putInt("MONTH_EXTRA", month);
+                    extras.putInt("DAY_EXTRA", day);
+                    extras.putInt("HOUR_EXTRA", hour);
+                    extras.putInt("MINUTE_EXTRA", minute);
+                    returnIntent.putExtras(extras);
+
+                    // Return to HOME
                     setResult(RESULT_OK, returnIntent);
                     finish();
                     return true;
@@ -389,19 +397,25 @@ public class AddMessage extends AppCompatActivity
             result = errorChipsEmpty();
         } else if (chips.length > 0) {
             for (DrawableRecipientChip chip : chips) {
+                Uri uri = chip.getEntry().getPhotoThumbnailUri();
+                if (uri != null) {
+                    photoUri.add(uri.toString());
+                } else {
+                    photoUri.add(null);
+                }
+
                 String str = chip.toString();
                 String phoneTemp = getPhoneNumberFromString(str);
 
                 if (phoneTemp.length() == 0) {
-                    // Invalid contact without number
-                    phoneRetvErrorMessage.setText(getResources().getString(R.string.invalid_entry));
-                    phoneRetv.getBackground().setColorFilter(getResources().
-                            getColor(R.color.error_color), PorterDuff.Mode.SRC_ATOP);
-                    YoYo.with(Techniques.Shake)
-                            .duration(700)
-                            .playOn(findViewById(R.id.phone_retv));
-                    phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
-                    result = false;
+                    result = errorPhoneWrong();
+                } else {
+                    for (char c: phoneTemp.toCharArray()) {
+                        if (Character.isLetter(c)) {
+                            result = errorPhoneWrong();
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -410,7 +424,7 @@ public class AddMessage extends AppCompatActivity
             messageContentErrorMessage.setText(getResources().
                     getString(R.string.error_message_content));
             messageContentEditText.getBackground().setColorFilter(getResources().
-                    getColor(R.color.error_color), PorterDuff.Mode.SRC_ATOP);
+                    getColor(R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
             YoYo.with(Techniques.Shake)
                     .duration(700)
                     .playOn(findViewById(R.id.messageContent));
@@ -436,11 +450,23 @@ public class AddMessage extends AppCompatActivity
         return result;
     }
 
+    private boolean errorPhoneWrong() {
+        // Invalid contact without number
+        phoneRetvErrorMessage.setText(getResources().getString(R.string.invalid_entry));
+        phoneRetv.getBackground().setColorFilter(getResources().
+                getColor(R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
+        YoYo.with(Techniques.Shake)
+                .duration(700)
+                .playOn(findViewById(R.id.phone_retv));
+        phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
+        return false;
+    }
+
     private boolean errorChipsEmpty() {
         // Sets error message
         phoneRetvErrorMessage.setText(getResources().getString(R.string.error_recipient));
         phoneRetv.getBackground().setColorFilter(getResources().
-                getColor(R.color.error_color), PorterDuff.Mode.SRC_ATOP);
+                getColor(R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
         YoYo.with(Techniques.Shake)
                 .duration(700)
                 .playOn(findViewById(R.id.phone_retv));
@@ -459,19 +485,6 @@ public class AddMessage extends AppCompatActivity
         // Starts alarm
         MessageAlarmReceiver receiver = new MessageAlarmReceiver();
         receiver.setAlarm(this, cal, phone, messageContentString, alarmNumber);
-
-
-/*        // Create intent
-        Intent intentAlarm = new Intent(this, AlarmReceiver.class);
-        // Add extras
-        Bundle extras = new Bundle();
-        extras.putStringArrayList("pNum", phone);
-        extras.putString("message", messageContentString);
-        intentAlarm.putExtras(extras);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                this.getApplicationContext(), alarmNumber, intentAlarm, PendingIntent.FLAG_UPDATE_CURRENT);
-        AlarmManager alarm = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarm.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);*/
     }
 
     private void addDataToSQL() {
@@ -481,49 +494,117 @@ public class AddMessage extends AppCompatActivity
 
         System.out.println(name.toString());
         System.out.println(phone.toString());
-        System.out.println(year);
-        System.out.println(month);
-        System.out.println(day);
-        System.out.println(hour);
-        System.out.println(minute);
+        System.out.println(photoUri.toString());
         System.out.println(alarmNumber);
 
         // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_NAME, name.toString());
+                NAME, name.toString());
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_PHONE, phone.toString());
+                PHONE, phone.toString());
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_NAME_PHONE_FULL, fullChipString.toString());
+                NAME_PHONE_FULL, fullChipString.toString());
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_MESSAGE, messageContentString);
+                MESSAGE, messageContentString);
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_YEAR, year);
+                YEAR, year);
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_MONTH, month);
+                MONTH, month);
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_DAY, day);
+                DAY, day);
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_HOUR, hour);
+                HOUR, hour);
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_MINUTE, minute);
+                MINUTE, minute);
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_ALARM_NUMBER, alarmNumber);
+                ALARM_NUMBER, alarmNumber);
         values.put(MessageContract.MessageEntry.
-                COLUMN_NAME_SENT, 0);
+                PHOTO_URI, photoUri.toString());
+        values.put(MessageContract.MessageEntry.
+                ARCHIVED, 0);
+        values.put(MessageContract.MessageEntry.
+                DATETIME, getFullDateString());
 
         // Insert the new row, returning the primary key value of the new row
         sqlRowId = db.insert(
                 MessageContract.MessageEntry.TABLE_NAME,
-                MessageContract.MessageEntry.COLUMN_NAME_NULLABLE,
+                MessageContract.MessageEntry.NULLABLE,
                 values);
 
         mDbHelper.close();
+        db.close();
     }
-    //================Time&Date Methods================//
-    private void getCurrentDateString() {
 
+
+    private void addPhotoDataToSQL() {
+        MessageDbHelper mDbHelper = new MessageDbHelper(AddMessage.this);
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        for (int i = 0; i < phoneRetv.getRecipients().length; i++) {
+            byte[] photoBytes = chips[i].getEntry().getPhotoBytes();
+
+            // Create a new map of values, where column names are the keys
+            ContentValues values = new ContentValues();
+            values.put(MessageContract.MessageEntry.
+                    PHOTO_URI_1, photoUri.get(i));
+            values.put(MessageContract.MessageEntry.
+                    PHOTO_BYTES, photoBytes);
+
+            // Insert the new row, returning the primary key value of the new row
+            sqlRowId = db.insert(
+                    MessageContract.MessageEntry.TABLE_PHOTO,
+                    MessageContract.MessageEntry.NULLABLE,
+                    values);
+        }
+        // Close everything
+        mDbHelper.close();
+        db.close();
+    }
+
+    //======================Listeners=======================//
+    // Watches message content, makes a counter, and handles errors
+    private final TextWatcher messageContentEditTextWatcher = new TextWatcher() {
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            //This sets a textview to the current length
+            int length = s.length();
+            // Begins counting length of message
+            if (length == 1) {
+                messageContentEditText.getBackground().setColorFilter(getResources().
+                        getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
+                messageContentErrorMessage.setText("");
+            }
+            // If length exceeds 1 message, shows user
+            if (length <= smsMaxLength) {
+                counterTextView.setText(String.valueOf(smsMaxLength - length));
+            } else {
+                counterTextView.setText(String.valueOf(smsMaxLength - length % smsMaxLength)
+                        + " / " + String.valueOf(1 + (length / smsMaxLength)));
+            }
+        }
+        public void afterTextChanged(Editable s) {}
+    };
+
+    // Removes error text from phoneRetv
+    private final TextWatcher phoneRetvEditTextWatcher = new TextWatcher() {
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        }
+        public void afterTextChanged(Editable s) {
+            // Removes error message once user adds a contact
+            phoneRetv.getBackground().setColorFilter(getResources().
+                    getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
+            phoneRetvErrorMessage.setText("");
+        }
+    };
+
+    //================Time&Date Methods================//
+    private String getFullDateString() {
+        GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        return format.format(date.getTime());
     }
     // Gets and sets current date
     public void setCurrentDate(){
@@ -592,14 +673,6 @@ public class AddMessage extends AppCompatActivity
     public String getPhoneNumberFromString(String str) {
         // Extracts number within <> brackets
         String[] retval = str.split("<|>");
-        // In case we need to extract the exact number out
-/*        String temp = "";
-        for (int i =0; i < retval[1].length(); i++) {
-            char c = retval[1].charAt(i);
-            if (Character.isDigit(c)) {
-                temp += c;
-            }
-        } */
         return retval[1];
     }
 
@@ -613,67 +686,5 @@ public class AddMessage extends AppCompatActivity
                 break;
             }
         } return temp;
-    }
-
-    public void setFullTime() {
-
-    }
-
-    //============Data Loaders for Contacts, Disabled================//
-    // Disabled. for old contact picking
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-/*        if (requestCode == PICK_CONTACT_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                // A contact was picked.
-                uri = data.getData();
-                // Initiate loader
-                getLoaderManager().initLoader(DETAILS_QUERY_ID, null, this);
-            }
-        }*/
-    }
-
-    // Disabled. For loaders of contacts
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        // Create and return a CursorLoader that will take care of
-        // creating a Cursor for the data being displayed.
-        return new CursorLoader(this, uri, PROJECTION, null, null, null);
-    }
-
-    @Override
-    // Disabled. For loaders of contacts
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-/*        data.moveToPosition(0);
-        ID.add(data.getInt(0));
-        name.add(data.getString(1));
-        String str = data.getString(2);
-        String temp = "";
-        // Gets int from string of phone number
-        for (int i =0; i < str.length(); i++) {
-            char c = str.charAt(i);
-            if (Character.isDigit(c)) {
-                temp += c;
-            }
-        }
-        phone.add(Long.parseLong(temp));
-        System.out.println("ID: " + Arrays.toString(ID.toArray()));
-        System.out.println("Name: " + Arrays.toString(name.toArray()));
-        System.out.println("Phone: " + Arrays.toString(phone.toArray()));
-
-        // Add name to recipients list
-        if (name.size() == 1) {
-            //t.setText(t.getText() + " " + name.get(arrayListCount));
-        } else {
-            //t.setText(t.getText() + ", " + name.get(arrayListCount));
-        }
-
-        DETAILS_QUERY_ID++;
-        arrayListCount++;*/
-    }
-
-    // Disabled. For loaders of contacts
-    public void onLoaderReset(Loader<Cursor> loader) {
-        // This is called when the last Cursor provided to onLoadFinished()
-        // above is about to be closed.  We need to make sure we are no
-        // longer using it.
     }
 }

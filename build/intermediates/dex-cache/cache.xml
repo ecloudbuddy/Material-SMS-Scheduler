@@ -1,33 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
-<items version="2" >
+<items version="2" />
 
-    <item
-        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\com.github.ganfra\material-spinner\1.1.1\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="d0df3bf618b078d102a4234ceff33c44026e64b9">
-        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\classes-da1f85a8b39b4d5121a7431e83dcf58bb796b890.jar" />
-    </item>
-    <item
-        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\com.marshalchen.ultimaterecyclerview\library\0.3.18\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="d4f1743ab355c997e244931d7708caf2b7109e0d">
-        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\classes-ea4b2f0456dc7fdf6e4892868ae40b71620d60e5.jar" />
-    </item>
-    <item
-        jar="C:\Users\Kyle\.gradle\caches\modules-2\files-2.1\com.github.bumptech.glide\glide\3.6.0\a7537446a030da8eb0da4c71424d16c2589f6c4a\glide-3.6.0.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="a7537446a030da8eb0da4c71424d16c2589f6c4a">
-        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\glide-3.6.0-2bd477df2332ff9f6cbfc31939df5566597df074.jar" />
-    </item>
-    <item
-        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\in.srain.cube\ultra-ptr\1.0.10\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.2"
-        sha1="f7aa9a64408679b54260b859ae8eb723b69ecd30">
-        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\classes-63d813c82f9a56bec3d84b5beb6484289b38b1e6.jar" />
-    </item>
-
-</items>

@@ -60,7 +60,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/error_color"
+            android:textColor="@color/error_primary"
             android:id="@+id/phone_retv_error"
             />
 
@@ -102,7 +102,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/error_color"
+            android:textColor="@color/error_primary"
             android:id="@+id/messageContentError"
             />
 
@@ -137,34 +137,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="top"
+        android:id="@+id/spinnerLinearLayout"
         android:layout_below="@+id/subtitle2"
-        android:layout_alignParentStart="true"
-        >
+        android:layout_alignParentStart="true">
 
-        <fr.ganfra.materialspinner.MaterialSpinner
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/date_spinner"
-            android:layout_weight="1"
-            app:ms_arrowSize="16dp"
-            app:ms_enableFloatingLabel="true"
-            app:ms_hintColor="@color/primary_text_material_light"
-            app:ms_enableErrorLabel="true"
-            />
+        <com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker
+            android:id="@+id/date_picker"
+            app:flags="mode_google|numbers"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
 
-        <Space
+
+<!--        <Space
             android:layout_width="8dp"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent" />-->
 
-        <fr.ganfra.materialspinner.MaterialSpinner
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:id="@+id/time_spinner"
-            app:ms_arrowSize="16dp"
-            app:ms_enableFloatingLabel="true"
-            app:ms_enableErrorLabel="true"
-            />
 
     </LinearLayout>
 </RelativeLayout>

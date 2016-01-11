@@ -38,5 +38,6 @@
     <!--Notifications-->
     <string name="testing">testing testing 123</string>
     <string name="message_success">Scheduled Message Sent</string>
+    <string name="archived">Archived</string>
 
 </resources>

@@ -61,20 +61,20 @@ public class MessageBootReceiver extends BroadcastReceiver {
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
-                MessageContract.MessageEntry.COLUMN_NAME_PHONE,
-                MessageContract.MessageEntry.COLUMN_NAME_MESSAGE,
-                MessageContract.MessageEntry.COLUMN_NAME_YEAR,
-                MessageContract.MessageEntry.COLUMN_NAME_MONTH,
-                MessageContract.MessageEntry.COLUMN_NAME_DAY,
-                MessageContract.MessageEntry.COLUMN_NAME_HOUR,
-                MessageContract.MessageEntry.COLUMN_NAME_MINUTE,
-                MessageContract.MessageEntry.COLUMN_NAME_ALARM_NUMBER,
-                MessageContract.MessageEntry.COLUMN_NAME_SENT
+                MessageContract.MessageEntry.PHONE,
+                MessageContract.MessageEntry.MESSAGE,
+                MessageContract.MessageEntry.YEAR,
+                MessageContract.MessageEntry.MONTH,
+                MessageContract.MessageEntry.DAY,
+                MessageContract.MessageEntry.HOUR,
+                MessageContract.MessageEntry.MINUTE,
+                MessageContract.MessageEntry.ALARM_NUMBER,
+                MessageContract.MessageEntry.ARCHIVED
         };
 
         // How you want the results sorted in the resulting Cursor
         String sortOrder =
-                MessageContract.MessageEntry.COLUMN_NAME_NAME + " DESC";
+                MessageContract.MessageEntry.NAME + " DESC";
 
         Cursor cursor = db.query(
                 MessageContract.MessageEntry.TABLE_NAME,  // The table to query
@@ -90,26 +90,26 @@ public class MessageBootReceiver extends BroadcastReceiver {
         cursor.moveToFirst();
 
         for (int i = 0; i < cursor.getCount(); i++) {
-            int sent = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.COLUMN_NAME_SENT));
-            if (sent == 0) {
+            int archived = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (MessageContract.MessageEntry.ARCHIVED));
+            if (archived == 0) {
                 // Pull data from sql
                 int year = cursor.getInt(cursor.getColumnIndexOrThrow
-                        (MessageContract.MessageEntry.COLUMN_NAME_YEAR));
+                        (MessageContract.MessageEntry.YEAR));
                 int month = cursor.getInt(cursor.getColumnIndexOrThrow
-                        (MessageContract.MessageEntry.COLUMN_NAME_MONTH));
+                        (MessageContract.MessageEntry.MONTH));
                 int day = cursor.getInt(cursor.getColumnIndexOrThrow
-                        (MessageContract.MessageEntry.COLUMN_NAME_DAY));
+                        (MessageContract.MessageEntry.DAY));
                 int hour = cursor.getInt(cursor.getColumnIndexOrThrow
-                        (MessageContract.MessageEntry.COLUMN_NAME_HOUR));
+                        (MessageContract.MessageEntry.HOUR));
                 int minute = cursor.getInt(cursor.getColumnIndexOrThrow
-                        (MessageContract.MessageEntry.COLUMN_NAME_MINUTE));
+                        (MessageContract.MessageEntry.MINUTE));
                 messageContentDataset.add(cursor.getString(cursor.getColumnIndexOrThrow
-                        (MessageContract.MessageEntry.COLUMN_NAME_MESSAGE)));
+                        (MessageContract.MessageEntry.MESSAGE)));
                 phoneDataset.add(cursor.getString(cursor.getColumnIndexOrThrow
-                        (MessageContract.MessageEntry.COLUMN_NAME_PHONE)));
+                        (MessageContract.MessageEntry.PHONE)));
                 alarmNumberDateset.add(cursor.getInt(cursor.getColumnIndexOrThrow
-                        (MessageContract.MessageEntry.COLUMN_NAME_ALARM_NUMBER)));
+                        (MessageContract.MessageEntry.ALARM_NUMBER)));
 
                 // Set calendar database
                 Calendar cal = Calendar.getInstance();
