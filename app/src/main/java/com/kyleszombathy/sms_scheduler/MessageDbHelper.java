@@ -44,7 +44,7 @@ public class MessageDbHelper extends SQLiteOpenHelper {
             "DROP TABLE IF EXISTS " + MessageContract.MessageEntry.TABLE_PHOTO;
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 4;
+    public static final int DATABASE_VERSION = 5;
     public static final String DATABASE_NAME = "MessageDB.db";
 
     public MessageDbHelper(Context context) {
@@ -58,7 +58,7 @@ public class MessageDbHelper extends SQLiteOpenHelper {
         // This database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over
         db.execSQL(SQL_DELETE_ENTRIES);
-        db.execSQL(SQL_CREATE_ENTRIES_PHOTO);
+        db.execSQL(SQL_DELETE_ENTRIES_PHOTO);
         onCreate(db);
     }
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {

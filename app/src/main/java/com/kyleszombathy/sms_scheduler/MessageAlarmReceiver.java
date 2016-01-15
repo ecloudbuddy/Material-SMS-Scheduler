@@ -18,7 +18,7 @@ import java.util.Calendar;
 
 
 
-/*
+/**
  * When the alarm fires, this WakefulBroadcastReceiver receives the broadcast Intent
  * and then starts the IntentService {@code MessageSchedulingService} to do some work.
  */
@@ -46,7 +46,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         for (int i=0; i < phone.size(); i++) {
             sendSMSMessage(phone.get(i), messageArrayList);
             markAsSent(context, alarmNumber);
-            sendNotification(context, "Message sent to ");
+            //sendNotification(context, "Message sent");
         }
     }
 
@@ -88,8 +88,8 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
-    public void setAlarm(Context context, Calendar calendar,
-                         ArrayList<String> phone, String messageContent,
+    public void setAlarm(Context context, Calendar timeToSend,
+                         ArrayList<String> phoneNumberList, String messageContent,
                          int alarmNumber) {
         this.context = context;
 
@@ -98,7 +98,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         Intent intentAlarm = new Intent(context, MessageAlarmReceiver.class);
         // Add extras
         Bundle extras = new Bundle();
-        extras.putStringArrayList("pNum", phone);
+        extras.putStringArrayList("pNum", phoneNumberList);
         extras.putString("message", messageContent);
         extras.putInt("alarmNumber", alarmNumber);
         intentAlarm.putExtras(extras);
@@ -108,7 +108,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
                 alarmNumber,
                 intentAlarm,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-        alarm.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+        alarm.set(AlarmManager.RTC_WAKEUP, timeToSend.getTimeInMillis(), pendingIntent);
 
         // Enable {@code MessageBootReceiver} to automatically restart the alarm when the
         // device is rebooted.

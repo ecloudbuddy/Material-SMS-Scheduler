@@ -41,7 +41,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
 
     private Context context;
 
-    private int leftLengthDP = 72;
+    private int leftLengthDP = 80;
 
     public DividerItemDecoration(Context context, int orientation) {
         this.context = context;

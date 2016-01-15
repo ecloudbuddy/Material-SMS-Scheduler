@@ -13,6 +13,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.Snackbar;
@@ -23,24 +27,31 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.text.format.DateUtils;
 import android.transition.Fade;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.widget.Toolbar;
 
+import com.amulyakhare.textdrawable.TextDrawable;
+import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.github.amlcurran.showcaseview.ShowcaseView;
 import com.github.amlcurran.showcaseview.targets.Target;
 import com.github.amlcurran.showcaseview.targets.ViewTarget;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.Objects;
 
-import jp.wasabeef.recyclerview.animators.SlideInLeftAnimator;
+import jp.wasabeef.recyclerview.animators.SlideInDownAnimator;
 
 public class Home extends Activity {
+    private static final String TAG = "HOME";
     private static final String ALARM_EXTRA = "alarmNumber";
     private static final String EDIT_MESSAGE_EXTRA = "EDIT_MESSAGE";
+    public final int circleImageViewWidth = 56;
     private SwipeRefreshLayout swipeContainer;
     // Recyclerview adapter dataset
     private RecyclerView mRecyclerView;
@@ -51,6 +62,8 @@ public class Home extends Activity {
     public ArrayList<String> dateDataset = new ArrayList<>();
     public ArrayList<String> timeDataSet = new ArrayList<>();
     public ArrayList<Integer> alarmNumberDataset = new ArrayList<>();
+    public ArrayList<String> uriDataset = new ArrayList<>();
+    private ArrayList<Bitmap> photoDataset= new ArrayList<>();
     // For random number retrieval
     private final int MAX_INT = Integer.MAX_VALUE ;
     private final int MIN_INT = 1;
@@ -131,18 +144,21 @@ public class Home extends Activity {
         });
     }
 
-
+    /** Returns random int between min and max*/
     private int getRandomInt(int min, int max) {
         return min + (int) (Math.random() * ((max - min) + 1));
     }
 
     //=============== SQL Retrieval ===============//
+    /**Retrieves values from sql Database*/
     private void readFromSQLDatabase() {
         nameDataset.clear();
         messageContentDataset.clear();
         dateDataset.clear();
         timeDataSet.clear();
         alarmNumberDataset.clear();
+        uriDataset.clear();
+        photoDataset.clear();
 
         MessageDbHelper mDbHelper = new MessageDbHelper(Home.this);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -157,7 +173,8 @@ public class Home extends Activity {
             MessageContract.MessageEntry.DAY,
             MessageContract.MessageEntry.HOUR,
             MessageContract.MessageEntry.MINUTE,
-            MessageContract.MessageEntry.ALARM_NUMBER
+            MessageContract.MessageEntry.ALARM_NUMBER,
+            MessageContract.MessageEntry.PHOTO_URI
         };
 
         // How you want the results sorted in the resulting Cursor
@@ -173,7 +190,7 @@ public class Home extends Activity {
                 selectionArgs,                            // The values for the WHERE clause
                 null,                                     // don't group the rows
                 null,                                     // don't filter by row groups
-                sortOrder                                      // The sort order
+                sortOrder                                 // The sort order
         );
 
         // Moves to first row
@@ -196,6 +213,14 @@ public class Home extends Activity {
                     (MessageContract.MessageEntry.MESSAGE)));
             alarmNumberDataset.add(cursor.getInt(cursor.getColumnIndexOrThrow
                     (MessageContract.MessageEntry.ALARM_NUMBER)));
+            ArrayList<String> tempUri = Tools.parseString(cursor.getString(cursor.getColumnIndexOrThrow
+                    (MessageContract.MessageEntry.PHOTO_URI)));
+
+            if (tempUri.size() == 1 && !Objects.equals(tempUri.get(0).trim(), "null")) {
+                uriDataset.add(tempUri.get(0).trim());
+            } else {
+                uriDataset.add(null);
+            }
             // Get date in a format for viewing by user
             setFullDateAndTime(year, month, day, hour, minute);
             // Move to next row
@@ -205,11 +230,46 @@ public class Home extends Activity {
         cursor.close();
         db.close();
         mDbHelper.close();
+
+        // Get bitmaps
+        getPhotoBytes();
     }
 
+    /**Retreieves bitmap from database*/
+    private void getPhotoBytes() {
+        for (int i = 0; i < uriDataset.size(); i++) {
+            if (uriDataset.get(i)!= null) {
+                // Get byte array
+                byte[] byteArray = Tools.getPhotoValuesFromSQL(Home.this, uriDataset.get(i));
+                // Convert to bitmap and drawable
+                ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(byteArray);
+                Bitmap bitmap = BitmapFactory.decodeStream(arrayInputStream);
+                photoDataset.add(bitmap);
+            } else {
+                // Get first letter
+                Character nameFirstLetter = nameDataset.get(i).charAt(0);
+                // Get color
+                ColorGenerator generator = ColorGenerator.MATERIAL;
+                int color = generator.getColor(nameDataset.get(i));
+                TextDrawable drawable = TextDrawable.builder()
+                        .beginConfig()
+                        .useFont(Typeface.DEFAULT_BOLD)
+                        .fontSize(60)
+                        .height(circleImageViewWidth * 2)
+                        .width(circleImageViewWidth * 2)
+                        .endConfig()
+                        .buildRound(nameFirstLetter.toString().toUpperCase(), color);
+                Bitmap bitmap = Tools.drawableToBitmap(drawable);
+                photoDataset.add(bitmap);
+            }
+        }
+    }
+
+    /**Extracts name from given string */
     private void extractName(String names) {
         String nameCondensedString;
         ArrayList<String> nameList = new ArrayList<>();
+        // Trim brackets
         names = names.replace("[", "");
         names = names.replace("]", "");
 
@@ -227,9 +287,10 @@ public class Home extends Activity {
         if (nameListSize > 0) {
             nameCondensedString += ", +" + (nameListSize);
         }
-        nameDataset.add(nameCondensedString);
+        nameDataset.add(nameCondensedString.trim());
     }
 
+    /**Adds date and time string as relative time to now to database*/
     public void setFullDateAndTime(int year, int month, int day, int hour, int minute) {
         //Calendar date = new GregorianCalendar(year, month, day, hour, minute);
         GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
@@ -246,9 +307,7 @@ public class Home extends Activity {
         timeDataSet.add(timeString);
     }
 
-    /**
-     * Sets given item as archived in database
-     */
+    /**Sets given item as archived in database*/
     private void setAsArchived(int alarmNumb) {
         MessageDbHelper mDbHelper = new MessageDbHelper(Home.this);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -270,9 +329,7 @@ public class Home extends Activity {
         db.close();
         mDbHelper.close();
     }
-    /**
-     * Removes Item given alarm Number from database
-     */
+    /**Removes Item given alarm Number from database*/
     private void deleteFromDatabase(int alarmNumb) {
         MessageDbHelper mDbHelper = new MessageDbHelper(Home.this);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -289,32 +346,36 @@ public class Home extends Activity {
         mDbHelper.close();
     }
 
+    private void getNextAlarmClock() {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        Long alarmTime = alarmManager.getNextAlarmClock().getTriggerTime();
+        Log.i(TAG, "Next Alarm : " + alarmTime);
+    }
+
+    /**Cancels alarm given alarm number*/
     private void cancelAlarm(int alarmNumb) {
         Intent intent = new Intent(this, MessageAlarmReceiver.class);
         PendingIntent sender = PendingIntent.getBroadcast(this, alarmNumb, intent, 0);
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-
         alarmManager.cancel(sender);
+        Log.i(TAG, "Alarm Canceled");
     }
 
 
-
     //=============== Recyclerview edit and delete ===============//
+    /**Sets up recycler view and adapter*/
     private void setUpRecyclerView() {
         // Setting up RecyclerView
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        mRecyclerView.addItemDecoration(new DividerItemDecoration(Home.this,
-                DividerItemDecoration.VERTICAL_LIST));
+/*        mRecyclerView.addItemDecoration(new DividerItemDecoration(Home.this,
+                DividerItemDecoration.VERTICAL_LIST));*/
         mRecyclerView.setHasFixedSize(true);
 
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setItemAnimator(new SlideInLeftAnimator());
+        mRecyclerView.setItemAnimator(new SlideInDownAnimator());
 
-        mAdapter = new RecyclerAdapter(
-                nameDataset, messageContentDataset, dateDataset, timeDataSet);
-        mRecyclerView.setAdapter(mAdapter);
-
+        updateRecyclerViewAdapter();
 
         // Item touch listener for editing message
         itemTouchHelper.attachToRecyclerView(mRecyclerView);
@@ -344,11 +405,21 @@ public class Home extends Activity {
         );
     }
 
-    /**
-     * Swipe to delete function
-     */
+    private void updateRecyclerViewAdapter() {
+        mAdapter = new RecyclerAdapter(
+                nameDataset, messageContentDataset, dateDataset, timeDataSet, uriDataset, photoDataset);
+        mRecyclerView.setAdapter(mAdapter);
+    }
+
+    /**Swipe to delete function*/
     ItemTouchHelper.SimpleCallback simpleItemTouchCallback =
             new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+                Canvas c;
+                RecyclerView recyclerView;
+                RecyclerView.ViewHolder viewHolder;
+                int actionState;
+                boolean isCurrentlyActive;
+
                 @Override
                 public boolean onMove(RecyclerView recyclerView,
                                       RecyclerView.ViewHolder viewHolder,
@@ -357,7 +428,7 @@ public class Home extends Activity {
                 }
 
                 @Override
-                public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                public void onSwiped(final RecyclerView.ViewHolder viewHolder, int swipeDir) {
                     // Remove values from dataset and store them in temp values
                     final int position = viewHolder.getAdapterPosition();
                     final String TEMP_NAME = nameDataset.remove(position);
@@ -365,6 +436,8 @@ public class Home extends Activity {
                     final String TEMP_DATE = dateDataset.remove(position);
                     final String TEMP_TIME = timeDataSet.remove(position);
                     final Integer TEMP_ALARM = alarmNumberDataset.remove(position);
+                    final String TEMP_URI = uriDataset.remove(position);
+                    final Bitmap TEMP_PHOTO = photoDataset.remove(position);
                     mAdapter.notifyItemRemoved(position);
 
                     // Makes snackbar with undo button
@@ -378,8 +451,11 @@ public class Home extends Activity {
                                 case Snackbar.Callback.DISMISS_EVENT_TIMEOUT:
                                 case Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE:
                                 case Snackbar.Callback.DISMISS_EVENT_SWIPE:
-                                    cancelAlarm(TEMP_ALARM);
-                                    setAsArchived(TEMP_ALARM);
+                                    if (alarmNumberDataset.indexOf(TEMP_ALARM) == -1) {
+                                        cancelAlarm(TEMP_ALARM);
+                                        setAsArchived(TEMP_ALARM);
+                                    }
+                                    returnToDefaultPosition();
                                     // Update Recyclerview
                                     mAdapter.notifyItemRangeChanged(position,nameDataset.size());
                                     break;
@@ -397,18 +473,62 @@ public class Home extends Activity {
                             dateDataset.add(position, TEMP_DATE);
                             timeDataSet.add(position, TEMP_TIME);
                             alarmNumberDataset.add(position, TEMP_ALARM);
-                            // UpdateRecyclerview
+                            uriDataset.add(position, TEMP_URI);
+                            photoDataset.add(position, TEMP_PHOTO);
+                            // Return to default position
+                            returnToDefaultPosition();
                             mAdapter.notifyItemInserted(position);
                             mRecyclerView.scrollToPosition(position);
-
                         }
                     }).show();
+                }
+
+                /** Returns selected view to default position*/
+                private void returnToDefaultPosition() {
+                    getDefaultUIUtil().onDraw(c, recyclerView, ((RecyclerAdapter.ViewHolder) viewHolder).getSwipableView(), 0, 0,    actionState, isCurrentlyActive);
+                }
+
+                @Override
+                public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                    if (viewHolder instanceof RecyclerAdapter.ViewHolder) {
+                        int swipeFlags = ItemTouchHelper.START | ItemTouchHelper.END;
+                        return makeMovementFlags(0, swipeFlags);
+                    } else
+                        return 0;
+                }
+
+                @Override
+                public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
+                    if (viewHolder != null) {
+                        getDefaultUIUtil().onSelected(((RecyclerAdapter.ViewHolder) viewHolder).getSwipableView());
+                    }
+                }
+
+                public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                    this.c =c;
+                    this.recyclerView = recyclerView;
+                    this.viewHolder = viewHolder;
+                    this.actionState = actionState;
+                    this.isCurrentlyActive = isCurrentlyActive;
+                    if (dX < 0) {
+                        ((RecyclerAdapter.ViewHolder) viewHolder).getmRevealRightView().setVisibility(View.GONE);
+                        ((RecyclerAdapter.ViewHolder) viewHolder).getmRevealLeftView().setVisibility(View.VISIBLE);
+                    } else {
+                        ((RecyclerAdapter.ViewHolder) viewHolder).getmRevealRightView().setVisibility(View.VISIBLE);
+                        ((RecyclerAdapter.ViewHolder) viewHolder).getmRevealLeftView().setVisibility(View.GONE);
+                    }
+                    getDefaultUIUtil().onDraw(c, recyclerView, ((RecyclerAdapter.ViewHolder) viewHolder).getSwipableView(), dX, dY,    actionState, isCurrentlyActive);
+                }
+
+                public void onChildDrawOver(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                    getDefaultUIUtil().onDrawOver(c, recyclerView, ((RecyclerAdapter.ViewHolder) viewHolder).getSwipableView(), dX, dY,    actionState, isCurrentlyActive);
                 }
             };
     ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
 
 
     //=============== Other ===============//
+    /**Showcase on first run giving a tutorial*/
     private void showcase() {
         Target viewTarget = new ViewTarget(R.id.fab, this);
         new ShowcaseView.Builder(this)
@@ -450,8 +570,7 @@ public class Home extends Activity {
         //Do what you want on the refresh procedure here
         //readFromSQLDatabase();
     }
-
-    // Receives result from AddMessage
+    /** Retrieves results on return from AddMessage and creates animations*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
@@ -465,6 +584,7 @@ public class Home extends Activity {
 
             // Update all items
             readFromSQLDatabase();
+
             // Get new alarm number position
             Bundle extras = data.getExtras();
             int position = alarmNumberDataset.indexOf(extras.getInt("ALARM_EXTRA"));
@@ -477,16 +597,6 @@ public class Home extends Activity {
                 mRecyclerView.scrollToPosition(position);
             }
 
-/*            setFullDateAndTime(
-                    extras.getInt("YEAR_EXTRA"),
-                    extras.getInt("MONTH_EXTRA"),
-                    extras.getInt("DAY_EXTRA"),
-                    extras.getInt("HOUR_EXTRA"),
-                    extras.getInt("MINUTE_EXTRA"));
-            extractName(extras.getString("NAME_EXTRA"));
-            messageContentDataset.add(extras.getString("CONTENT_EXTRA"));
-            alarmNumberDataset.add(extras.getInt("ALARM_EXTRA"));*/
-
             if (requestCode == NEW_MESSAGE) {
                 mAdapter.notifyItemInserted(position);
                 mRecyclerView.scrollToPosition(position);
@@ -494,6 +604,7 @@ public class Home extends Activity {
         }
     }
 
+    /** Removes given position from dataset*/
     private void removeFromDataset(int position) {
         // Remove from dataset
         nameDataset.remove(position);
@@ -501,21 +612,25 @@ public class Home extends Activity {
         dateDataset.remove(position);
         timeDataSet.remove(position);
         alarmNumberDataset.remove(position);
+        uriDataset.remove(position);
+        photoDataset.remove(position);
     }
 
     //=============== Broadcast Receiver ===============//
-    /**
-     * Broadcast receiver that receives broadcast on message send to update adapter
-     * */
+    /**Broadcast receiver that receives broadcast on message send to delete message in adapter*/
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
             int alarmNumber = intent.getIntExtra("alarmNumber", -1);
-            setAsArchived(alarmNumber);
+            if (alarmNumber != -1) {
+                setAsArchived(alarmNumber);
+            }
             int position = alarmNumberDataset.indexOf(alarmNumber);
-            removeFromDataset(position);
-            mAdapter.notifyItemRemoved(position);
+            if(position != -1) {
+                removeFromDataset(position);
+                mAdapter.notifyItemRemoved(position);
+            }
         }
     };
 

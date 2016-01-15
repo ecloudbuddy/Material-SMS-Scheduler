@@ -16,6 +16,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.transition.Fade;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,7 +36,6 @@ import com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -44,6 +44,7 @@ public class AddMessage extends AppCompatActivity
         implements
         DatePickerFragment.OnCompleteListener, TimePickerFragment.OnCompleteListener
 {
+    private static final String TAG = "AddMessage";
     // User input info
     private int year, month, day, hour, minute;
     private ArrayList<String> name = new ArrayList<>();
@@ -174,8 +175,8 @@ public class AddMessage extends AppCompatActivity
                                     System.out.println(name.get(i));
                                     System.out.println(phone.get(i));
                                     System.out.println(photoUri.get(i));
-                                    byte[] byteArray = getPhotoValuesFromSQL(photoUri.get(i));
-                                    phoneRetv.submitItem(name.get(i), phone.get(i), Uri.parse(photoUri.get(i)), byteArray);
+                                    byte[] byteArray = Tools.getPhotoValuesFromSQL(AddMessage.this, photoUri.get(i).trim());
+                                    phoneRetv.submitItem(name.get(i), phone.get(i), Uri.parse(photoUri.get(i).trim()), byteArray);
                                 }
 
                                 name.clear();
@@ -189,52 +190,12 @@ public class AddMessage extends AppCompatActivity
                 datePicker.setSelectedDate(new GregorianCalendar(year, month, day));
                 datePicker.setSelectedTime(hour, minute);
             } catch (Exception e) {
-                // To catch sql error. It's okay if this happens
+                // To catch sql error on restart. It's okay if this happens
             }
         }
     }
 
-    private byte[] getPhotoValuesFromSQL(String uri) {
-        MessageDbHelper mDbHelper = new MessageDbHelper(AddMessage.this);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-        String[] projection = {
-                MessageContract.MessageEntry.PHOTO_URI_1,
-                MessageContract.MessageEntry.PHOTO_BYTES
-        };
-
-        // Which row to update, based on the ID
-        String selection = MessageContract.MessageEntry.PHOTO_URI_1 + " LIKE ?";
-        String[] selectionArgs = { uri };
-
-        String photoBytes = null;
-
-        try {
-            Cursor cursor = db.query(
-                    MessageContract.MessageEntry.TABLE_PHOTO,  // The table to query
-                    projection,                               // The columns to return
-                    selection,                                // The columns for the WHERE clause
-                    selectionArgs,                            // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    null                                      // The sort order
-            );
-            cursor.moveToFirst();
-            photoBytes = cursor.getString(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.PHOTO_BYTES));
-            cursor.close();
-        } catch (Exception e) {
-            // It's okay
-        }
-        db.close();
-        mDbHelper.close();
-
-        if (photoBytes == null) {
-            return null;
-        } else {
-            return new byte[0];
-        }
-    }
 
     @Override // Inserts menu send button
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -275,11 +236,11 @@ public class AddMessage extends AppCompatActivity
 
         // Moves to first row
         cursor.moveToFirst();
-        name = parseString(cursor.getString(cursor.getColumnIndexOrThrow
+        name = Tools.parseString(cursor.getString(cursor.getColumnIndexOrThrow
                 (MessageContract.MessageEntry.NAME)));
         phoneNumbTempString = cursor.getString(cursor.getColumnIndexOrThrow
                 (MessageContract.MessageEntry.PHONE));
-        phone = parseString(phoneNumbTempString);
+        phone = Tools.parseString(phoneNumbTempString);
         year = cursor.getInt(cursor.getColumnIndexOrThrow
                 (MessageContract.MessageEntry.YEAR));
         month = cursor.getInt(cursor.getColumnIndexOrThrow
@@ -290,7 +251,7 @@ public class AddMessage extends AppCompatActivity
                 (MessageContract.MessageEntry.HOUR));
         minute = cursor.getInt(cursor.getColumnIndexOrThrow
                 (MessageContract.MessageEntry.MINUTE));
-        photoUri = parseString(cursor.getString(cursor.getColumnIndexOrThrow
+        photoUri = Tools.parseString(cursor.getString(cursor.getColumnIndexOrThrow
                 (MessageContract.MessageEntry.PHOTO_URI)));
         messageContentString = cursor.getString(cursor.getColumnIndexOrThrow
                 (MessageContract.MessageEntry.MESSAGE));
@@ -298,16 +259,6 @@ public class AddMessage extends AppCompatActivity
         // Close everything so android doesn't complain
         cursor.close();
         mDbHelper.close();
-    }
-
-    public ArrayList<String> parseString(String s) {
-        if(s == null) {
-            return null;
-        }
-        s = s.replace("[", "");
-        s = s.replace("]", "");
-        String[] chars = s.split(",");
-        return new ArrayList(Arrays.asList(chars));
     }
 
     //=============Dialog Fragments===============//
@@ -397,21 +348,16 @@ public class AddMessage extends AppCompatActivity
             result = errorChipsEmpty();
         } else if (chips.length > 0) {
             for (DrawableRecipientChip chip : chips) {
-                Uri uri = chip.getEntry().getPhotoThumbnailUri();
-                if (uri != null) {
-                    photoUri.add(uri.toString());
-                } else {
-                    photoUri.add(null);
-                }
-
                 String str = chip.toString();
                 String phoneTemp = getPhoneNumberFromString(str);
+                Log.i(TAG, "phoneTemp: " + phoneTemp);
 
                 if (phoneTemp.length() == 0) {
                     result = errorPhoneWrong();
                 } else {
+                    // Checks if phone contains letters
                     for (char c: phoneTemp.toCharArray()) {
-                        if (Character.isLetter(c)) {
+                        if (Character.isLetter(c) || c == '<' || c == '>' || c == ',') {
                             result = errorPhoneWrong();
                             break;
                         }
@@ -434,15 +380,20 @@ public class AddMessage extends AppCompatActivity
         // If okay from here, add results to global
         if (result) {
             for (DrawableRecipientChip chip : chips) {
-                String str = chip.toString();
+                String str = chip.toString().trim();
                 String nameTemp = getNameFromString(str);
                 String phoneTemp = getPhoneNumberFromString(str);
 
-                if (phoneTemp.length() != 0) {
-                    // Adds values to global
-                    phone.add(phoneTemp);
-                    name.add(nameTemp);
-                    fullChipString.add(str);
+                // Adds values to data sets
+                phone.add(phoneTemp);
+                name.add(nameTemp);
+                fullChipString.add(str);
+
+                Uri uri = chip.getEntry().getPhotoThumbnailUri();
+                if (uri != null) {
+                    photoUri.add(uri.toString().trim());
+                } else {
+                    photoUri.add(null);
                 }
             }
         }
@@ -542,20 +493,28 @@ public class AddMessage extends AppCompatActivity
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         for (int i = 0; i < phoneRetv.getRecipients().length; i++) {
-            byte[] photoBytes = chips[i].getEntry().getPhotoBytes();
+            // Check if data already exists
+            if (photoUri.get(i) != null) {
+                if (Tools.getPhotoValuesFromSQL(AddMessage.this, photoUri.get(i)) == null) {
+                    byte[] photoBytes = chips[i].getEntry().getPhotoBytes();
 
-            // Create a new map of values, where column names are the keys
-            ContentValues values = new ContentValues();
-            values.put(MessageContract.MessageEntry.
-                    PHOTO_URI_1, photoUri.get(i));
-            values.put(MessageContract.MessageEntry.
-                    PHOTO_BYTES, photoBytes);
+                    // Create a new map of values, where column names are the keys
+                    ContentValues values = new ContentValues();
+                    values.put(MessageContract.MessageEntry.
+                            PHOTO_URI_1, photoUri.get(i));
+                    values.put(MessageContract.MessageEntry.
+                            PHOTO_BYTES, photoBytes);
 
-            // Insert the new row, returning the primary key value of the new row
-            sqlRowId = db.insert(
-                    MessageContract.MessageEntry.TABLE_PHOTO,
-                    MessageContract.MessageEntry.NULLABLE,
-                    values);
+                    // Insert the new row, returning the primary key value of the new row
+                    sqlRowId = db.insert(
+                            MessageContract.MessageEntry.TABLE_PHOTO,
+                            MessageContract.MessageEntry.NULLABLE,
+                            values);
+                    Log.i(TAG, "New Row Created. Row ID: " + String.valueOf(sqlRowId) + " URI: " + photoUri.get(i));
+                } else {
+                    Log.i(TAG, "Row not created. Value already exists for " + name.get(i));
+                }
+            }
         }
         // Close everything
         mDbHelper.close();
@@ -606,54 +565,6 @@ public class AddMessage extends AppCompatActivity
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         return format.format(date.getTime());
     }
-    // Gets and sets current date
-    public void setCurrentDate(){
-        year = calendar.get(Calendar.YEAR);
-        month = calendar.get(Calendar.MONTH);
-        day = calendar.get(Calendar.DAY_OF_MONTH);
-    }
-    // Gets and sets current time
-    public void setCurrentTime() {
-        hour = calendar.get(Calendar.HOUR_OF_DAY);
-        minute = calendar.get(Calendar.MINUTE);
-    }
-
-    public void setXDaysInFuture(int days) {
-        GregorianCalendar gc = new GregorianCalendar();
-        gc.add(Calendar.DATE, days);
-        year = gc.get(Calendar.YEAR);
-        month = gc.get(Calendar.MONTH);
-        day = gc.get(Calendar.DAY_OF_MONTH);
-    }
-
-    public void setHour(int hour) {
-        this.hour = hour;
-        minute = 0;
-    }
-
-    // Returns current day of the week in string
-    public String getDayOfWeekString() {
-        Calendar calendar = Calendar.getInstance();
-        int day = calendar.get(Calendar.DAY_OF_WEEK);
-        switch (day) {
-            case Calendar.SUNDAY:
-                return getString(R.string.sunday);
-            case Calendar.MONDAY:
-                return getString(R.string.monday);
-            case Calendar.TUESDAY:
-                return getString(R.string.tuesday);
-            case Calendar.WEDNESDAY:
-                return getString(R.string.wednesday);
-            case Calendar.THURSDAY:
-                return getString(R.string.thursday);
-            case Calendar.FRIDAY:
-                return getString(R.string.friday);
-            case Calendar.SATURDAY:
-                return getString(R.string.saturday);
-            default:
-                return "";
-        }
-    }
 
     //================Utility Methods==================//
     private void hideKeyboard() {
@@ -673,7 +584,7 @@ public class AddMessage extends AppCompatActivity
     public String getPhoneNumberFromString(String str) {
         // Extracts number within <> brackets
         String[] retval = str.split("<|>");
-        return retval[1];
+        return retval[1].trim();
     }
 
     public String getNameFromString(String str) {
@@ -685,6 +596,6 @@ public class AddMessage extends AppCompatActivity
             if (d == '<') {
                 break;
             }
-        } return temp;
+        } return temp.trim();
     }
 }

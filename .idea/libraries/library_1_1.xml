@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="library-1.1">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/co.dift.ui.swipetoaction/library/1.1/jars/classes.jar!/" />
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/co.dift.ui.swipetoaction/library/1.1/res" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/co.dift.ui.swipetoaction/library/1.1/ebcb4799087f2d201ce03fa25280908eb9d07d8/library-1.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
