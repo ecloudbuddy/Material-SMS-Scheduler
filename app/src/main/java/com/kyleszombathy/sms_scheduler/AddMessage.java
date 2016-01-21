@@ -1,15 +1,19 @@
 package com.kyleszombathy.sms_scheduler;
 
+import android.Manifest;
 import android.app.FragmentTransaction;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -23,8 +27,10 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.android.ex.chips.BaseRecipientAdapter;
@@ -32,6 +38,7 @@ import com.android.ex.chips.RecipientEditTextView;
 import com.android.ex.chips.recipientchip.DrawableRecipientChip;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
+import com.nineoldandroids.animation.Animator;
 import com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker;
 
 import java.text.SimpleDateFormat;
@@ -44,7 +51,9 @@ public class AddMessage extends AppCompatActivity
         implements
         DatePickerFragment.OnCompleteListener, TimePickerFragment.OnCompleteListener
 {
+    // Debug Tag
     private static final String TAG = "AddMessage";
+
     // User input info
     private int year, month, day, hour, minute;
     private ArrayList<String> name = new ArrayList<>();
@@ -65,14 +74,16 @@ public class AddMessage extends AppCompatActivity
     private EditText messageContentEditText;
 
     // Alarm Manager
-    int alarmNumber;
-    int editMessageNewAlarmNumber;
+    private int alarmNumber;
+    private int editMessageNewAlarmNumber;
 
     // For getting current time
     private Calendar calendar = Calendar.getInstance();
 
     // SQL info
-    long sqlRowId;
+    private long sqlRowId;
+
+
 
     // Other
     private TextView phoneRetvErrorMessage;
@@ -90,6 +101,7 @@ public class AddMessage extends AppCompatActivity
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         getWindow().setEnterTransition(new Fade());
 
+        // Create view
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_message);
 
@@ -99,6 +111,14 @@ public class AddMessage extends AppCompatActivity
         alarmNumber = extras.getInt("alarmNumber", -1);
         editMessageNewAlarmNumber = extras.getInt("NEW_ALARM", -1);
         editMessage = extras.getBoolean("EDIT_MESSAGE", false);
+
+        // Check for permissions
+        if (ContextCompat.checkSelfPermission(AddMessage.this, Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(AddMessage.this,
+                        new String[]{Manifest.permission.READ_CONTACTS},
+                        0);
+        }
 
         // Setting up toolbar
         Toolbar myChildToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -133,6 +153,7 @@ public class AddMessage extends AppCompatActivity
         messageContentEditText.getBackground().setColorFilter(getResources().
                 getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
         messageContentErrorMessage.setText("");
+
 
         // Setup phoneRetv autocomplete contacts and listeners
         phoneRetv = (RecipientEditTextView) findViewById(R.id.phone_retv);
@@ -338,7 +359,7 @@ public class AddMessage extends AppCompatActivity
         }
     }
 
-    // Verifys that user data is correct and makes error messages
+    // Verifies that user data is correct and makes error messages
     private boolean verifyData() {
         boolean result = true;
         // PhoneRetv error handling
@@ -365,6 +386,7 @@ public class AddMessage extends AppCompatActivity
                 }
             }
         }
+
         // Message Content error handling
         if (messageContentString.length() == 0) {
             messageContentErrorMessage.setText(getResources().
@@ -435,7 +457,7 @@ public class AddMessage extends AppCompatActivity
 
         // Starts alarm
         MessageAlarmReceiver receiver = new MessageAlarmReceiver();
-        receiver.setAlarm(this, cal, phone, messageContentString, alarmNumber);
+        receiver.setAlarm(this, cal, phone, messageContentString, alarmNumber, name);
     }
 
     private void addDataToSQL() {
@@ -567,6 +589,8 @@ public class AddMessage extends AppCompatActivity
     }
 
     //================Utility Methods==================//
+
+
     private void hideKeyboard() {
         View view = this.getCurrentFocus();
         if (view != null) {

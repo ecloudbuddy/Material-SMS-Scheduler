@@ -19,6 +19,4 @@
 
     <include layout="@layout/content_add_message" />
 
-
-
 </android.support.design.widget.CoordinatorLayout>

@@ -1,3 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<items version="2" />
+<items version="2" >
 
+    <item
+        jar="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\exploded-aar\com.klinkerapps\android-smsmms\0.3.1-SNAPSHOT\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.2"
+        sha1="8e5c61235e8c2d6b6285deb897060932f58371c8">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\com.klinkerapps-android-smsmms-0.3.1-SNAPSHOT_6b3a0f4401abfc88571c5ce39e05db51f5d743ac.jar" />
+    </item>
+    <item
+        jar="C:\Users\Kyle\.gradle\caches\modules-2\files-2.1\com.squareup.okhttp\okhttp-urlconnection\2.5.0\d737653459be272e881d51024274fa4785225641\okhttp-urlconnection-2.5.0.jar"
+        jumboMode="false"
+        revision="23.0.2"
+        sha1="d737653459be272e881d51024274fa4785225641">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\okhttp-urlconnection-2.5.0_9993e1f0c47ee93274a0dd20b9e8640b6250aab7.jar" />
+    </item>
+    <item
+        jar="C:\Users\Kyle\.gradle\caches\modules-2\files-2.1\com.squareup.okio\okio\1.6.0\98476622f10715998eacf9240d6b479f12c66143\okio-1.6.0.jar"
+        jumboMode="false"
+        revision="23.0.2"
+        sha1="98476622f10715998eacf9240d6b479f12c66143">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\okio-1.6.0_caeded3170d037f9d6adeb3ce551f4c934bf4767.jar" />
+    </item>
+    <item
+        jar="C:\Users\Kyle\.gradle\caches\modules-2\files-2.1\com.squareup.okhttp\okhttp\2.5.0\4de2b4ed3445c37ec1720a7d214712e845a24636\okhttp-2.5.0.jar"
+        jumboMode="false"
+        revision="23.0.2"
+        sha1="4de2b4ed3445c37ec1720a7d214712e845a24636">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\okhttp-2.5.0_d57ab0409f6a3117760dcacca6472c695cb2cb33.jar" />
+    </item>
+    <item
+        jar="C:\Users\Kyle\.gradle\caches\modules-2\files-2.1\com.koushikdutta.ion\ion\1.1.7\32557ac9789fb0e5be4215132e9728d0996b46d4\ion-1.1.7.jar"
+        jumboMode="false"
+        revision="23.0.2"
+        sha1="32557ac9789fb0e5be4215132e9728d0996b46d4">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\ion-1.1.7_ff02648e9a499181ae5fb058fe086dacc071bd21.jar" />
+    </item>
+    <item
+        jar="C:\Users\Kyle\.gradle\caches\modules-2\files-2.1\com.koushikdutta.async\androidasync\1.1.6\7ed2f65ce1d88cc22be93ca60178d18728a28b55\androidasync-1.1.6.jar"
+        jumboMode="false"
+        revision="23.0.2"
+        sha1="7ed2f65ce1d88cc22be93ca60178d18728a28b55">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\androidasync-1.1.6_8988f5905561346dbc297e32d0d6b0688479def4.jar" />
+    </item>
+    <item
+        jar="C:\Users\Kyle\.gradle\caches\modules-2\files-2.1\com.klinkerapps\logger\1.0.3-SNAPSHOT\5345acd398619db0dadcbf44d4ec5a684f058e2b\logger-1.0.3-SNAPSHOT.jar"
+        jumboMode="false"
+        revision="23.0.2"
+        sha1="5345acd398619db0dadcbf44d4ec5a684f058e2b">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\logger-1.0.3-SNAPSHOT_343e4fede6fb19c9272eb2faa7843c43470ca725.jar" />
+    </item>
+    <item
+        jar="C:\Users\Kyle\.gradle\caches\modules-2\files-2.1\com.google.code.gson\gson\2.3\5fc52c41ef0239d1093a1eb7c3697036183677ce\gson-2.3.jar"
+        jumboMode="false"
+        revision="23.0.2"
+        sha1="5fc52c41ef0239d1093a1eb7c3697036183677ce">
+        <dex dex="C:\Users\Kyle\AndroidStudioProjects\SMS_Scheduler\app\build\intermediates\pre-dexed\release\gson-2.3_2dc9ccb04f53dc925cf0d03b18cec416c4207907.jar" />
+    </item>
+
+</items>
