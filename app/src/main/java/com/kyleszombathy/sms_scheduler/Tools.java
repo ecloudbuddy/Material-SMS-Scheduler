@@ -1,6 +1,7 @@
 package com.kyleszombathy.sms_scheduler;
 
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -24,6 +25,20 @@ public class Tools {
         s = s.replace("]", "");
         String[] chars = s.split(",");
         return new ArrayList(Arrays.asList(chars));
+    }
+
+    public static String parseArrayList(ArrayList<String> arrayList) {
+        String returnString = "";
+        int size = arrayList.size();
+        for (int i = 0; i < size; i++) {
+            String str = arrayList.get(i).trim();
+            if (i < size - 1) {
+                returnString += str + " ";
+            } else {
+                returnString += str;
+            }
+        }
+        return returnString;
     }
 
     public static Bitmap drawableToBitmap (Drawable drawable) {
@@ -94,5 +109,73 @@ public class Tools {
         } else {
             return photoBytes;
         }
+    }
+
+    public static String createSentString(Context context, ArrayList<String> nameList) {
+        // Construct message
+        String message = context.getString(R.string.tools_sentMessageString);
+        Boolean needsPeriod = true;
+        int maxNotificationSize = 2;
+        int size = nameList.size();
+        if (size == 1) {
+            message += nameList.get(0);
+        } else if (size > 1) {
+            for (int i = 0; i < size; i++) {
+                message += nameList.get(i);
+                if (i < size - 1) {
+                    message += ", ";
+                }
+                // Display a max of 3 names with a +x message
+                if (i == maxNotificationSize) {
+                    int plusMore = size - maxNotificationSize - 1;
+                    message += "+" + plusMore;
+                    needsPeriod = false;// Display no period if +x is shown
+                    break;
+                }
+            }
+        }
+        if (needsPeriod) {
+            message += ".";
+        }
+        return message;
+    }
+
+    /**Sets given item as archived in database*/
+    public static void setAsArchived(Context context, int alarmNumb) {
+        MessageDbHelper mDbHelper = new MessageDbHelper(context);
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        // New value for one column
+        ContentValues values = new ContentValues();
+        values.put(MessageContract.MessageEntry.
+                ARCHIVED, 1);
+
+        // Which row to update, based on the ID
+        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(alarmNumb) };
+
+        int count = db.update(
+                MessageContract.MessageEntry.TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
+        db.close();
+        mDbHelper.close();
+    }
+    /**Removes Item given alarm Number from database*/
+    public static void deleteFromDatabase(Context context, int alarmNumb) {
+        MessageDbHelper mDbHelper = new MessageDbHelper(context);
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        // Which row to delete, based on the ID
+        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(alarmNumb) };
+
+        db.delete(
+                MessageContract.MessageEntry.TABLE_NAME,
+                selection,
+                selectionArgs);
+        db.close();
+        mDbHelper.close();
     }
 }

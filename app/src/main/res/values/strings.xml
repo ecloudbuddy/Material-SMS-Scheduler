@@ -1,24 +1,17 @@
 <resources>
-    <string name="app_name">SMS Scheduler</string>
+    <string name="app_name">Scheduled Messages</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_main">MainActivity</string>
-    <string name="title_activity_add_message">Add Message</string>
+    <string name="title_activity_add_message">Add/Edit Message</string>
     <!--Main page content-->
     <string name="message_content"> Message</string>
     <string name="phone_numbers">To</string>
     <string name="set_date_time">Set Date/Time</string>
-    <string name="subtitle_content">Content</string>
+    <string name="subtitle_content">Set Content</string>
     <!--For date spinner-->
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="next">Next</string>
     <string name="pick_date">Pick a Date…</string>
-    <!--For time spinner-->
-    <string name="morning"  >Morning   - </string>
-    <string name="afternoon">Afternoon - </string>
-    <string name="evening"  >Evening   - </string>
-    <string name="night"    >Night     - </string>
-    <string name="pick_time">Pick a time…</string>
     <!--Error Messages-->
     <string name="error_recipient">Must enter a recipient</string>
     <string name="error_message_content">Must enter a message</string>
@@ -36,8 +29,8 @@
     <string name="friday">Friday</string>
     <string name="saturday">Saturday</string>
     <!--Notifications-->
-    <string name="testing">testing testing 123</string>
     <string name="message_success">Scheduled Message Sent</string>
     <string name="archived">Archived</string>
+    <string name="tools.sentMessageString">"Message sent to "</string>
 
 </resources>

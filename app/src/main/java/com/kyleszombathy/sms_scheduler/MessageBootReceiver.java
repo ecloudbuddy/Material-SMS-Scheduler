@@ -20,6 +20,7 @@ import java.util.Calendar;
 public class MessageBootReceiver extends BroadcastReceiver {
     MessageAlarmReceiver alarm = new MessageAlarmReceiver();
 
+    private ArrayList<String> nameDataset = new ArrayList<>();
     private ArrayList<String> phoneDataset = new ArrayList<>();
     private ArrayList<String> messageContentDataset = new ArrayList<>();
     private ArrayList<Calendar> calendarDataset = new ArrayList<>();
@@ -32,12 +33,14 @@ public class MessageBootReceiver extends BroadcastReceiver {
             readFromSQLDatabase(context);
             for (int i = 0; i < phoneDataset.size(); i++) {
                 ArrayList<String> phoneNumbers = parsePhoneNumbers(phoneDataset.get(i));
+                ArrayList<String> names = parsePhoneNumbers(nameDataset.get(i));
                 alarm.setAlarm(
                         context,
                         calendarDataset.get(i),
                         phoneNumbers,
                         messageContentDataset.get(i),
-                        alarmNumberDateset.get(i));
+                        alarmNumberDateset.get(i),
+                        names);
             }
         }
     }
@@ -61,6 +64,7 @@ public class MessageBootReceiver extends BroadcastReceiver {
         // Define a projection that specifies which columns from the database
         // you will actually use after this query.
         String[] projection = {
+                MessageContract.MessageEntry.NAME,
                 MessageContract.MessageEntry.PHONE,
                 MessageContract.MessageEntry.MESSAGE,
                 MessageContract.MessageEntry.YEAR,
@@ -73,9 +77,6 @@ public class MessageBootReceiver extends BroadcastReceiver {
         };
 
         // How you want the results sorted in the resulting Cursor
-        String sortOrder =
-                MessageContract.MessageEntry.NAME + " DESC";
-
         Cursor cursor = db.query(
                 MessageContract.MessageEntry.TABLE_NAME,  // The table to query
                 projection,                               // The columns to return
@@ -104,12 +105,16 @@ public class MessageBootReceiver extends BroadcastReceiver {
                         (MessageContract.MessageEntry.HOUR));
                 int minute = cursor.getInt(cursor.getColumnIndexOrThrow
                         (MessageContract.MessageEntry.MINUTE));
+                nameDataset.add(cursor.getString(cursor.getColumnIndexOrThrow
+                        (MessageContract.MessageEntry.NAME)));
                 messageContentDataset.add(cursor.getString(cursor.getColumnIndexOrThrow
                         (MessageContract.MessageEntry.MESSAGE)));
                 phoneDataset.add(cursor.getString(cursor.getColumnIndexOrThrow
                         (MessageContract.MessageEntry.PHONE)));
                 alarmNumberDateset.add(cursor.getInt(cursor.getColumnIndexOrThrow
                         (MessageContract.MessageEntry.ALARM_NUMBER)));
+                int intBooleanTemp = (cursor.getInt(cursor.getColumnIndexOrThrow
+                        (MessageContract.MessageEntry.MMS)));
 
                 // Set calendar database
                 Calendar cal = Calendar.getInstance();
