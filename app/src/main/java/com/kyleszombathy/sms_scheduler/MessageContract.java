@@ -29,7 +29,6 @@ public final class MessageContract {
         public static final String PHOTO_URI = "photoUri";
         public static final String NULLABLE = "nullable";
         public static final String DATETIME = "dateTime";
-        public static final String MMS = "MMS";
         // Photo DB table
         public static final String TABLE_PHOTO = "photoTable";
         public static final String PHOTO_URI_1 = "photoUri1";

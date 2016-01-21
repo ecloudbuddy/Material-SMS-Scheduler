@@ -41,7 +41,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
 
     private Context context;
 
-    private int leftLengthDP = 0;
+    private int leftLengthDP = 80;
 
     public DividerItemDecoration(Context context, int orientation) {
         this.context = context;
@@ -59,7 +59,7 @@ public class DividerItemDecoration extends RecyclerView.ItemDecoration {
     }
 
     @Override
-    public void onDrawOver(Canvas c, RecyclerView parent) {
+    public void onDraw(Canvas c, RecyclerView parent) {
         if (mOrientation == VERTICAL_LIST) {
             drawVertical(c, parent);
         } else {
