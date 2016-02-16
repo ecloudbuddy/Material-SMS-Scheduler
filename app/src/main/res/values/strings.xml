@@ -16,21 +16,15 @@
     <string name="error_recipient">Must enter a recipient</string>
     <string name="error_message_content">Must enter a message</string>
     <string name="invalid_entry">One or more entries are invalid</string>
-    <!--Other-->
-
     <!--tooltips-->
-    <string name="success">Message saved</string>
-    <!--Days of week-->
-    <string name="sunday">Sunday</string>
-    <string name="monday">Monday</string>
-    <string name="tuesday">Tuesday</string>
-    <string name="wednesday">Wednesday</string>
-    <string name="thursday">Thursday</string>
-    <string name="friday">Friday</string>
-    <string name="saturday">Saturday</string>
+    <string name="success">Message Saved</string>
     <!--Notifications-->
     <string name="message_success">Scheduled Message Sent</string>
     <string name="archived">Archived</string>
-    <string name="tools.sentMessageString">"Message sent to "</string>
+    <string name="tools.sentMessageString">"Message Sent to "</string>
+    <string name="permission_read_contacts_rationalle">This app needs access to contacts for autocomplete suggestions. Denying this permission will result in an incomplete user experience, though entering a number manually will still work.</string>
+    <string name="button_allow">Allow</string>
+    <string name="button_deny">Deny</string>
+    <string name="error_permission_some_permission_denied">Please allow all permissions.</string>
 
 </resources>

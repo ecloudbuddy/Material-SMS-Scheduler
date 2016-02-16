@@ -1,24 +1,28 @@
 package com.kyleszombathy.sms_scheduler;
 
 import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.PorterDuff;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.format.Time;
 import android.transition.Fade;
 import android.util.Log;
 import android.view.Menu;
@@ -27,25 +31,26 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
-import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.ex.chips.BaseRecipientAdapter;
 import com.android.ex.chips.RecipientEditTextView;
 import com.android.ex.chips.recipientchip.DrawableRecipientChip;
+import com.codetroopers.betterpickers.recurrencepicker.RecurrencePickerDialogFragment;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
-import com.nineoldandroids.animation.Animator;
 import com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AddMessage extends AppCompatActivity
         implements
@@ -62,6 +67,7 @@ public class AddMessage extends AppCompatActivity
 
     // ReminderDatePicker Libarary
     private ReminderDatePicker datePicker;
+    private ReminderDatePicker recurrencePicker;
 
     // Contact Picker
     private RecipientEditTextView phoneRetv;
@@ -83,7 +89,10 @@ public class AddMessage extends AppCompatActivity
     // SQL info
     private long sqlRowId;
 
-
+    // Permissions Request
+    final private int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 0;
+    final private int MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS = 1;
+    private boolean allPermissionsGranted = false;
 
     // Other
     private TextView phoneRetvErrorMessage;
@@ -96,7 +105,7 @@ public class AddMessage extends AppCompatActivity
     //=============Activity Creation Methods================//
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Window transition animations
+        // Sets window transition animations
         getWindow().setAllowEnterTransitionOverlap(true);
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         getWindow().setEnterTransition(new Fade());
@@ -112,25 +121,17 @@ public class AddMessage extends AppCompatActivity
         editMessageNewAlarmNumber = extras.getInt("NEW_ALARM", -1);
         editMessage = extras.getBoolean("EDIT_MESSAGE", false);
 
-        // Check for permissions
-        if (ContextCompat.checkSelfPermission(AddMessage.this, Manifest.permission.READ_CONTACTS)
-                != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(AddMessage.this,
-                        new String[]{Manifest.permission.READ_CONTACTS},
-                        0);
-        }
-
         // Setting up toolbar
         Toolbar myChildToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(myChildToolbar);
-        // Get a support ActionBar corresponding to this toolbar
         ActionBar ab = getSupportActionBar();
-        // Enable the Up button on toolbar
         if (ab != null) ab.setDisplayHomeAsUpEnabled(true);
 
-        // Set up initial fragment to display
+        // Ask for contact permissions
+        askForContactsReadPermission();
+
+        // Create fragment view
         AddMessageFragment firstFragment = new AddMessageFragment();
-        // Pass extras to fragment - not necessary in our case but leaving in for future
         firstFragment.setArguments(getIntent().getExtras());
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.replace(R.id.fragment_container, firstFragment);
@@ -139,35 +140,38 @@ public class AddMessage extends AppCompatActivity
     }
 
 
+
+    /** Called when fragment view is created*/
     @Override
-    // When fragment is made
     protected void onResume() {
         super.onResume();
 
-        // Sets listeners for character count
+        // Get views from xml
         counterTextView = (TextView) findViewById(R.id.count);
         messageContentEditText = (EditText) findViewById(R.id.messageContent);
-        messageContentEditText.addTextChangedListener(messageContentEditTextWatcher);
-        // Removes any ghost errors
         messageContentErrorMessage = (TextView) findViewById(R.id.messageContentError);
-        messageContentEditText.getBackground().setColorFilter(getResources().
-                getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
-        messageContentErrorMessage.setText("");
+        phoneRetv = (RecipientEditTextView) findViewById(R.id.phone_retv);
+        datePicker = (ReminderDatePicker) findViewById(R.id.date_picker);
+        recurrencePicker = (ReminderDatePicker) findViewById(R.id.recurrance_picker);
 
+        // Text change listener to message content
+        messageContentEditText.addTextChangedListener(messageContentEditTextWatcher);
 
         // Setup phoneRetv autocomplete contacts and listeners
-        phoneRetv = (RecipientEditTextView) findViewById(R.id.phone_retv);
         phoneRetv.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
         phoneRetv.setAdapter(new BaseRecipientAdapter(BaseRecipientAdapter.QUERY_TYPE_PHONE, this));
         phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
-        // Removes any ghost errors
+
+        // Remove any ghost errors
+        messageContentEditText.getBackground().setColorFilter(getResources().
+                getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
+        messageContentErrorMessage.setText("");
         phoneRetvErrorMessage = (TextView) findViewById(R.id.phone_retv_error);
         phoneRetv.getBackground().setColorFilter(getResources().
                 getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
         phoneRetvErrorMessage.setText("");
 
-        // Sets up Date and Time pickers
-        datePicker = (ReminderDatePicker) findViewById(R.id.date_picker);
+        // Set up Date and Time pickers
         datePicker.setCustomDatePicker(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -181,7 +185,16 @@ public class AddMessage extends AppCompatActivity
             }
         });
 
-        // If we are editing the message
+        //Set up recurrance picker
+        recurrencePicker.setCustomDatePicker(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showRecurrancePickerDialog();
+            }
+        });
+
+
+        /** If we are editing the message, pull values form sql database and insert them into the view*/
         if (editMessage) {
             try {
                 getValuesFromSQL();
@@ -191,40 +204,38 @@ public class AddMessage extends AppCompatActivity
                         new ViewTreeObserver.OnGlobalLayoutListener() {
                             @Override
                             public void onGlobalLayout() {
-
+                                // Submit chips to phoneRetv while pulling icons from database
                                 for (int i = 0; i < name.size(); i++) {
-                                    System.out.println(name.get(i));
-                                    System.out.println(phone.get(i));
-                                    System.out.println(photoUri.get(i));
-                                    byte[] byteArray = Tools.getPhotoValuesFromSQL(AddMessage.this, photoUri.get(i).trim());
-                                    phoneRetv.submitItem(name.get(i), phone.get(i), Uri.parse(photoUri.get(i).trim()), byteArray);
+                                    byte[] byteArray = Tools.getPhotoValuesFromSQL(
+                                            AddMessage.this, photoUri.get(i).trim());
+                                    phoneRetv.submitItem(name.get(i), phone.get(i),
+                                            Uri.parse(photoUri.get(i).trim()), byteArray);
                                 }
 
-                                name.clear();
-                                phone.clear();
-                                photoUri.clear();
+                                clearAll();
                                 alarmNumber = editMessageNewAlarmNumber;
                                 phoneRetv.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                             }
                 });
+                // Set new data to view
                 messageContentEditText.setText(messageContentString);
                 datePicker.setSelectedDate(new GregorianCalendar(year, month, day));
                 datePicker.setSelectedTime(hour, minute);
             } catch (Exception e) {
-                // To catch sql error on restart. It's okay if this happens
+                // To catch sql error on return to app because onResume is called again.
+                // It's okay if this happens
             }
         }
     }
 
-
-
-    @Override // Inserts menu send button
+    @Override /** Create Toolbar buttons*/
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_add_message, menu);
         return true;
     }
 
     //===============Edit Message SQL Retrieval===============//
+    /** Pulls values from sql db on editMessage*/
     private void getValuesFromSQL() {
         MessageDbHelper mDbHelper = new MessageDbHelper(AddMessage.this);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -283,25 +294,25 @@ public class AddMessage extends AppCompatActivity
     }
 
     //=============Dialog Fragments===============//
-
-    public void showTimePickerDialog() {
+    /**Shows a time picker dialog fragment*/
+    private void showTimePickerDialog() {
         TimePickerFragment timePicker = new TimePickerFragment();
         timePicker.show(getSupportFragmentManager(), "timePicker");
     }
-
-    public void showDatePickerDialog() {
+    /**Shows a date picker dialog fragment*/
+    private void showDatePickerDialog() {
         DatePickerFragment datePicker = new DatePickerFragment();
         datePicker.show(getSupportFragmentManager(), "datePicker");
     }
 
-    // Retrieves data from DatePickerFragment on completion
+    /** Retrieves data from DatePickerFragment on completion*/
     public void onComplete(int year, int month, int day) {
         GregorianCalendar calendar = new GregorianCalendar(year, month, day);
         datePicker.setSelectedDate(calendar);
     }
 
     @Override
-    // Retrieves data from TimePickerFragment on completion
+    /** Retrieves data from TimePickerFragment on completion*/
     public void onComplete(int hourOfDay, int minute) {
         datePicker.setSelectedTime(hourOfDay, minute);
     }
@@ -309,7 +320,7 @@ public class AddMessage extends AppCompatActivity
     //=============Finishing and adding to SQL================//
 
     @Override
-    // When user hits finish button
+    /** Called when user hits finish button*/
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_send:
@@ -327,30 +338,12 @@ public class AddMessage extends AppCompatActivity
                 minute = cal.get(Calendar.MINUTE);
 
                 if (verifyData()) {
-                    // Add to sql database and schedule the alarm
-                    addDataToSQL();
-                    addPhotoDataToSQL();
-                    scheduleMessage();
-                    hideKeyboard();
-                    createSnackBar(getString(R.string.success));
+                    if (askForSmsSendPermission()) {
+                        finishAndReturn();
+                    } else {
+                        return false;
+                    }
 
-                    // Create bundle of extras to pass back to Home
-                    Intent returnIntent = new Intent();
-                    Bundle extras = new Bundle();
-                    extras.putString("NAME_EXTRA", name.toString());
-                    extras.putString("CONTENT_EXTRA", messageContentString);
-                    extras.putInt("ALARM_EXTRA", alarmNumber);
-                    extras.putInt("YEAR_EXTRA", year);
-                    extras.putInt("MONTH_EXTRA", month);
-                    extras.putInt("DAY_EXTRA", day);
-                    extras.putInt("HOUR_EXTRA", hour);
-                    extras.putInt("MINUTE_EXTRA", minute);
-                    returnIntent.putExtras(extras);
-
-                    // Return to HOME
-                    setResult(RESULT_OK, returnIntent);
-                    finish();
-                    return true;
                 } else {
                     return false;
                 }
@@ -359,8 +352,36 @@ public class AddMessage extends AppCompatActivity
         }
     }
 
-    // Verifies that user data is correct and makes error messages
+    /**Adds to sql, creates alarms, returns to Home*/
+    private void finishAndReturn() {
+        // Add to sql database and schedule the alarm
+        addDataToSQL();
+        addPhotoDataToSQL();
+        scheduleMessage();
+        hideKeyboard();
+        createSnackBar(getString(R.string.success));
+
+        // Create bundle of extras to pass back to Home
+        Intent returnIntent = new Intent();
+        Bundle extras = new Bundle();
+        extras.putString("NAME_EXTRA", name.toString());
+        extras.putString("CONTENT_EXTRA", messageContentString);
+        extras.putInt("ALARM_EXTRA", alarmNumber);
+        extras.putInt("YEAR_EXTRA", year);
+        extras.putInt("MONTH_EXTRA", month);
+        extras.putInt("DAY_EXTRA", day);
+        extras.putInt("HOUR_EXTRA", hour);
+        extras.putInt("MINUTE_EXTRA", minute);
+        returnIntent.putExtras(extras);
+
+        // Return to HOME
+        setResult(RESULT_OK, returnIntent);
+        finish();
+    }
+
+    /**Verifies that user data is correct and makes error messages*/
     private boolean verifyData() {
+        clearAll();
         boolean result = true;
         // PhoneRetv error handling
         if (chips == null) {
@@ -423,6 +444,7 @@ public class AddMessage extends AppCompatActivity
         return result;
     }
 
+    /**Creates error message if phone number is wrong*/
     private boolean errorPhoneWrong() {
         // Invalid contact without number
         phoneRetvErrorMessage.setText(getResources().getString(R.string.invalid_entry));
@@ -435,6 +457,7 @@ public class AddMessage extends AppCompatActivity
         return false;
     }
 
+    /**Creates error message if phoneRetv is empty*/
     private boolean errorChipsEmpty() {
         // Sets error message
         phoneRetvErrorMessage.setText(getResources().getString(R.string.error_recipient));
@@ -446,6 +469,7 @@ public class AddMessage extends AppCompatActivity
         return false;
     }
 
+    /**Utility method to schedule alarm*/
     private void scheduleMessage() {
         // Create calendar with class values
         Calendar cal = Calendar.getInstance();
@@ -460,6 +484,7 @@ public class AddMessage extends AppCompatActivity
         receiver.setAlarm(this, cal, phone, messageContentString, alarmNumber, name);
     }
 
+    /** Adds data to sql db*/
     private void addDataToSQL() {
         // SQLite database accessor
         MessageDbHelper mDbHelper = new MessageDbHelper(AddMessage.this);
@@ -472,32 +497,19 @@ public class AddMessage extends AppCompatActivity
 
         // Create a new map of values, where column names are the keys
         ContentValues values = new ContentValues();
-        values.put(MessageContract.MessageEntry.
-                NAME, name.toString());
-        values.put(MessageContract.MessageEntry.
-                PHONE, phone.toString());
-        values.put(MessageContract.MessageEntry.
-                NAME_PHONE_FULL, fullChipString.toString());
-        values.put(MessageContract.MessageEntry.
-                MESSAGE, messageContentString);
-        values.put(MessageContract.MessageEntry.
-                YEAR, year);
-        values.put(MessageContract.MessageEntry.
-                MONTH, month);
-        values.put(MessageContract.MessageEntry.
-                DAY, day);
-        values.put(MessageContract.MessageEntry.
-                HOUR, hour);
-        values.put(MessageContract.MessageEntry.
-                MINUTE, minute);
-        values.put(MessageContract.MessageEntry.
-                ALARM_NUMBER, alarmNumber);
-        values.put(MessageContract.MessageEntry.
-                PHOTO_URI, photoUri.toString());
-        values.put(MessageContract.MessageEntry.
-                ARCHIVED, 0);
-        values.put(MessageContract.MessageEntry.
-                DATETIME, getFullDateString());
+        values.put(MessageContract.MessageEntry.NAME, name.toString());
+        values.put(MessageContract.MessageEntry.PHONE, phone.toString());
+        values.put(MessageContract.MessageEntry.NAME_PHONE_FULL, fullChipString.toString());
+        values.put(MessageContract.MessageEntry.MESSAGE, messageContentString);
+        values.put(MessageContract.MessageEntry.YEAR, year);
+        values.put(MessageContract.MessageEntry.MONTH, month);
+        values.put(MessageContract.MessageEntry.DAY, day);
+        values.put(MessageContract.MessageEntry.HOUR, hour);
+        values.put(MessageContract.MessageEntry.MINUTE, minute);
+        values.put(MessageContract.MessageEntry.ALARM_NUMBER, alarmNumber);
+        values.put(MessageContract.MessageEntry.PHOTO_URI, photoUri.toString());
+        values.put(MessageContract.MessageEntry.ARCHIVED, 0);
+        values.put(MessageContract.MessageEntry.DATETIME, getFullDateString());
 
         // Insert the new row, returning the primary key value of the new row
         sqlRowId = db.insert(
@@ -509,7 +521,8 @@ public class AddMessage extends AppCompatActivity
         db.close();
     }
 
-
+    /** Adds contact icon photobytes (bitmap bytes) to separate db.
+     * Checks if specific contact exists before adding*/
     private void addPhotoDataToSQL() {
         MessageDbHelper mDbHelper = new MessageDbHelper(AddMessage.this);
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
@@ -544,7 +557,7 @@ public class AddMessage extends AppCompatActivity
     }
 
     //======================Listeners=======================//
-    // Watches message content, makes a counter, and handles errors
+    /**Watches message content, makes a counter, and handles errors*/
     private final TextWatcher messageContentEditTextWatcher = new TextWatcher() {
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
         public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -567,11 +580,12 @@ public class AddMessage extends AppCompatActivity
         public void afterTextChanged(Editable s) {}
     };
 
-    // Removes error text from phoneRetv
+    /** Watches phoneRetv and removes error text*/
     private final TextWatcher phoneRetvEditTextWatcher = new TextWatcher() {
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         }
         public void onTextChanged(CharSequence s, int start, int before, int count) {
+            //askForContactsReadPermission();
         }
         public void afterTextChanged(Editable s) {
             // Removes error message once user adds a contact
@@ -581,7 +595,127 @@ public class AddMessage extends AppCompatActivity
         }
     };
 
+    /**Checks if READ_CONTACTS permission exists and prompts user*/
+    @TargetApi(Build.VERSION_CODES.M)
+    private void askForContactsReadPermission() {
+        int hasWriteContactsPermission = checkSelfPermission(Manifest.permission.READ_CONTACTS);
+
+        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
+            if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
+                showMessageOKCancel(getString(R.string.permission_read_contacts_rationalle),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                requestPermissions(new String[] {Manifest.permission.READ_CONTACTS},
+                                        MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+                            }
+                        });
+                return;
+            }
+            requestPermissions(new String[] {Manifest.permission.READ_CONTACTS},
+                    MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+        }
+    }
+
+    /**Checks if other permissions exists and prompts user*/
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean askForSmsSendPermission() {
+        List<String> permissionsNeeded = new ArrayList<String>();
+        final List<String> permissionsList = new ArrayList<String>();
+
+        if (!addPermission(permissionsList, Manifest.permission.SEND_SMS)) {
+            permissionsNeeded.add("'Send and view SMS messages'");
+        }
+        if (!addPermission(permissionsList, Manifest.permission.READ_PHONE_STATE)) {
+            permissionsNeeded.add("'make and manage phone calls'");
+        }
+
+        if (permissionsList.size() > 0) {
+            if (permissionsNeeded.size() > 0) {
+                // Need Rationale
+                String message = "You need to grant access to " + permissionsNeeded.get(0);
+                for (int i = 1; i < permissionsNeeded.size(); i++)
+                    message = message + ", " + permissionsNeeded.get(i);
+                message = message + " for vital app functions.";
+                showMessageOKCancel(message,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                requestPermissions(permissionsList.toArray(
+                                                new String[permissionsList.size()]),
+                                        MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
+                            }
+                        });
+
+            }
+            requestPermissions(permissionsList.toArray(new String[permissionsList.size()]),
+                    MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
+            if (allPermissionsGranted) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    /**Utility method for askForSmsSendPermission*/
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean addPermission(List<String> permissionsList, String permission) {
+        if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+            permissionsList.add(permission);
+            // Check for Rationale Option
+            if (!shouldShowRequestPermissionRationale(permission))
+                return false;
+        }
+        return true;
+    }
+
+    /** Shows a dialog box with OK/cancel boxes*/
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(AddMessage.this)
+                .setMessage(message)
+                .setPositiveButton(R.string.ok, okListener)
+                .setNegativeButton(R.string.button_deny, null)
+                .create()
+                .show();
+    }
+
+    /**Retrieves result of askForSmsSendPermission*/
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS:
+            {
+                Map<String, Integer> perms = new HashMap<String, Integer>();
+                // Initial
+                perms.put(Manifest.permission.SEND_SMS, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.READ_PHONE_STATE, PackageManager.PERMISSION_GRANTED);
+                // Fill with results
+                for (int i = 0; i < permissions.length; i++)
+                    perms.put(permissions[i], grantResults[i]);
+                // Check for ACCESS_FINE_LOCATION
+                if (perms.get(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED
+                        && perms.get(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+                    // All Permissions Granted
+                    allPermissionsGranted = true;
+                } else {
+                    // Permission Denied
+                    Toast.makeText(AddMessage.this, R.string.error_permission_some_permission_denied, Toast.LENGTH_SHORT)
+                            .show();
+                    allPermissionsGranted = false;
+                }
+            }
+            break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                allPermissionsGranted = false;
+        }
+    }
+
     //================Time&Date Methods================//
+    /**Creates a full date string in a format for sorting in Home*/
     private String getFullDateString() {
         GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -589,8 +723,15 @@ public class AddMessage extends AppCompatActivity
     }
 
     //================Utility Methods==================//
+    /**Clears all Arraylist Values*/
+    private void clearAll() {
+        name.clear();
+        phone.clear();
+        photoUri.clear();
+        fullChipString.clear();
+    }
 
-
+    /**Puts away keyboard*/
     private void hideKeyboard() {
         View view = this.getCurrentFocus();
         if (view != null) {
@@ -599,18 +740,21 @@ public class AddMessage extends AppCompatActivity
         }
     }
 
+    /**Makes a snackbar with given string*/
     private void createSnackBar(String str) {
         Snackbar snackbar = Snackbar
                 .make(findViewById(android.R.id.content), str, Snackbar.LENGTH_LONG);
         snackbar.show();
     }
 
+    /**Gets phone number from phoneRetv string*/
     public String getPhoneNumberFromString(String str) {
         // Extracts number within <> brackets
         String[] retval = str.split("<|>");
         return retval[1].trim();
     }
 
+    /**Gets name from phoneRetv string*/
     public String getNameFromString(String str) {
         String temp = "";
         for (int i =0; i < str.length(); i++) {

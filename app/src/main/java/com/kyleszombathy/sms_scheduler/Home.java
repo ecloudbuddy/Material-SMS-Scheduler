@@ -1,6 +1,5 @@
 package com.kyleszombathy.sms_scheduler;
 
-import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.AlarmManager;
@@ -55,7 +54,7 @@ public class Home extends Activity {
     private static final String TAG = "HOME";
     private static final String ALARM_EXTRA = "alarmNumber";
     private static final String EDIT_MESSAGE_EXTRA = "EDIT_MESSAGE";
-    public final int circleImageViewWidth = 56;
+    private final int circleImageViewWidth = 56;
     private SwipeRefreshLayout swipeContainer;
     // Recyclerview adapter dataset
     private RelativeLayout mRecyclerEmptyState;
@@ -68,7 +67,7 @@ public class Home extends Activity {
     public ArrayList<String> timeDataSet = new ArrayList<>();
     public ArrayList<Integer> alarmNumberDataset = new ArrayList<>();
     public ArrayList<String> uriDataset = new ArrayList<>();
-    private ArrayList<Bitmap> photoDataset= new ArrayList<>();
+    public ArrayList<Bitmap> photoDataset= new ArrayList<>();
     // For random number retrieval
     private final int MAX_INT = Integer.MAX_VALUE ;
     private final int MIN_INT = 1;
@@ -76,8 +75,6 @@ public class Home extends Activity {
     private static final int NEW_MESSAGE = 1;
     private static final int EDIT_MESSAGE = 0;
     private int tempSelectedPosition;
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,14 +85,9 @@ public class Home extends Activity {
         getWindow().setExitTransition(new Fade());
 
         setContentView(R.layout.activity_home);
-        ObjectAnimator mAnimator;
-        //mAnimator = ObjectAnimator.ofFloat(Home.this, View.X, View.Y, path);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setActionBar(toolbar);
-
-        // Showcase TODO
-        //showcase();
 
         readFromSQLDatabase();
         setUpRecyclerView();
@@ -298,7 +290,7 @@ public class Home extends Activity {
     }
 
     /**Adds date and time string as relative time to now to database*/
-    public void setFullDateAndTime(int year, int month, int day, int hour, int minute) {
+    private void setFullDateAndTime(int year, int month, int day, int hour, int minute) {
         //Calendar date = new GregorianCalendar(year, month, day, hour, minute);
         GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
         GregorianCalendar dateNow = new GregorianCalendar();

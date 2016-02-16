@@ -43,5 +43,6 @@ dependencies {
     compile 'co.dift.ui.swipetoaction:library:1.1'
     compile 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
     compile 'com.klinkerapps:android-smsmms:0.3.1-SNAPSHOT'
+    compile 'com.code-troopers.betterpickers:library:2.3.0'
     compile project(':lib')
 }
