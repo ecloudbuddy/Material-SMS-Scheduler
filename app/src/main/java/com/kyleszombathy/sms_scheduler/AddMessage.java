@@ -74,6 +74,7 @@ public class AddMessage extends AppCompatActivity
 
     // For getting character count
     private int smsMaxLength = 140;
+    private int smsMaxLengthBeforeShowingWarning = 120;
     private TextView counterTextView;
     private EditText messageContentEditText;
 
@@ -559,11 +560,13 @@ public class AddMessage extends AppCompatActivity
                 messageContentErrorMessage.setText("");
             }
             // If length exceeds 1 message, shows user
-            if (length <= smsMaxLength) {
+            if (length <= smsMaxLength && length >= smsMaxLengthBeforeShowingWarning) {
                 counterTextView.setText(String.valueOf(smsMaxLength - length));
-            } else {
+            } else if (length > smsMaxLength){
                 counterTextView.setText(String.valueOf(smsMaxLength - length % smsMaxLength)
                         + " / " + String.valueOf(1 + (length / smsMaxLength)));
+            } else {
+                counterTextView.setText("");
             }
         }
         public void afterTextChanged(Editable s) {}

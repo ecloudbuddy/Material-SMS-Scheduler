@@ -111,13 +111,16 @@ public class Tools {
         }
     }
 
-    public static String createSentString(Context context, ArrayList<String> nameList, boolean sendSuccess) {
+    /**Creates a String containing a list of recipients based on the length inputed
+     * @param context Application context
+     * @param nameList list of names to parse
+     * @param maxNotificationSize max number of names to show
+     * @param sendSuccess Returns a failed message string if false*/
+    public static String createSentString(Context context, ArrayList<String> nameList, int maxNotificationSize, boolean sendSuccess) {
         // Construct message
-        String message;
+        String message = "";
         if (sendSuccess) {
-            message = context.getString(R.string.tools_sentMessageString);
             Boolean needsPeriod = true;
-            int maxNotificationSize = 2;
             int size = nameList.size();
 
             if (size == 1) {
@@ -146,7 +149,9 @@ public class Tools {
         return message;
     }
 
-    /**Sets given item as archived in database*/
+    /**Sets given item as archived in database
+     * @param context Application Context
+     * @param alarmNumb Alarm number to archive*/
     public static void setAsArchived(Context context, int alarmNumb) {
         MessageDbHelper mDbHelper = new MessageDbHelper(context);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();

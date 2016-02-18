@@ -5,8 +5,8 @@
     <!--Main page content-->
     <string name="message_content"> Message</string>
     <string name="phone_numbers">To</string>
-    <string name="set_date_time">Set Date/Time</string>
-    <string name="subtitle_content">Set Content</string>
+    <string name="set_date_time">Pick Date &amp; Time</string>
+    <string name="subtitle_content">Enter Recipient and Message</string>
     <!--For date spinner-->
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
@@ -21,7 +21,7 @@
     <!--Notifications-->
     <string name="message_success">Scheduled Message Sent</string>
     <string name="archived">Archived</string>
-    <string name="tools.sentMessageString">"Message Sent to "</string>
+    <string name="tools.sentMessageString">"Message Sent Successfully"</string>
     <string name="tools.sentMessageFailedString">"Message Send Failure"</string>
     <string name="permission_read_contacts_rationalle">This app needs access to contacts for autocomplete suggestions. Denying this permission will result in an incomplete user experience, though entering a number manually will still work.</string>
     <string name="button_allow">Allow</string>

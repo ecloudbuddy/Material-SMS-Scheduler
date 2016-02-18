@@ -106,7 +106,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         }, new IntentFilter(SENT));
 
         // Create notification message
-        String notificationMessage = Tools.createSentString(context, nameList, sendSuccessFlag);
+        String notificationMessage = Tools.createSentString(context, nameList, 1, sendSuccessFlag);
 
         // Send notification if message send successfull
         if (sendSuccessFlag) {
@@ -123,9 +123,6 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     /** Sends the actual messaage and handles errors*/
     private boolean sendSMSMessage(String phoneNumber, final ArrayList<String> messageArrayList) {
         int size = messageArrayList.size();
-
-        // Result
-        final Boolean[] messageSendSuccess = {true};
 
         // Sent and delivery intents
         Intent sentIntent = new Intent(SENT);
@@ -161,11 +158,17 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
                         .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle(notificationMessage)
-                        .setContentText(messageContent)
-                        .setDefaults(Notification.DEFAULT_ALL)
-                        .setStyle(new NotificationCompat.BigTextStyle()
-                                .bigText(messageContent));
+                        .setContentTitle(context.getString(R.string.tools_sentMessageString))
+                        .setContentText("test")
+                        .setDefaults(Notification.DEFAULT_ALL);
+
+        NotificationCompat.InboxStyle inboxStyle =
+                new NotificationCompat.InboxStyle();
+        inboxStyle.setBigContentTitle(notificationMessage);
+        inboxStyle.addLine(messageContent);
+
+        // Moves the expanded layout object into the notification object.
+        mBuilder.setStyle(inboxStyle);
         mBuilder.setContentIntent(contentIntent);
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }

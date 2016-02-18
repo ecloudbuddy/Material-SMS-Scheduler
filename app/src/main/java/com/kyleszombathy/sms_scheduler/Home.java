@@ -75,6 +75,7 @@ public class Home extends Activity {
     private static final int NEW_MESSAGE = 1;
     private static final int EDIT_MESSAGE = 0;
     private int tempSelectedPosition;
+    private int oldAlarmNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -306,7 +307,8 @@ public class Home extends Activity {
         timeDataSet.add(timeString);
     }
 
-    /**Cancels alarm given alarm number*/
+    /**Cancels alarm given alarm service number
+     * @param alarmNumb alarmNumber to delete*/
     private void cancelAlarm(int alarmNumb) {
         Intent intent = new Intent(this, MessageAlarmReceiver.class);
         PendingIntent sender = PendingIntent.getBroadcast(this, alarmNumb, intent, 0);
@@ -341,14 +343,19 @@ public class Home extends Activity {
                             @Override
                             public void onItemClick(View view, int position) {
                                 tempSelectedPosition = position;
+                                oldAlarmNumber = alarmNumberDataset.get(position);
+                                int newAlarmNumber = getRandomInt(MIN_INT, MAX_INT);
+
+                                // Update Adapter with new alarm number
+                                alarmNumberDataset.set(position, newAlarmNumber);
 
                                 // Create new intent to AddMessage with data from item in position
                                 Intent intent = new Intent(new Intent(Home.this, AddMessage.class));
                                 Bundle extras = new Bundle();
                                 // Older alarm. For SQL retrieval
-                                extras.putInt(ALARM_EXTRA, alarmNumberDataset.get(position));
+                                extras.putInt(ALARM_EXTRA, oldAlarmNumber);
                                 // New alarm number
-                                extras.putInt("NEW_ALARM", getRandomInt(MIN_INT, MAX_INT));
+                                extras.putInt("NEW_ALARM", newAlarmNumber);
                                 // Designates that we're editing the message
                                 extras.putBoolean(EDIT_MESSAGE_EXTRA, true);
                                 intent.putExtras(extras);
@@ -554,10 +561,10 @@ public class Home extends Activity {
         }
 
         if (resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
 
             // Delete old stuff
             if (requestCode == EDIT_MESSAGE) {
-                int oldAlarmNumber = alarmNumberDataset.get(tempSelectedPosition);
                 cancelAlarm(oldAlarmNumber);
                 Tools.deleteFromDatabase(Home.this, oldAlarmNumber);
             }
@@ -566,8 +573,9 @@ public class Home extends Activity {
             readFromSQLDatabase();
 
             // Get new alarm number position
-            Bundle extras = data.getExtras();
+
             int position = alarmNumberDataset.indexOf(extras.getInt("ALARM_EXTRA"));
+
 
             // Remove empty state
             enableDisableEmptyStateIfNeeded();
@@ -583,6 +591,9 @@ public class Home extends Activity {
                 mAdapter.notifyItemInserted(position);
                 mRecyclerView.scrollToPosition(position);
             }
+        } else {
+            // Edit message altered the alarm number. Return it to the old alarm number now
+            alarmNumberDataset.set(tempSelectedPosition, oldAlarmNumber);
         }
     }
 
