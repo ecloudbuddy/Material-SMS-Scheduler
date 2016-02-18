@@ -2,6 +2,7 @@ package com.kyleszombathy.sms_scheduler;
 
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -24,10 +25,6 @@ import java.util.Collections;
 import java.util.Objects;
 
 
-/**
- * When the alarm fires, this WakefulBroadcastReceiver receives the broadcast Intent
- * and then starts the IntentService {@code MessageSchedulingService} to do some work.
- */
 public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     private static final String TAG = "MessageAlarmReceiver";
     private AlarmManager alarm;
@@ -43,6 +40,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context = context;
+        boolean sendSuccessFlag = true;
 
         // Get wakelock
         Intent service = new Intent(context, MessageAlarmReceiver.class);
@@ -51,25 +49,22 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         Log.i("SimpleWakefulReceiver", "Starting service @ " + SystemClock.elapsedRealtime());
         startWakefulService(context, service);
 
+        // Get data from intent
         ArrayList<String> phoneList = intent.getStringArrayListExtra("pNum");
         String messageContent = intent.getStringExtra("message");
         int alarmNumber = intent.getIntExtra("alarmNumber", -1);
         ArrayList<String> nameList = intent.getStringArrayListExtra("nameList");
 
-        boolean sendSuccessFlag = true;
-
-            // Split message
+            // Split message, regardless if needed - just in case I have the message length number wrong
             ArrayList<String> messageArrayList;
             messageArrayList = smsManager.divideMessage(messageContent);
 
             // Sends to multiple recipients
             for (int i=0; i < phoneList.size(); i++) {
+                // Send message and retrieve
                 boolean result = sendSMSMessage(phoneList.get(i), messageArrayList);
-
                 if (!result) {
                     sendSuccessFlag = false;
-                } else {
-                    //markAsSent(context, alarmNumber);
                 }
             }
 
@@ -77,7 +72,6 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         context.getApplicationContext().registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-
                 String result = "";
                 final String[] TRANSMISSION_TYPE = {
                         "Transmission successful",
@@ -103,45 +97,37 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
                         result = TRANSMISSION_TYPE[4];
                         break;
                 }
-
                 Log.i(TAG, result);
-
                 // Handle error
                 if (!Objects.equals(result, TRANSMISSION_TYPE[0])) {
                     //messageSendSuccess[0] = false;
                 }
-
             }
         }, new IntentFilter(SENT));
 
+        // Create notification message
+        String notificationMessage = Tools.createSentString(context, nameList, sendSuccessFlag);
+
         // Send notification if message send successfull
         if (sendSuccessFlag) {
-            sendNotification(context, nameList);
+            sendNotification(context, notificationMessage, messageContent, true);
+        } else {
+            sendNotification(context, notificationMessage, messageContent, false);
         }
-        markAsSent(context, alarmNumber);
+        // Archive, regardless of send success or not
+        markAsSent(context, notificationMessage, alarmNumber);
         // Release wakelock
         completeWakefulIntent(service);
     }
 
-    private void markAsSent(Context context, int alarmNumber) {
-            Tools.setAsArchived(context, alarmNumber);
-            // Sends broadcast to Home
-            Intent intent = new Intent("custom-event-name");
-            // You can also include some extra data.
-            intent.putExtra("alarmNumber", alarmNumber);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-    }
-
     /** Sends the actual messaage and handles errors*/
-    private boolean sendSMSMessage(String phoneNumber,
-                                   final ArrayList<String> messageArrayList) {
+    private boolean sendSMSMessage(String phoneNumber, final ArrayList<String> messageArrayList) {
         int size = messageArrayList.size();
 
         // Result
         final Boolean[] messageSendSuccess = {true};
 
         // Sent and delivery intents
-
         Intent sentIntent = new Intent(SENT);
         Intent deliveryIntent = new Intent(DELIVERED);
 
@@ -157,6 +143,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         if (size == 1) {
             smsManager.sendTextMessage(phoneNumber, null, messageArrayList.get(0), sentPI, deliverPI);
         } else {
+            // Create sending/delivery lists for sending to multiple recipients
             ArrayList<PendingIntent> sentPIList = new ArrayList<>(Collections.nCopies(size, sentPI));
             ArrayList<PendingIntent> deliveryPIList = new ArrayList<>(Collections.nCopies(size, deliverPI));
             smsManager.sendMultipartTextMessage(phoneNumber, null, messageArrayList, sentPIList, deliveryPIList);
@@ -165,9 +152,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     }
 
     /** Posts a notification indicating recipients*/
-    private void sendNotification(Context context, ArrayList<String> nameList) {
-        String message = Tools.createSentString(context, nameList);
-
+    private void sendNotification(Context context, String notificationMessage, String messageContent, boolean sendSuccessful) {
         // Construct notification
         mNotificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -176,14 +161,36 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
                         .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle(context.getString(R.string.message_success))
+                        .setContentTitle(notificationMessage)
+                        .setContentText(messageContent)
+                        .setDefaults(Notification.DEFAULT_ALL)
                         .setStyle(new NotificationCompat.BigTextStyle()
-                                .bigText(message))
-                        .setContentText(message);
+                                .bigText(messageContent));
         mBuilder.setContentIntent(contentIntent);
         mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
     }
 
+    /** Marks the specific alarm number as sent and sends a broadcast to home
+     * @param context The application context
+     * @param notificationMessage The notification message for notification on home screen
+     * @param alarmNumber The specific alarm number*/
+    private void markAsSent(Context context, String notificationMessage, int alarmNumber) {
+        // Set as archived
+        Tools.setAsArchived(context, alarmNumber);
+        // Send broadcast to Home
+        Intent intent = new Intent("custom-event-name");
+        intent.putExtra("alarmNumber", alarmNumber);
+        intent.putExtra("notificationMessage", notificationMessage);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
+    /** Method to set a new alarm
+     * @param context The app context
+     * @param timeToSend The Time to send the message (in Calendar format)
+     * @param phoneNumberList String Arraylist of phone numbers
+     * @param messageContent The content of the message you want to send
+     * @param alarmNumber Provide an identifier for the alarm
+     * @param nameList The list of names, corresponding with the phone numbers*/
     public void setAlarm(Context context,
                          Calendar timeToSend,
                          ArrayList<String> phoneNumberList,
@@ -195,6 +202,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         // Creates new alarm
         alarm = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         Intent intentAlarm = new Intent(context, MessageAlarmReceiver.class);
+
         // Add extras
         Bundle extras = new Bundle();
         extras.putStringArrayList("pNum", phoneNumberList);
@@ -203,6 +211,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         extras.putStringArrayList("nameList", nameList);
         intentAlarm.putExtras(extras);
 
+        // Set alarm
         pendingIntent = PendingIntent.getBroadcast(
                 context,
                 alarmNumber,

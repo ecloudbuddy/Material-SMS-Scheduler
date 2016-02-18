@@ -608,17 +608,16 @@ public class Home extends Activity {
         @Override
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
+            String notificationMessage = intent.getStringExtra("notificationMessage");
             int alarmNumber = intent.getIntExtra("alarmNumber", -1);
             int position = alarmNumberDataset.indexOf(alarmNumber);
             if(position != -1) {
                 removeFromDataset(position);
                 mAdapter.notifyItemRemoved(position);
-                ArrayList<String> nameList = Tools.parseString(nameDataset.get(position).trim());
-                String namesCondensed = Tools.createSentString(context, nameList);
-                Snackbar snackbar = Snackbar
-                        .make(findViewById(R.id.coordLayout), namesCondensed, Snackbar.LENGTH_LONG);
-                snackbar.show();
             }
+            Snackbar snackbar = Snackbar
+                    .make(findViewById(R.id.coordLayout), notificationMessage, Snackbar.LENGTH_LONG);
+            snackbar.show();
         }
     };
 

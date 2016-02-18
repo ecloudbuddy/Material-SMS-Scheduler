@@ -111,31 +111,37 @@ public class Tools {
         }
     }
 
-    public static String createSentString(Context context, ArrayList<String> nameList) {
+    public static String createSentString(Context context, ArrayList<String> nameList, boolean sendSuccess) {
         // Construct message
-        String message = context.getString(R.string.tools_sentMessageString);
-        Boolean needsPeriod = true;
-        int maxNotificationSize = 2;
-        int size = nameList.size();
-        if (size == 1) {
-            message += nameList.get(0);
-        } else if (size > 1) {
-            for (int i = 0; i < size; i++) {
-                message += nameList.get(i);
-                if (i < size - 1) {
-                    message += ", ";
-                }
-                // Display a max of 3 names with a +x message
-                if (i == maxNotificationSize) {
-                    int plusMore = size - maxNotificationSize - 1;
-                    message += "+" + plusMore;
-                    needsPeriod = false;// Display no period if +x is shown
-                    break;
+        String message;
+        if (sendSuccess) {
+            message = context.getString(R.string.tools_sentMessageString);
+            Boolean needsPeriod = true;
+            int maxNotificationSize = 2;
+            int size = nameList.size();
+
+            if (size == 1) {
+                message += nameList.get(0);
+            } else if (size > 1) {
+                for (int i = 0; i < size; i++) {
+                    message += nameList.get(i);
+                    if (i < size - 1) {
+                        message += ", ";
+                    }
+                    // Display a max of 3 names with a +x message
+                    if (i == maxNotificationSize) {
+                        int plusMore = size - maxNotificationSize - 1;
+                        message += "+" + plusMore;
+                        needsPeriod = false;// Display no period if +x is shown
+                        break;
+                    }
                 }
             }
-        }
-        if (needsPeriod) {
-            message += ".";
+            if (needsPeriod) {
+                message += ".";
+            }
+        } else {
+            message = context.getString(R.string.tools_sentMessageFailedString);
         }
         return message;
     }
@@ -159,9 +165,11 @@ public class Tools {
                 values,
                 selection,
                 selectionArgs);
+        Log.i(TAG, count + " rows deleted.");
         db.close();
         mDbHelper.close();
     }
+
     /**Removes Item given alarm Number from database*/
     public static void deleteFromDatabase(Context context, int alarmNumb) {
         MessageDbHelper mDbHelper = new MessageDbHelper(context);
