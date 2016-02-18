@@ -15,14 +15,14 @@ import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.format.Time;
 import android.transition.Fade;
 import android.util.Log;
 import android.view.Menu;
@@ -39,7 +39,6 @@ import android.widget.Toast;
 import com.android.ex.chips.BaseRecipientAdapter;
 import com.android.ex.chips.RecipientEditTextView;
 import com.android.ex.chips.recipientchip.DrawableRecipientChip;
-import com.codetroopers.betterpickers.recurrencepicker.RecurrencePickerDialogFragment;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
 import com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker;
@@ -67,7 +66,6 @@ public class AddMessage extends AppCompatActivity
 
     // ReminderDatePicker Libarary
     private ReminderDatePicker datePicker;
-    private ReminderDatePicker recurrencePicker;
 
     // Contact Picker
     private RecipientEditTextView phoneRetv;
@@ -152,7 +150,6 @@ public class AddMessage extends AppCompatActivity
         messageContentErrorMessage = (TextView) findViewById(R.id.messageContentError);
         phoneRetv = (RecipientEditTextView) findViewById(R.id.phone_retv);
         datePicker = (ReminderDatePicker) findViewById(R.id.date_picker);
-        recurrencePicker = (ReminderDatePicker) findViewById(R.id.recurrance_picker);
 
         // Text change listener to message content
         messageContentEditText.addTextChangedListener(messageContentEditTextWatcher);
@@ -182,14 +179,6 @@ public class AddMessage extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 showTimePickerDialog();
-            }
-        });
-
-        //Set up recurrance picker
-        recurrencePicker.setCustomDatePicker(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showRecurrancePickerDialog();
             }
         });
 
@@ -598,7 +587,7 @@ public class AddMessage extends AppCompatActivity
     /**Checks if READ_CONTACTS permission exists and prompts user*/
     @TargetApi(Build.VERSION_CODES.M)
     private void askForContactsReadPermission() {
-        int hasWriteContactsPermission = checkSelfPermission(Manifest.permission.READ_CONTACTS);
+        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
 
         if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
@@ -620,8 +609,8 @@ public class AddMessage extends AppCompatActivity
     /**Checks if other permissions exists and prompts user*/
     @TargetApi(Build.VERSION_CODES.M)
     private boolean askForSmsSendPermission() {
-        List<String> permissionsNeeded = new ArrayList<String>();
-        final List<String> permissionsList = new ArrayList<String>();
+        List<String> permissionsNeeded = new ArrayList<>();
+        final List<String> permissionsList = new ArrayList<>();
 
         if (!addPermission(permissionsList, Manifest.permission.SEND_SMS)) {
             permissionsNeeded.add("'Send and view SMS messages'");
@@ -650,11 +639,7 @@ public class AddMessage extends AppCompatActivity
             }
             requestPermissions(permissionsList.toArray(new String[permissionsList.size()]),
                     MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
-            if (allPermissionsGranted) {
-                return true;
-            } else {
-                return false;
-            }
+            return allPermissionsGranted;
         } else {
             return true;
         }
@@ -663,7 +648,7 @@ public class AddMessage extends AppCompatActivity
     /**Utility method for askForSmsSendPermission*/
     @TargetApi(Build.VERSION_CODES.M)
     private boolean addPermission(List<String> permissionsList, String permission) {
-        if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
             permissionsList.add(permission);
             // Check for Rationale Option
             if (!shouldShowRequestPermissionRationale(permission))
@@ -684,11 +669,11 @@ public class AddMessage extends AppCompatActivity
 
     /**Retrieves result of askForSmsSendPermission*/
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS:
             {
-                Map<String, Integer> perms = new HashMap<String, Integer>();
+                Map<String, Integer> perms = new HashMap<>();
                 // Initial
                 perms.put(Manifest.permission.SEND_SMS, PackageManager.PERMISSION_GRANTED);
                 perms.put(Manifest.permission.READ_PHONE_STATE, PackageManager.PERMISSION_GRANTED);
@@ -702,8 +687,7 @@ public class AddMessage extends AppCompatActivity
                     allPermissionsGranted = true;
                 } else {
                     // Permission Denied
-                    Toast.makeText(AddMessage.this, R.string.error_permission_some_permission_denied, Toast.LENGTH_SHORT)
-                            .show();
+                    Toast.makeText(AddMessage.this, R.string.error_permission_some_permission_denied, Toast.LENGTH_SHORT).show();
                     allPermissionsGranted = false;
                 }
             }
