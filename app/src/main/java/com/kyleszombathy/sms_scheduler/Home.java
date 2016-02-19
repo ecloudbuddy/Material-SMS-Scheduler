@@ -325,8 +325,6 @@ public class Home extends Activity {
         mRecyclerEmptyState = (RelativeLayout) findViewById(R.id.recycler_empty_state);
         // Setting up RecyclerView
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-/*        mRecyclerView.addItemDecoration(new DividerItemDecoration(Home.this,
-                DividerItemDecoration.VERTICAL_LIST));*/
         mRecyclerView.setHasFixedSize(true);
 
         mLayoutManager = new LinearLayoutManager(this);
@@ -360,7 +358,7 @@ public class Home extends Activity {
                                 extras.putBoolean(EDIT_MESSAGE_EXTRA, true);
                                 intent.putExtras(extras);
 
-                                // Go to addMessage
+                                // Go to AddMessage
                                 startActivityForResult(intent, EDIT_MESSAGE,
                                         ActivityOptions.makeSceneTransitionAnimation(Home.this).toBundle());
                             }
@@ -423,30 +421,18 @@ public class Home extends Activity {
                         updateRecyclerViewAdapter();
                     }
 
+                    // Deletes alarm and sets as archived
+                    if (alarmNumberDataset.indexOf(TEMP_ALARM) == -1) {
+                        cancelAlarm(TEMP_ALARM);
+                        Tools.setAsArchived(Home.this, TEMP_ALARM);
+                    }
+                    // Update Recyclerview
+                    returnToDefaultPosition();
+
                     // Makes snackbar with undo button
                     Snackbar.make(findViewById(R.id.coordLayout),
                             "1 "+ getString(R.string.archived),
-                            Snackbar.LENGTH_LONG).setCallback( new Snackbar.Callback() {
-                        @Override
-                        public void onDismissed(Snackbar snackbar, int event) {
-                            switch(event) {
-                                // Case for all events when the dataset needs to be deleted
-                                case Snackbar.Callback.DISMISS_EVENT_TIMEOUT:
-                                case Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE:
-                                case Snackbar.Callback.DISMISS_EVENT_SWIPE:
-                                    if (alarmNumberDataset.indexOf(TEMP_ALARM) == -1) {
-                                        cancelAlarm(TEMP_ALARM);
-                                        Tools.setAsArchived(Home.this, TEMP_ALARM);
-                                    }
-                                    // Update Recyclerview
-                                    returnToDefaultPosition();
-                                    break;
-                            }
-                        }
-                        @Override
-                        public void onShown(Snackbar snackbar) {
-                        }
-                    }).setAction("Undo", new View.OnClickListener() {
+                            Snackbar.LENGTH_LONG).setAction("Undo", new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             // Add back temp values
@@ -557,7 +543,7 @@ public class Home extends Activity {
         PackageManager pm = this.getPackageManager();
         if (!pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY) &&
                 !pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY_CDMA)) {
-            Toast.makeText(this, "Sorry, your device probably can't send SMS...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.home_cantSendMessages, Toast.LENGTH_SHORT).show();
         }
 
         if (resultCode == RESULT_OK) {
@@ -573,9 +559,7 @@ public class Home extends Activity {
             readFromSQLDatabase();
 
             // Get new alarm number position
-
             int position = alarmNumberDataset.indexOf(extras.getInt("ALARM_EXTRA"));
-
 
             // Remove empty state
             enableDisableEmptyStateIfNeeded();
@@ -592,8 +576,10 @@ public class Home extends Activity {
                 mRecyclerView.scrollToPosition(position);
             }
         } else {
-            // Edit message altered the alarm number. Return it to the old alarm number now
-            alarmNumberDataset.set(tempSelectedPosition, oldAlarmNumber);
+            if (requestCode == EDIT_MESSAGE) {
+                // Edit message altered the alarm number. Return it to the old alarm number now
+                alarmNumberDataset.set(tempSelectedPosition, oldAlarmNumber);
+            }
         }
     }
 
