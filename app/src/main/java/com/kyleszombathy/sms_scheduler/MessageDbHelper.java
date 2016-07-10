@@ -39,13 +39,22 @@ public class MessageDbHelper extends SQLiteOpenHelper {
                     MessageContract.MessageEntry.PHOTO_BYTES + BLOB_TYPE + COMMA_SEP +
                     MessageContract.MessageEntry.NULLABLE + TEXT_TYPE +
                     " )";
+    private static final String SQL_CREATE_ENTRIES_NOTIFICATIONS =
+            "CREATE TABLE " + MessageContract.MessageEntry.TABLE_NOTIFICATIONS + " (" +
+                    MessageContract.MessageEntry._ID + " INTEGER PRIMARY KEY," +
+                    MessageContract.MessageEntry.NAME_LIST + TEXT_TYPE + COMMA_SEP +
+                    MessageContract.MessageEntry.SEND_SUCCESS + INTEGER_TYPE + COMMA_SEP +
+                    MessageContract.MessageEntry.NULLABLE + TEXT_TYPE +
+                    " )";
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + MessageContract.MessageEntry.TABLE_NAME;
     private static final String SQL_DELETE_ENTRIES_PHOTO =
             "DROP TABLE IF EXISTS " + MessageContract.MessageEntry.TABLE_PHOTO;
+    private static final String SQL_DELETE_ENTRIES_NOTIFICATIONS =
+            "DROP TABLE IF EXISTS " + MessageContract.MessageEntry.TABLE_NOTIFICATIONS;
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 6;
+    public static final int DATABASE_VERSION = 7;
     public static final String DATABASE_NAME = "MessageDB.db";
 
     public MessageDbHelper(Context context) {
@@ -54,12 +63,14 @@ public class MessageDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_ENTRIES);
         db.execSQL(SQL_CREATE_ENTRIES_PHOTO);
+        db.execSQL(SQL_CREATE_ENTRIES_NOTIFICATIONS);
     }
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // This database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over
         db.execSQL(SQL_DELETE_ENTRIES);
         db.execSQL(SQL_DELETE_ENTRIES_PHOTO);
+        db.execSQL(SQL_DELETE_ENTRIES_NOTIFICATIONS);
         onCreate(db);
     }
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {

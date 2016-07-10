@@ -41,6 +41,8 @@ public class Tools {
         return returnString;
     }
 
+    /**Converts a drawable to a bitmap
+     * @param drawable The drawable to convert*/
     public static Bitmap drawableToBitmap (Drawable drawable) {
         Bitmap bitmap = null;
 
@@ -63,6 +65,10 @@ public class Tools {
         return bitmap;
     }
 
+    /**Given a uri, this method retrieves the photoBytes from the photoByte database
+     * If the uri doesnt' exist in the database, it will return null
+     * @param context Application context
+     * @param uri A system uri to give*/
     public static byte[] getPhotoValuesFromSQL(Context context, String uri) {
         MessageDbHelper mDbHelper = new MessageDbHelper(context);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -117,34 +123,46 @@ public class Tools {
      * @param maxNotificationSize max number of names to show
      * @param sendSuccess Returns a failed message string if false*/
     public static String createSentString(Context context, ArrayList<String> nameList, int maxNotificationSize, boolean sendSuccess) {
-        // Construct message
-        String message = "";
+        String message;
         if (sendSuccess) {
-            Boolean needsPeriod = true;
-            int size = nameList.size();
+            // Construct message
+            message = context.getString(R.string.tools_sentMessageSuccessString)
+                    + createNameCondesnedList(nameList, maxNotificationSize, true);
+        } else {
+            message = context.getString(R.string.tools_sentMessageFailedString)
+                    + createNameCondesnedList(nameList, maxNotificationSize, true);
+        }
+        return message;
+    }
 
-            if (size == 1) {
-                message += nameList.get(0);
-            } else if (size > 1) {
-                for (int i = 0; i < size; i++) {
-                    message += nameList.get(i);
-                    if (i < size - 1) {
-                        message += ", ";
-                    }
-                    // Display a max of 3 names with a +x message
-                    if (i == maxNotificationSize) {
-                        int plusMore = size - maxNotificationSize - 1;
-                        message += "+" + plusMore;
-                        needsPeriod = false;// Display no period if +x is shown
-                        break;
-                    }
+    /**Creates a condensed list of names. For example "Name1, Name2, +3"
+     * @param nameList list of names to parse
+     * @param maxNotificationSize max number of names to show
+     * @param needsPeriod Should a period be shown if a "+" isn't needed. For example if there are 2 names only: "Name1, Name2."*/
+    public static String createNameCondesnedList(ArrayList<String> nameList, int maxNotificationSize, boolean needsPeriod) {
+        String message = "";
+        maxNotificationSize -= 1;
+        int size = nameList.size();
+
+        if (size == 1) {
+            message += nameList.get(0);
+        } else if (size > 1) {
+            for (int i = 0; i < size; i++) {
+                message += nameList.get(i);
+                if (i < size - 1) {
+                    message += ", ";
+                }
+                // Display a max of 3 names with a +x message
+                if (i == maxNotificationSize) {
+                    int plusMore = size - maxNotificationSize - 1;
+                    message += "+" + plusMore;
+                    needsPeriod = false;// Display no period if +x is shown
+                    break;
                 }
             }
-            if (needsPeriod) {
-                message += ".";
-            }
-        } else {
-            message = context.getString(R.string.tools_sentMessageFailedString);
+        }
+        if (needsPeriod) {
+            message += ".";
         }
         return message;
     }
@@ -175,8 +193,10 @@ public class Tools {
         mDbHelper.close();
     }
 
-    /**Removes Item given alarm Number from database*/
-    public static void deleteFromDatabase(Context context, int alarmNumb) {
+    /**Removes Item given alarm Number from database
+     * @param context Application context
+     * @param alarmNumb The alarm number to delete*/
+    public static void deleteAlarmNumberFromDatabase(Context context, int alarmNumb) {
         MessageDbHelper mDbHelper = new MessageDbHelper(context);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
@@ -191,4 +211,6 @@ public class Tools {
         db.close();
         mDbHelper.close();
     }
+
+
 }

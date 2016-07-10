@@ -2,7 +2,6 @@ package com.kyleszombathy.sms_scheduler;
 
 import android.app.Activity;
 import android.app.AlarmManager;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -11,6 +10,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
@@ -30,7 +32,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     private AlarmManager alarm;
     private PendingIntent pendingIntent;
     private SmsManager smsManager = SmsManager.getDefault();
-    public static final int NOTIFICATION_ID = 1;
+    public static final int NOTIFICATION_ID = 11111;
     private NotificationManager mNotificationManager;
     private Context context;
     private String SENT = "sent";
@@ -110,9 +112,9 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
 
         // Send notification if message send successfull
         if (sendSuccessFlag) {
-            sendNotification(context, notificationMessage, messageContent, true);
+            sendNotification(context, notificationMessage, messageContent, true, nameList);
         } else {
-            sendNotification(context, notificationMessage, messageContent, false);
+            sendNotification(context, notificationMessage, messageContent, false, nameList);
         }
         // Archive, regardless of send success or not
         markAsSent(context, notificationMessage, alarmNumber);
@@ -148,29 +150,110 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         return true;
     }
 
-    /** Posts a notification indicating recipients*/
-    private void sendNotification(Context context, String notificationMessage, String messageContent, boolean sendSuccessful) {
-        // Construct notification
+    /** Posts a notification indicating recipients
+     * @param context Application Context
+     * @param notificationMessage
+     * @param messageContent Message content to show
+     * @param sendSuccessful Was the message sent succesfully*/
+    private void sendNotification(Context context, String notificationMessage, String messageContent, boolean sendSuccessful, ArrayList<String> recipients) {
         mNotificationManager = (NotificationManager)
                 context.getSystemService(Context.NOTIFICATION_SERVICE);
-        PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
-                new Intent(context, Home.class), 0);
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(context)
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle(context.getString(R.string.tools_sentMessageString))
-                        .setContentText("test")
-                        .setDefaults(Notification.DEFAULT_ALL);
+        
+        // Check if notification access is granted
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (mNotificationManager.isNotificationPolicyAccessGranted()) {
 
-        NotificationCompat.InboxStyle inboxStyle =
-                new NotificationCompat.InboxStyle();
-        inboxStyle.setBigContentTitle(notificationMessage);
-        inboxStyle.addLine(messageContent);
+                // Bundle Extras
+                Bundle bundle = new Bundle();
+                bundle.putStringArrayList("recipients", recipients);
+                bundle.putBoolean("sendSuccessful", sendSuccessful);
 
-        // Moves the expanded layout object into the notification object.
-        mBuilder.setStyle(inboxStyle);
-        mBuilder.setContentIntent(contentIntent);
-        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+                // Create base notification
+                PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
+                        new Intent(context, Home.class), 0);
+                NotificationCompat.Builder mBuilder =
+                        new NotificationCompat.Builder(context)
+                                .setSmallIcon(R.drawable.ic_done_black_24dp)
+                                .setAutoCancel(true)
+                                .setExtras(bundle);
+
+
+
+
+              /*
+              // If notification isn't present
+                if (notification == null) {
+                    // Construct notification
+                    mBuilder.setStyle(new NotificationCompat.BigTextStyle()
+                            .bigText(notificationMessage + ": " + messageContent));
+
+                    if (sendSuccessful) {
+                        postSimpleNotification();
+                        mBuilder.setContentTitle(context.getString(R.string.message_success));
+                        mBuilder.setContentText(notificationMessage);
+                        mBuilder.setContentIntent(contentIntent);
+                        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+                    } else { // If !sendSuccessful
+                        mBuilder.setContentTitle(context.getString(R.string.message_failure));
+                        mBuilder.setContentText(notificationMessage);
+                    }
+                } else { // If notification is present
+
+                }*/
+            }
+        }
+    }
+
+    private void postSimpleNotification(Context context, String notificationMessage, String messageContent, boolean sendSuccessful, ArrayList<String> recipients) {
+
+    }
+
+    public static byte[] getNotifications(Context context, String uri) {
+        MessageDbHelper mDbHelper = new MessageDbHelper(context);
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        String[] projection = {
+                MessageContract.MessageEntry.PHOTO_URI_1,
+                MessageContract.MessageEntry.PHOTO_BYTES
+        };
+
+        // Which row to update, based on the ID
+        String selection = MessageContract.MessageEntry.PHOTO_URI_1 + " LIKE ?";
+        String[] selectionArgs = { uri };
+
+        byte[] notification = null;
+
+        try {
+            Cursor cursor = db.query(
+                    MessageContract.MessageEntry.TABLE_NOTIFICATIONS,  // The table to query
+                    projection,                               // The columns to return
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                      // The sort order
+            );
+            if( cursor != null && cursor.moveToFirst() ) {
+                cursor.moveToFirst();
+                notification = cursor.getBlob(cursor.getColumnIndex
+                        (MessageContract.MessageEntry.PHOTO_BYTES));
+
+                cursor.close();
+            } else {
+                Log.e(TAG, "Cursor Empty");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "SQLException", e);
+        }
+
+        db.close();
+        mDbHelper.close();
+
+        if (notification == null) {
+            return null;
+        } else {
+            return notification;
+        }
     }
 
     /** Marks the specific alarm number as sent and sends a broadcast to home

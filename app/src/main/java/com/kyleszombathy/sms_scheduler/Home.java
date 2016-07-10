@@ -552,7 +552,7 @@ public class Home extends Activity {
             // Delete old stuff
             if (requestCode == EDIT_MESSAGE) {
                 cancelAlarm(oldAlarmNumber);
-                Tools.deleteFromDatabase(Home.this, oldAlarmNumber);
+                Tools.deleteAlarmNumberFromDatabase(Home.this, oldAlarmNumber);
             }
 
             // Update all items from db

@@ -1,11 +1,11 @@
 <resources>
-    <string name="app_name">Simple SMS Scheduler</string>
+    <string name="app_name">SMS Scheduler</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_add_message">Add/Edit Message</string>
     <!--Main page content-->
     <string name="message_content"> Message</string>
     <string name="phone_numbers">To</string>
-    <string name="set_date_time">Pick Date &amp; Time</string>
+    <string name="set_date_time">Pick Date and Time</string>
     <string name="subtitle_content">Enter Recipient and Message</string>
     <!--For date spinner-->
     <string name="today">Today</string>
@@ -19,13 +19,15 @@
     <!--tooltips-->
     <string name="success">Message Saved</string>
     <!--Notifications-->
-    <string name="message_success">Scheduled Message Sent</string>
+    <string name="message_success">Scheduled message sent successfully</string>
+    <string name="message_failure">Scheduled message failed to send</string>
     <string name="archived">Archived</string>
-    <string name="tools.sentMessageString">"Message Sent Successfully"</string>
-    <string name="tools.sentMessageFailedString">"Message Send Failure"</string>
+    <string name="tools.sentMessageSuccessString">"Message sent to "</string>
+    <string name="tools.sentMessageFailedString">"Message failed to send to "</string>
     <string name="permission_read_contacts_rationalle">This app needs access to contacts for autocomplete suggestions. Denying this permission will result in an incomplete user experience, though entering a number manually will still work.</string>
     <string name="button_allow">Allow</string>
     <string name="button_deny">Deny</string>
     <string name="error_permission_some_permission_denied">Please allow all permissions.</string>
+    <string name="home.cantSendMessages">Sorry, your device probably can\'t send SMS…</string>
 
 </resources>
