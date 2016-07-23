@@ -17,53 +17,7 @@ import java.util.Arrays;
 public class Tools {
     private static final String TAG = "Tools";
 
-    public static ArrayList<String> parseString(String s) {
-        if(s == null) {
-            return null;
-        }
-        s = s.replace("[", "");
-        s = s.replace("]", "");
-        String[] chars = s.split(",");
-        return new ArrayList(Arrays.asList(chars));
-    }
-
-    public static String parseArrayList(ArrayList<String> arrayList) {
-        String returnString = "";
-        int size = arrayList.size();
-        for (int i = 0; i < size; i++) {
-            String str = arrayList.get(i).trim();
-            if (i < size - 1) {
-                returnString += str + " ";
-            } else {
-                returnString += str;
-            }
-        }
-        return returnString;
-    }
-
-    /**Converts a drawable to a bitmap
-     * @param drawable The drawable to convert*/
-    public static Bitmap drawableToBitmap (Drawable drawable) {
-        Bitmap bitmap = null;
-
-        if (drawable instanceof BitmapDrawable) {
-            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
-            if(bitmapDrawable.getBitmap() != null) {
-                return bitmapDrawable.getBitmap();
-            }
-        }
-
-        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
-            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
-        } else {
-            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        }
-
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-        return bitmap;
-    }
+    //=============db helper methods================//
 
     /**Given a uri, this method retrieves the photoBytes from the photoByte database
      * If the uri doesnt' exist in the database, it will return null
@@ -96,15 +50,13 @@ public class Tools {
             );
             if( cursor != null && cursor.moveToFirst() ) {
                 cursor.moveToFirst();
-                photoBytes = cursor.getBlob(cursor.getColumnIndex
-                        (MessageContract.MessageEntry.PHOTO_BYTES));
-
+                photoBytes = cursor.getBlob(cursor.getColumnIndex(MessageContract.MessageEntry.PHOTO_BYTES));
                 cursor.close();
             } else {
-                Log.e(TAG, "Cursor Empty");
+                Log.e(TAG, "getPhotoValuesFromSQL Cursor Empty");
             }
         } catch (Exception e) {
-            Log.e(TAG, "SQLException", e);
+            Log.e(TAG, "getPhotoValuesFromSQL Encountered exception", e);
         }
 
         db.close();
@@ -115,6 +67,101 @@ public class Tools {
         } else {
             return photoBytes;
         }
+    }
+
+    /**Sets given item as archived in database
+     * @param context Application Context
+     * @param alarmNumb Alarm number to archive*/
+    public static void setAsArchived(Context context, int alarmNumb) {
+        MessageDbHelper mDbHelper = new MessageDbHelper(context);
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        // New value for one column
+        ContentValues values = new ContentValues();
+        values.put(MessageContract.MessageEntry.
+                ARCHIVED, 1);
+
+        // Which row to update, based on the ID
+        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(alarmNumb) };
+
+        int count = db.update(
+                MessageContract.MessageEntry.TABLE_NAME,
+                values,
+                selection,
+                selectionArgs);
+        Log.i(TAG, count + " rows deleted.");
+        db.close();
+        mDbHelper.close();
+    }
+
+    /**Removes Item given alarm Number from database
+     * @param context Application context
+     * @param alarmNumb The alarm number to delete*/
+    public static void deleteAlarmNumberFromDatabase(Context context, int alarmNumb) {
+        MessageDbHelper mDbHelper = new MessageDbHelper(context);
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        // Which row to delete, based on the ID
+        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(alarmNumb) };
+
+        db.delete(
+                MessageContract.MessageEntry.TABLE_NAME,
+                selection,
+                selectionArgs);
+        mDbHelper.close();
+    }
+
+    //==============Bitmaps======================//
+
+    /**Converts a drawable to a bitmap
+     * @param drawable The drawable to convert*/
+    public static Bitmap drawableToBitmap (Drawable drawable) {
+        Bitmap bitmap;
+
+        if (drawable instanceof BitmapDrawable) {
+            BitmapDrawable bitmapDrawable = (BitmapDrawable) drawable;
+            if(bitmapDrawable.getBitmap() != null) {
+                return bitmapDrawable.getBitmap();
+            }
+        }
+
+        if(drawable.getIntrinsicWidth() <= 0 || drawable.getIntrinsicHeight() <= 0) {
+            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888); // Single color bitmap will be created of 1x1 pixel
+        } else {
+            bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        }
+
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
+    }
+
+    //================Strings and Arrays==============//
+    public static ArrayList<String> parseString(String s) {
+        if(s == null) {
+            return null;
+        }
+        s = s.replace("[", "");
+        s = s.replace("]", "");
+        String[] chars = s.split(",");
+        return new ArrayList(Arrays.asList(chars));
+    }
+
+    public static String parseArrayList(ArrayList<String> arrayList) {
+        String returnString = "";
+        int size = arrayList.size();
+        for (int i = 0; i < size; i++) {
+            String str = arrayList.get(i).trim();
+            if (i < size - 1) {
+                returnString += str + " ";
+            } else {
+                returnString += str;
+            }
+        }
+        return returnString;
     }
 
     /**Creates a String containing a list of recipients based on the length inputed
@@ -166,51 +213,4 @@ public class Tools {
         }
         return message;
     }
-
-    /**Sets given item as archived in database
-     * @param context Application Context
-     * @param alarmNumb Alarm number to archive*/
-    public static void setAsArchived(Context context, int alarmNumb) {
-        MessageDbHelper mDbHelper = new MessageDbHelper(context);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // New value for one column
-        ContentValues values = new ContentValues();
-        values.put(MessageContract.MessageEntry.
-                ARCHIVED, 1);
-
-        // Which row to update, based on the ID
-        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
-        String[] selectionArgs = { String.valueOf(alarmNumb) };
-
-        int count = db.update(
-                MessageContract.MessageEntry.TABLE_NAME,
-                values,
-                selection,
-                selectionArgs);
-        Log.i(TAG, count + " rows deleted.");
-        db.close();
-        mDbHelper.close();
-    }
-
-    /**Removes Item given alarm Number from database
-     * @param context Application context
-     * @param alarmNumb The alarm number to delete*/
-    public static void deleteAlarmNumberFromDatabase(Context context, int alarmNumb) {
-        MessageDbHelper mDbHelper = new MessageDbHelper(context);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // Which row to delete, based on the ID
-        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
-        String[] selectionArgs = { String.valueOf(alarmNumb) };
-
-        db.delete(
-                MessageContract.MessageEntry.TABLE_NAME,
-                selection,
-                selectionArgs);
-        db.close();
-        mDbHelper.close();
-    }
-
-
 }

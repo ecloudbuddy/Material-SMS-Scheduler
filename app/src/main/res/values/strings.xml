@@ -29,5 +29,6 @@
     <string name="button_deny">Deny</string>
     <string name="error_permission_some_permission_denied">Please allow all permissions.</string>
     <string name="home.cantSendMessages">Sorry, your device probably can\'t send SMS…</string>
+    <string name="Undo">Undo</string>
 
 </resources>
