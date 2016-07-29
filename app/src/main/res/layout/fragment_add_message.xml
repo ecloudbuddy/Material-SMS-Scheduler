@@ -34,17 +34,17 @@
             android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@color/primary_text_material_light"
-            android:text="@string/subtitle_content"
+            android:text="@string/AddMessage.Content.SubtitleContent"
             android:id="@+id/subtitle1"
             android:height="48dp"
             />
 
 
         <com.android.ex.chips.RecipientEditTextView
-            android:id="@+id/phone_retv"
+            android:id="@+id/AddMessage_PhoneRetv"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/phone_numbers"
+            android:hint="@string/AddMessage.Content.PhoneRetv"
             android:paddingBottom="16dp"
             android:paddingTop="16dp"
             />
@@ -60,16 +60,16 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="@color/error_primary"
-                android:id="@+id/phone_retv_error"
+                android:id="@+id/AddMessage_PhoneRetv_Error"
                 />
 
         </RelativeLayout>
 
         <EditText
-            android:id="@+id/messageContent"
+            android:id="@+id/AddMessage_Message_Content"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/message_content"
+            android:hint="@string/AddMessage.Content.MessageContent"
             android:inputType="textCapSentences|textAutoCorrect|textMultiLine"
             android:paddingTop="16dp"
             android:nestedScrollingEnabled="true"
@@ -89,14 +89,14 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:textColor="@color/error_primary"
-                android:id="@+id/messageContentError"
+                android:id="@+id/AddMessage_MessageContent_Error"
                 />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:id="@+id/count"
+                android:id="@+id/AddMessage_MessageContent_Counter"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentEnd="true"
                 />
@@ -110,7 +110,7 @@
             android:gravity="center"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="@color/primary_text_material_light"
-            android:text="@string/set_date_time"
+            android:text="@string/AddMessage.Content.DateTime"
             android:id="@+id/subtitle2"
             android:height="48dp"
             />
@@ -123,7 +123,7 @@
             android:id="@+id/spinnerLinearLayout">
 
             <com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker
-                android:id="@+id/date_picker"
+                android:id="@+id/AddMessage_DatePicker"
                 app:flags="mode_google|numbers"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />

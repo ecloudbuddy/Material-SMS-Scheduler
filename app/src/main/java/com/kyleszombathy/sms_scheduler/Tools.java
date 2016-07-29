@@ -173,10 +173,10 @@ public class Tools {
         String message;
         if (sendSuccess) {
             // Construct message
-            message = context.getString(R.string.tools_sentMessageSuccessString)
+            message = context.getString(R.string.Notifications_Success)
                     + createNameCondesnedList(nameList, maxNotificationSize, true);
         } else {
-            message = context.getString(R.string.tools_sentMessageFailedString)
+            message = context.getString(R.string.Notifications_MessageFailure)
                     + createNameCondesnedList(nameList, maxNotificationSize, true);
         }
         return message;

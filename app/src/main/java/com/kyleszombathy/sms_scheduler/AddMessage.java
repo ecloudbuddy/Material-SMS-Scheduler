@@ -73,8 +73,8 @@ public class AddMessage extends AppCompatActivity
     private ArrayList<String> photoUri = new ArrayList<>();
 
     // For getting character count
-    private int smsMaxLength = 140;
-    private int smsMaxLengthBeforeShowingWarning = 120;
+    private int smsMaxLength = 160;
+    private int smsMaxLengthBeforeShowingWarning = 150;
     private TextView counterTextView;
     private EditText messageContentEditText;
 
@@ -121,7 +121,7 @@ public class AddMessage extends AppCompatActivity
         editMessage = extras.getBoolean("EDIT_MESSAGE", false);
 
         // Setting up toolbar
-        Toolbar myChildToolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar myChildToolbar = (Toolbar) findViewById(R.id.SMSScheduler_Toolbar);
         setSupportActionBar(myChildToolbar);
         ActionBar ab = getSupportActionBar();
         if (ab != null) ab.setDisplayHomeAsUpEnabled(true);
@@ -133,7 +133,7 @@ public class AddMessage extends AppCompatActivity
         AddMessageFragment firstFragment = new AddMessageFragment();
         firstFragment.setArguments(getIntent().getExtras());
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragment_container, firstFragment);
+        transaction.replace(R.id.AddMessage_FragmentContainer, firstFragment);
         transaction.addToBackStack(null);
         transaction.commit();
     }
@@ -146,11 +146,12 @@ public class AddMessage extends AppCompatActivity
         super.onResume();
 
         // Get views from xml
-        counterTextView = (TextView) findViewById(R.id.count);
-        messageContentEditText = (EditText) findViewById(R.id.messageContent);
-        messageContentErrorMessage = (TextView) findViewById(R.id.messageContentError);
-        phoneRetv = (RecipientEditTextView) findViewById(R.id.phone_retv);
-        datePicker = (ReminderDatePicker) findViewById(R.id.date_picker);
+        counterTextView = (TextView) findViewById(R.id.AddMessage_MessageContent_Counter);
+        messageContentEditText = (EditText) findViewById(R.id.AddMessage_Message_Content);
+        messageContentErrorMessage = (TextView) findViewById(R.id.AddMessage_MessageContent_Error);
+        phoneRetv = (RecipientEditTextView) findViewById(R.id.AddMessage_PhoneRetv);
+        phoneRetvErrorMessage = (TextView) findViewById(R.id.AddMessage_PhoneRetv_Error);
+        datePicker = (ReminderDatePicker) findViewById(R.id.AddMessage_DatePicker);
 
         // Text change listener to message content
         messageContentEditText.addTextChangedListener(messageContentEditTextWatcher);
@@ -164,7 +165,7 @@ public class AddMessage extends AppCompatActivity
         messageContentEditText.getBackground().setColorFilter(getResources().
                 getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
         messageContentErrorMessage.setText("");
-        phoneRetvErrorMessage = (TextView) findViewById(R.id.phone_retv_error);
+
         phoneRetv.getBackground().setColorFilter(getResources().
                 getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
         phoneRetvErrorMessage.setText("");
@@ -313,7 +314,7 @@ public class AddMessage extends AppCompatActivity
     /** Called when user hits finish button*/
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_send:
+            case R.id.AddMessage_DoneButton:
                 messageContentString = messageContentEditText.getText().toString();
                 // Hack to get phoeRetv to display the correct contants updated
                 messageContentEditText.requestFocus();
@@ -349,7 +350,7 @@ public class AddMessage extends AppCompatActivity
         addPhotoDataToSQL();
         scheduleMessage();
         hideKeyboard();
-        createSnackBar(getString(R.string.success));
+        createSnackBar(getString(R.string.AddMessage_Notifications_CreateSuccess));
 
         // Create bundle of extras to pass back to Home
         Intent returnIntent = new Intent();
@@ -401,12 +402,12 @@ public class AddMessage extends AppCompatActivity
         // Message Content error handling
         if (messageContentString.length() == 0) {
             messageContentErrorMessage.setText(getResources().
-                    getString(R.string.error_message_content));
+                    getString(R.string.AddMessage_MessageContentError));
             messageContentEditText.getBackground().setColorFilter(getResources().
                     getColor(R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
             YoYo.with(Techniques.Shake)
                     .duration(700)
-                    .playOn(findViewById(R.id.messageContent));
+                    .playOn(findViewById(R.id.AddMessage_Message_Content));
             result = false;
         }
 
@@ -437,12 +438,12 @@ public class AddMessage extends AppCompatActivity
     /**Creates error message if phone number is wrong*/
     private boolean errorPhoneWrong() {
         // Invalid contact without number
-        phoneRetvErrorMessage.setText(getResources().getString(R.string.invalid_entry));
+        phoneRetvErrorMessage.setText(getResources().getString(R.string.AddMessage_PhoneRetv_InvalidEntries));
         phoneRetv.getBackground().setColorFilter(getResources().
                 getColor(R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
         YoYo.with(Techniques.Shake)
                 .duration(700)
-                .playOn(findViewById(R.id.phone_retv));
+                .playOn(findViewById(R.id.AddMessage_PhoneRetv));
         phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
         return false;
     }
@@ -450,12 +451,12 @@ public class AddMessage extends AppCompatActivity
     /**Creates error message if phoneRetv is empty*/
     private boolean errorChipsEmpty() {
         // Sets error message
-        phoneRetvErrorMessage.setText(getResources().getString(R.string.error_recipient));
+        phoneRetvErrorMessage.setText(getResources().getString(R.string.AddMessage_PhoneRetv_ErrorMustHaveRecipient));
         phoneRetv.getBackground().setColorFilter(getResources().
                 getColor(R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
         YoYo.with(Techniques.Shake)
                 .duration(700)
-                .playOn(findViewById(R.id.phone_retv));
+                .playOn(findViewById(R.id.AddMessage_PhoneRetv));
         return false;
     }
 
@@ -594,7 +595,7 @@ public class AddMessage extends AppCompatActivity
 
         if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
-                showMessageOKCancel(getString(R.string.permission_read_contacts_rationalle),
+                showMessageOKCancel(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -616,19 +617,19 @@ public class AddMessage extends AppCompatActivity
         final List<String> permissionsList = new ArrayList<>();
 
         if (!addPermission(permissionsList, Manifest.permission.SEND_SMS)) {
-            permissionsNeeded.add("'Send and view SMS messages'");
+            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_SMSMessages));
         }
         if (!addPermission(permissionsList, Manifest.permission.READ_PHONE_STATE)) {
-            permissionsNeeded.add("'make and manage phone calls'");
+            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_PhoneCalls));
         }
 
         if (permissionsList.size() > 0) {
             if (permissionsNeeded.size() > 0) {
                 // Need Rationale
-                String message = "You need to grant access to " + permissionsNeeded.get(0);
+                String message = getString(R.string.AddMessage_Permissions_PermissionsPrompt1) + permissionsNeeded.get(0);
                 for (int i = 1; i < permissionsNeeded.size(); i++)
                     message = message + ", " + permissionsNeeded.get(i);
-                message = message + " for vital app functions.";
+                message = message + getString(R.string.AddMessage_Permissions_PermissionPromt2);
                 showMessageOKCancel(message,
                         new DialogInterface.OnClickListener() {
                             @Override
@@ -665,7 +666,7 @@ public class AddMessage extends AppCompatActivity
         new AlertDialog.Builder(AddMessage.this)
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, okListener)
-                .setNegativeButton(R.string.button_deny, null)
+                .setNegativeButton(R.string.AddMessage_ButtonDeny, null)
                 .create()
                 .show();
     }
@@ -690,7 +691,7 @@ public class AddMessage extends AppCompatActivity
                     allPermissionsGranted = true;
                 } else {
                     // Permission Denied
-                    Toast.makeText(AddMessage.this, R.string.error_permission_some_permission_denied, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AddMessage.this, R.string.AddMessage_Permissions_SomePermissionDenied, Toast.LENGTH_SHORT).show();
                     allPermissionsGranted = false;
                 }
             }
