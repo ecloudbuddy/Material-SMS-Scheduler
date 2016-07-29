@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.kyleszombathy.sms_scheduler.AddMessage">
     <item
-        android:id="@+id/action_send"
+        android:id="@+id/AddMessage_DoneButton"
         android:icon="@drawable/ic_done_black_24dp"
         android:title="send"
         compat:showAsAction="always" />

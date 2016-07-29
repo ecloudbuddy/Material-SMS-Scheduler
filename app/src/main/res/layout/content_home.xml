@@ -11,7 +11,7 @@
 
     <android.support.v4.widget.SwipeRefreshLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/swipeContainer"
+        android:id="@+id/Home_swipeContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -24,14 +24,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:id="@+id/recycler_view"
+                android:id="@+id/Home_recycler_view"
                 android:scrollbars="vertical"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp">
             </android.support.v7.widget.RecyclerView>
 
             <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/recycler_empty_state"
+                android:id="@+id/Home_recycler_empty_state"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">

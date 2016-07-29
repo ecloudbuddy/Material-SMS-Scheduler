@@ -57,18 +57,17 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         int alarmNumber = intent.getIntExtra("alarmNumber", -1);
         ArrayList<String> nameList = intent.getStringArrayListExtra("nameList");
 
-            // Split message, regardless if needed - just in case I have the message length number wrong
-            ArrayList<String> messageArrayList;
-            messageArrayList = smsManager.divideMessage(messageContent);
+        // Split message, regardless if needed - just in case I have the message length number wrong
+        final ArrayList<String> messageArrayList = smsManager.divideMessage(messageContent);
 
-            // Sends to multiple recipients
-            for (int i=0; i < phoneList.size(); i++) {
-                // Send message and retrieve
-                boolean result = sendSMSMessage(phoneList.get(i), messageArrayList);
-                if (!result) {
-                    sendSuccessFlag = false;
-                }
+        // Sends to multiple recipients
+        for (int i=0; i < phoneList.size(); i++) {
+            // Send message and retrieve
+            boolean result = sendSMSMessage(phoneList.get(i), messageArrayList);
+            if (!result) {
+                sendSuccessFlag = false;
             }
+        }
 
         /* Register for SMS send action */
         context.getApplicationContext().registerReceiver(new BroadcastReceiver() {
@@ -99,7 +98,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
                         result = TRANSMISSION_TYPE[4];
                         break;
                 }
-                Log.i(TAG, result);
+                Log.i(TAG, result + " for message " + messageArrayList.toString());
                 // Handle error
                 if (!Objects.equals(result, TRANSMISSION_TYPE[0])) {
                     //messageSendSuccess[0] = false;

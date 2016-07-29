@@ -84,13 +84,13 @@ public class Home extends Activity {
 
         setContentView(R.layout.activity_home);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.SMSScheduler_Toolbar);
         setActionBar(toolbar);
 
         populateDatasets();
         setUpRecyclerView();
 
-        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
+        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.Home_swipeContainer);
         // Setup refresh listener which triggers new data loading
         swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
@@ -117,7 +117,7 @@ public class Home extends Activity {
 
 
         // Floating action button start activity
-        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.Home_fab).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Random alarm number
@@ -369,9 +369,9 @@ public class Home extends Activity {
     /**Sets up recycler view and adapter*/
     private void setUpRecyclerView() {
         // Empty state
-        mRecyclerEmptyState = (RelativeLayout) findViewById(R.id.recycler_empty_state);
+        mRecyclerEmptyState = (RelativeLayout) findViewById(R.id.Home_recycler_empty_state);
         // Setting up RecyclerView
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        mRecyclerView = (RecyclerView) findViewById(R.id.Home_recycler_view);
         mRecyclerView.setHasFixedSize(true);
 
         mLayoutManager = new LinearLayoutManager(this);
@@ -478,8 +478,8 @@ public class Home extends Activity {
                     setRecyclerStateToDefault();
 
                     // Makes snackbar with undo button
-                    Snackbar.make(findViewById(R.id.coordLayout),"1 "+ getString(R.string.archived),
-                            Snackbar.LENGTH_LONG).setAction(R.string.Undo, new View.OnClickListener() {
+                    Snackbar.make(findViewById(R.id.Home_coordLayout),"1 "+ getString(R.string.Home_Notifications_archived),
+                            Snackbar.LENGTH_LONG).setAction(R.string.Home_Notifications_Undo, new View.OnClickListener() {
                         // When Undo button is pressed
                         @Override
                         public void onClick(View v) {
@@ -553,7 +553,7 @@ public class Home extends Activity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.Home_action_settings) {
             return true;
         }
 
@@ -575,7 +575,7 @@ public class Home extends Activity {
         PackageManager pm = this.getPackageManager();
         if (!pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY) &&
                 !pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY_CDMA)) {
-            Toast.makeText(this, R.string.home_cantSendMessages, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.Home_Notifications_CantSendMessages, Toast.LENGTH_SHORT).show();
         }
 
         if (resultCode == RESULT_OK) {
@@ -645,7 +645,7 @@ public class Home extends Activity {
                 mAdapter.notifyItemRemoved(position);
             }
             Snackbar snackbar = Snackbar
-                    .make(findViewById(R.id.coordLayout), notificationMessage, Snackbar.LENGTH_LONG);
+                    .make(findViewById(R.id.Home_coordLayout), notificationMessage, Snackbar.LENGTH_LONG);
             snackbar.show();
         }
     };
