@@ -1,34 +1,31 @@
 <resources>
-    <string name="app_name">SMS Scheduler</string>
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_add_message">Add/Edit Message</string>
-    <!--Main page content-->
-    <string name="message_content"> Message</string>
-    <string name="phone_numbers">To</string>
-    <string name="set_date_time">Pick Date and Time</string>
-    <string name="subtitle_content">Enter Recipient and Message</string>
-    <!--For date spinner-->
-    <string name="today">Today</string>
-    <string name="tomorrow">Tomorrow</string>
-    <string name="next">Next</string>
-    <string name="pick_date">Pick a Date…</string>
-    <!--Error Messages-->
-    <string name="error_recipient">Must enter a recipient</string>
-    <string name="error_message_content">Must enter a message</string>
-    <string name="invalid_entry">One or more entries are invalid</string>
-    <!--tooltips-->
-    <string name="success">Message Saved</string>
+    <!--App/Activity Names-->
+    <string name="Title.AppName">SMS Scheduler</string>
+    <string name="Title.Settings">Settings</string>
+    <string name="Title.AddMessage">Add/Edit Message</string>
+    <!--AddMessage page content-->
+    <string name="AddMessage.Content.MessageContent"> Message</string>
+    <string name="AddMessage.Content.PhoneRetv">To</string>
+    <string name="AddMessage.Content.DateTime">Pick Date and Time</string>
+    <string name="AddMessage.Content.SubtitleContent">Enter Recipient and Message</string>
+    <!--AddMessage Error Messages-->
+    <string name="AddMessage.PhoneRetv.ErrorMustHaveRecipient">Must enter a recipient</string>
+    <string name="AddMessage.MessageContentError">Must enter a message</string>
+    <string name="AddMessage.PhoneRetv.InvalidEntries">One or more entries are invalid</string>
+    <!--Home Tooltips-->
+    <string name="AddMessage.Notifications.CreateSuccess">Message Saved</string>
+    <string name="Home_Notifications_archived">Archived</string>
+    <string name="Home.Notifications.Undo">Undo</string>
+    <string name="Home.Notifications.CantSendMessages">Sorry, your device probably can\'t send SMS…</string>
     <!--Notifications-->
-    <string name="message_success">Scheduled message sent successfully</string>
-    <string name="message_failure">Scheduled message failed to send</string>
-    <string name="archived">Archived</string>
-    <string name="tools.sentMessageSuccessString">"Message sent to "</string>
-    <string name="tools.sentMessageFailedString">"Message failed to send to "</string>
-    <string name="permission_read_contacts_rationalle">This app needs access to contacts for autocomplete suggestions. Denying this permission will result in an incomplete user experience, though entering a number manually will still work.</string>
-    <string name="button_allow">Allow</string>
-    <string name="button_deny">Deny</string>
-    <string name="error_permission_some_permission_denied">Please allow all permissions.</string>
-    <string name="home.cantSendMessages">Sorry, your device probably can\'t send SMS…</string>
-    <string name="Undo">Undo</string>
-
+    <string name="Notifications.Success">Scheduled message sent successfully</string>
+    <string name="Notifications.MessageFailure">Scheduled message failed to send</string>
+    <!--Permissions Prompt-->
+    <string name="AddMessage.Permissions.ReadContactsRationalle">This app needs access to contacts for autocomplete suggestions. Denying this permission will result in an incomplete user experience, though entering a number manually will still work.</string>
+    <string name="AddMessage.ButtonDeny">Deny</string>
+    <string name="AddMessage.Permissions.SomePermissionDenied">Please allow all permissions.</string>
+    <string name="AddMessage.Permissions.SMSMessages">\'Send and view SMS messages\'</string>
+    <string name="AddMessage.Permissions.PhoneCalls">\'make and manage phone calls\'</string>
+    <string name="AddMessage.Permissions.PermissionsPrompt1">"You need to grant access to "</string>
+    <string name="AddMessage.Permissions.PermissionPromt2">" for vital app functions."</string>
 </resources>
