@@ -112,6 +112,7 @@ public class AddMessage extends AppCompatActivity
         // Create view
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_message);
+        Log.d(TAG, "Activity View Created");
 
         // Get extras
         Intent i = getIntent();
@@ -134,8 +135,9 @@ public class AddMessage extends AppCompatActivity
         firstFragment.setArguments(getIntent().getExtras());
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.replace(R.id.AddMessage_FragmentContainer, firstFragment);
-        transaction.addToBackStack(null);
         transaction.commit();
+
+        Log.d(TAG, "Fragment view created");
     }
 
 
