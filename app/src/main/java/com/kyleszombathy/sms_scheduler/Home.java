@@ -152,7 +152,7 @@ public class Home extends Activity {
     //=============== Data Retrieval and Initialization ===============//
     private void populateDatasets() {
         clearDatasets();
-        MessageDbHelper mDbHelper = new MessageDbHelper(Home.this);
+        SQLDbHelper mDbHelper = new SQLDbHelper(Home.this);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         Cursor cursor = dbRetrieveContactData(mDbHelper, db);
@@ -168,23 +168,23 @@ public class Home extends Activity {
 
             // Retriever data from cursor
             name = cursor.getString(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.NAME));
+                    (SQLContract.MessageEntry.NAME));
             year = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.YEAR));
+                    (SQLContract.MessageEntry.YEAR));
             month = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.MONTH));
+                    (SQLContract.MessageEntry.MONTH));
             day = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.DAY));
+                    (SQLContract.MessageEntry.DAY));
             hour = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.HOUR));
+                    (SQLContract.MessageEntry.HOUR));
             minute = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.MINUTE));
+                    (SQLContract.MessageEntry.MINUTE));
             alarmNumber = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.ALARM_NUMBER));
+                    (SQLContract.MessageEntry.ALARM_NUMBER));
             messageContent = cursor.getString(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.MESSAGE));
+                    (SQLContract.MessageEntry.MESSAGE));
             photoUri = cursor.getString(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.PHOTO_URI));
+                    (SQLContract.MessageEntry.PHOTO_URI));
 
             // Add retrieved data to datasets
             name = extractName(name);
@@ -209,30 +209,30 @@ public class Home extends Activity {
     }
 
     /**Retrieves values from sql Database and store locally*/
-    private Cursor dbRetrieveContactData(MessageDbHelper mDbHelper, SQLiteDatabase db) {
+    private Cursor dbRetrieveContactData(SQLDbHelper mDbHelper, SQLiteDatabase db) {
         Cursor cursor = null;
 
         String[] projection = {
-                MessageContract.MessageEntry.NAME,
-                MessageContract.MessageEntry.MESSAGE,
-                MessageContract.MessageEntry.YEAR,
-                MessageContract.MessageEntry.MONTH,
-                MessageContract.MessageEntry.DAY,
-                MessageContract.MessageEntry.HOUR,
-                MessageContract.MessageEntry.MINUTE,
-                MessageContract.MessageEntry.ALARM_NUMBER,
-                MessageContract.MessageEntry.PHOTO_URI
+                SQLContract.MessageEntry.NAME,
+                SQLContract.MessageEntry.MESSAGE,
+                SQLContract.MessageEntry.YEAR,
+                SQLContract.MessageEntry.MONTH,
+                SQLContract.MessageEntry.DAY,
+                SQLContract.MessageEntry.HOUR,
+                SQLContract.MessageEntry.MINUTE,
+                SQLContract.MessageEntry.ALARM_NUMBER,
+                SQLContract.MessageEntry.PHOTO_URI
         };
 
         // How you want the results sorted in the resulting Cursor
         String sortOrder =
-                MessageContract.MessageEntry.DATETIME+ " ASC";
-        String selection = MessageContract.MessageEntry.ARCHIVED + " LIKE ?";
+                SQLContract.MessageEntry.DATETIME+ " ASC";
+        String selection = SQLContract.MessageEntry.ARCHIVED + " LIKE ?";
         String[] selectionArgs = { String.valueOf(0) };
 
         try {
             cursor =  db.query(
-                    MessageContract.MessageEntry.TABLE_NAME,  // The table to query
+                    SQLContract.MessageEntry.TABLE_NAME,  // The table to query
                     projection,                               // The columns to return
                     selection,                                // The columns for the WHERE clause
                     selectionArgs,                            // The values for the WHERE clause
@@ -241,9 +241,9 @@ public class Home extends Activity {
                     sortOrder                                 // The sort order
             );
         } catch(Exception e) {
-            Log.e(TAG, "dbRetrieveContactData Retrieve encountered exception", e);
+            Log.e(TAG, "dbRetrieveContactData: Retrieve encountered exception", e);
         } if (cursor != null) {
-            Log.i(TAG, "dbRetrieveContactData Retrieve successful");
+            Log.i(TAG, "dbRetrieveContactData: Retrieve successful. Found " + cursor.getCount() + "entries");
         }
 
         return cursor;
@@ -307,7 +307,7 @@ public class Home extends Activity {
 
     private Bitmap dbRetrieveContactImage(String uri) {
         // Get byte array
-        byte[] byteArray = Tools.getPhotoValuesFromSQL(Home.this, uri);
+        byte[] byteArray = SQLUtilities.getPhotoValuesFromSQL(Home.this, uri);
         // Convert to bitmap and drawable
         ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(byteArray);
         return BitmapFactory.decodeStream(arrayInputStream);
@@ -364,7 +364,7 @@ public class Home extends Activity {
         PendingIntent sender = PendingIntent.getBroadcast(this, alarmNumb, intent, 0);
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.cancel(sender);
-        Log.i(TAG, "Alarm number " + alarmNumb + " Canceled");
+        Log.i(TAG, "cancelAlarm: Alarm number " + alarmNumb + " Canceled");
     }
 
 
@@ -475,7 +475,7 @@ public class Home extends Activity {
                     // Deletes alarm and sets as archived
                     if (alarmNumberDataset.indexOf(TEMP_ALARM) == -1) {
                         cancelAlarm(TEMP_ALARM);
-                        Tools.setAsArchived(Home.this, TEMP_ALARM);
+                        SQLUtilities.setAsArchived(Home.this, TEMP_ALARM);
                     }
                     // Update Recyclerview
                     setRecyclerStateToDefault();
@@ -587,7 +587,7 @@ public class Home extends Activity {
             // Delete old stuff
             if (requestCode == EDIT_MESSAGE) {
                 cancelAlarm(oldAlarmNumber);
-                Tools.deleteAlarmNumberFromDatabase(Home.this, oldAlarmNumber);
+                SQLUtilities.deleteAlarmNumberFromDatabase(Home.this, oldAlarmNumber);
             }
 
             // Update all items from db
