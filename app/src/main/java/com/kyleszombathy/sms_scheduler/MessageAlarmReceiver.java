@@ -208,23 +208,23 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     }
 
     public static byte[] getNotifications(Context context, String uri) {
-        MessageDbHelper mDbHelper = new MessageDbHelper(context);
+        SQLDbHelper mDbHelper = new SQLDbHelper(context);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         String[] projection = {
-                MessageContract.MessageEntry.PHOTO_URI_1,
-                MessageContract.MessageEntry.PHOTO_BYTES
+                SQLContract.MessageEntry.PHOTO_URI_1,
+                SQLContract.MessageEntry.PHOTO_BYTES
         };
 
         // Which row to update, based on the ID
-        String selection = MessageContract.MessageEntry.PHOTO_URI_1 + " LIKE ?";
+        String selection = SQLContract.MessageEntry.PHOTO_URI_1 + " LIKE ?";
         String[] selectionArgs = { uri };
 
         byte[] notification = null;
 
         try {
             Cursor cursor = db.query(
-                    MessageContract.MessageEntry.TABLE_NOTIFICATIONS,  // The table to query
+                    SQLContract.MessageEntry.TABLE_NOTIFICATIONS,  // The table to query
                     projection,                               // The columns to return
                     selection,                                // The columns for the WHERE clause
                     selectionArgs,                            // The values for the WHERE clause
@@ -235,7 +235,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
             if( cursor != null && cursor.moveToFirst() ) {
                 cursor.moveToFirst();
                 notification = cursor.getBlob(cursor.getColumnIndex
-                        (MessageContract.MessageEntry.PHOTO_BYTES));
+                        (SQLContract.MessageEntry.PHOTO_BYTES));
 
                 cursor.close();
             } else {
@@ -245,7 +245,6 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
             Log.e(TAG, "SQLException", e);
         }
 
-        db.close();
         mDbHelper.close();
 
         if (notification == null) {
@@ -261,7 +260,7 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
      * @param alarmNumber The specific alarm number*/
     private void markAsSent(Context context, String notificationMessage, int alarmNumber) {
         // Set as archived
-        Tools.setAsArchived(context, alarmNumber);
+        SQLUtilities.setAsArchived(context, alarmNumber);
         // Send broadcast to Home
         Intent intent = new Intent("custom-event-name");
         intent.putExtra("alarmNumber", alarmNumber);
