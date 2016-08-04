@@ -77,6 +77,7 @@ public class Home extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "Activity View Created");
 
         // Setting up transitions
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
@@ -134,6 +135,8 @@ public class Home extends Activity {
                 stackBuilder.addNextIntent(intent);
                 PendingIntent resultPendingIntent =
                         stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                Log.d(TAG, "Starting Activity AddMessage");
 
                 startActivityForResult(intent, NEW_MESSAGE,
                         ActivityOptions.makeSceneTransitionAnimation(Home.this).toBundle());
