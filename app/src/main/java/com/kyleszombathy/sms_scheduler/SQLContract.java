@@ -6,11 +6,11 @@ import android.provider.BaseColumns;
  * Created by Kyle on 11/30/2015.
  * Creates SQLite table for storing contact information and time to send
  */
-public final class MessageContract {
+public final class SQLContract {
 
 
 
-    public MessageContract() {}
+    public SQLContract() {}
 
     /* Inner class that defines the table contents */
     public static abstract class MessageEntry implements BaseColumns {

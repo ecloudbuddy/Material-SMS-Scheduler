@@ -1,118 +1,19 @@
 package com.kyleszombathy.sms_scheduler;
 
 
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.GregorianCalendar;
 
 public class Tools {
     private static final String TAG = "Tools";
-
-    //=============db helper methods================//
-
-    /**Given a uri, this method retrieves the photoBytes from the photoByte database
-     * If the uri doesnt' exist in the database, it will return null
-     * @param context Application context
-     * @param uri A system uri to give*/
-    public static byte[] getPhotoValuesFromSQL(Context context, String uri) {
-        MessageDbHelper mDbHelper = new MessageDbHelper(context);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        String[] projection = {
-                MessageContract.MessageEntry.PHOTO_URI_1,
-                MessageContract.MessageEntry.PHOTO_BYTES
-        };
-
-        // Which row to update, based on the ID
-        String selection = MessageContract.MessageEntry.PHOTO_URI_1 + " LIKE ?";
-        String[] selectionArgs = { uri };
-
-        byte[] photoBytes = null;
-
-        try {
-            Cursor cursor = db.query(
-                    MessageContract.MessageEntry.TABLE_PHOTO,  // The table to query
-                    projection,                               // The columns to return
-                    selection,                                // The columns for the WHERE clause
-                    selectionArgs,                            // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    null                                      // The sort order
-            );
-            if( cursor != null && cursor.moveToFirst() ) {
-                cursor.moveToFirst();
-                photoBytes = cursor.getBlob(cursor.getColumnIndex(MessageContract.MessageEntry.PHOTO_BYTES));
-                cursor.close();
-            } else {
-                Log.e(TAG, "getPhotoValuesFromSQL Cursor Empty");
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "getPhotoValuesFromSQL Encountered exception", e);
-        }
-
-        db.close();
-        mDbHelper.close();
-
-        if (photoBytes == null) {
-            return null;
-        } else {
-            return photoBytes;
-        }
-    }
-
-    /**Sets given item as archived in database
-     * @param context Application Context
-     * @param alarmNumb Alarm number to archive*/
-    public static void setAsArchived(Context context, int alarmNumb) {
-        MessageDbHelper mDbHelper = new MessageDbHelper(context);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // New value for one column
-        ContentValues values = new ContentValues();
-        values.put(MessageContract.MessageEntry.
-                ARCHIVED, 1);
-
-        // Which row to update, based on the ID
-        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
-        String[] selectionArgs = { String.valueOf(alarmNumb) };
-
-        int count = db.update(
-                MessageContract.MessageEntry.TABLE_NAME,
-                values,
-                selection,
-                selectionArgs);
-        Log.i(TAG, count + " rows deleted.");
-        db.close();
-        mDbHelper.close();
-    }
-
-    /**Removes Item given alarm Number from database
-     * @param context Application context
-     * @param alarmNumb The alarm number to delete*/
-    public static void deleteAlarmNumberFromDatabase(Context context, int alarmNumb) {
-        MessageDbHelper mDbHelper = new MessageDbHelper(context);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // Which row to delete, based on the ID
-        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
-        String[] selectionArgs = { String.valueOf(alarmNumb) };
-
-        db.delete(
-                MessageContract.MessageEntry.TABLE_NAME,
-                selection,
-                selectionArgs);
-        mDbHelper.close();
-    }
-
     //==============Bitmaps======================//
 
     /**Converts a drawable to a bitmap
@@ -212,5 +113,12 @@ public class Tools {
             message += ".";
         }
         return message;
+    }
+
+    /**Creates a full date string in a format for sorting in Home*/
+    public static String getFullDateString(int year, int month, int day, int hour, int minute) {
+        GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        return format.format(date.getTime());
     }
 }
