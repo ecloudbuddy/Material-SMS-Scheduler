@@ -10,8 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -208,7 +206,10 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     }
 
     public static byte[] getNotifications(Context context, String uri) {
-        SQLDbHelper mDbHelper = new SQLDbHelper(context);
+        // TODO: Build out notifications.
+        // Disabled because PhotoUri and Photo_Bytes was removed.
+
+/*        SQLDbHelper mDbHelper = new SQLDbHelper(context);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         String[] projection = {
@@ -251,7 +252,8 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
             return null;
         } else {
             return notification;
-        }
+        }*/
+        return null;
     }
 
     /** Marks the specific alarm number as sent and sends a broadcast to home

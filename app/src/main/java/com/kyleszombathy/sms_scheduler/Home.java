@@ -16,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.design.widget.Snackbar;
@@ -40,7 +41,7 @@ import com.amulyakhare.textdrawable.util.ColorGenerator;
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
 
-import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Objects;
@@ -63,7 +64,7 @@ public class Home extends Activity {
     public ArrayList<String> dateDataset = new ArrayList<>();
     public ArrayList<String> timeDataSet = new ArrayList<>();
     public ArrayList<Integer> alarmNumberDataset = new ArrayList<>();
-    public ArrayList<String> uriDataset = new ArrayList<>();
+    public ArrayList<Uri> uriDataset = new ArrayList<>();
     public ArrayList<Bitmap> photoDataset= new ArrayList<>();
     // For random number retrieval
     private final int MAX_INT = Integer.MAX_VALUE ;
@@ -163,8 +164,9 @@ public class Home extends Activity {
         // Loop through db
         for (int i = 0; i < cursor.getCount(); i++) {
             int year, month, day, hour, minute, alarmNumber;
-            String name, messageContent, photoUri, date, time;
-            ArrayList<String> tempUri;
+            String name, messageContent, uriString, date, time;
+            ArrayList<String> uriArrayList;
+            Uri uri;
 
             // Retriever data from cursor
             name = cursor.getString(cursor.getColumnIndexOrThrow
@@ -183,7 +185,7 @@ public class Home extends Activity {
                     (SQLContract.MessageEntry.ALARM_NUMBER));
             messageContent = cursor.getString(cursor.getColumnIndexOrThrow
                     (SQLContract.MessageEntry.MESSAGE));
-            photoUri = cursor.getString(cursor.getColumnIndexOrThrow
+            uriString = cursor.getString(cursor.getColumnIndexOrThrow
                     (SQLContract.MessageEntry.PHOTO_URI));
 
             // Add retrieved data to datasets
@@ -192,12 +194,12 @@ public class Home extends Activity {
             time = getFullTime(); // Set to empty string for now
 
             //Extract URI
-            tempUri = Tools.parseString(photoUri);
-            if (tempUri.size() == 1 && !Objects.equals(tempUri.get(0).trim(), "null"))
-                photoUri = tempUri.get(0).trim();
-            else photoUri = null;
+            uriArrayList = Tools.parseString(uriString.trim());
+            if (uriArrayList.size() == 1 && !Objects.equals(uriArrayList.get(0).trim(), "null"))
+                uri = Uri.parse(uriArrayList.get(0).trim());
+            else uri = null;
 
-            addValuesToDataSet(name, messageContent, date, time, alarmNumber, photoUri, null);
+            addValuesToDataSet(name, messageContent, date, time, alarmNumber, uri, null);
 
             // Move to next row
             cursor.moveToNext();
@@ -243,7 +245,7 @@ public class Home extends Activity {
         } catch(Exception e) {
             Log.e(TAG, "dbRetrieveContactData: Retrieve encountered exception", e);
         } if (cursor != null) {
-            Log.i(TAG, "dbRetrieveContactData: Retrieve successful. Found " + cursor.getCount() + "entries");
+            Log.i(TAG, "dbRetrieveContactData: Retrieve successful. Found " + cursor.getCount() + " contact entries");
         }
 
         return cursor;
@@ -252,14 +254,14 @@ public class Home extends Activity {
     /** Add values to the end of the dataset*/
     private void addValuesToDataSet(String name, String content,
                                     String date, String time, Integer alarm,
-                                    String uri, Bitmap photo) {
+                                    Uri uri, Bitmap photo) {
         addValuesToDataSet(nameDataset.size(), name, content, date, time, alarm, uri, photo);
     }
 
     /** Add values to a @param position in the dataset*/
     private void addValuesToDataSet(int position, String name, String content,
                                     String date, String time, Integer alarm,
-                                    String uri, Bitmap photo) {
+                                    Uri uri, Bitmap photo) {
         nameDataset.add(position, name);
         messageContentDataset.add(position, content);
         dateDataset.add(position, date);
@@ -284,32 +286,35 @@ public class Home extends Activity {
     private void setContactImage() {
         for (int i = 0; i < uriDataset.size(); i++) {
             if (uriDataset.get(i)!= null) {
-                photoDataset.add(dbRetrieveContactImage(uriDataset.get(i)));
+                photoDataset.set(i, retrieveContactImage(uriDataset.get(i)));
             } else {
                 // Set custom contact image based off first letter of contact name
                 Character nameFirstLetter = nameDataset.get(i).charAt(0);
-                // Get color
-                ColorGenerator generator = ColorGenerator.MATERIAL;
-                int color = generator.getColor(nameDataset.get(i));
-                TextDrawable drawable = TextDrawable.builder()
-                        .beginConfig()
-                        .useFont(Typeface.DEFAULT_BOLD)
-                        .fontSize(60)
-                        .height(circleImageViewWidth * 2)
-                        .width(circleImageViewWidth * 2)
-                        .endConfig()
-                        .buildRound(nameFirstLetter.toString().toUpperCase(), color);
-                Bitmap bitmap = Tools.drawableToBitmap(drawable);
-                photoDataset.add(bitmap);
+                if (Character.isLetter(nameFirstLetter)) {
+                    // Get color
+                    ColorGenerator generator = ColorGenerator.MATERIAL;
+                    int color = generator.getColor(nameDataset.get(i));
+                    TextDrawable drawable = TextDrawable.builder()
+                            .beginConfig()
+                            .useFont(Typeface.DEFAULT_BOLD)
+                            .fontSize(60)
+                            .height(circleImageViewWidth * 2)
+                            .width(circleImageViewWidth * 2)
+                            .endConfig()
+                            .buildRound(nameFirstLetter.toString().toUpperCase(), color);
+                    Bitmap bitmap = Tools.drawableToBitmap(drawable);
+                    photoDataset.set(i, bitmap);
+                    Log.i(TAG, "setContactImage: Created custom image based off first letter: " + nameFirstLetter);
+                } else {
+                    // TODO: Write code for handling messages to multiple people
+                }
+
             }
         }
     }
 
-    private Bitmap dbRetrieveContactImage(String uri) {
-        // Get byte array
-        byte[] byteArray = SQLUtilities.getPhotoValuesFromSQL(Home.this, uri);
-        // Convert to bitmap and drawable
-        ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(byteArray);
+    private Bitmap retrieveContactImage(Uri uri) {
+        InputStream arrayInputStream =SQLUtilities.getPhoto(Home.this, uri);
         return BitmapFactory.decodeStream(arrayInputStream);
     }
 
@@ -414,15 +419,16 @@ public class Home extends Activity {
                             }
                         })
         );
+        Log.i(TAG, "setUpRecyclerView: Successfully set up recycler view");
     }
 
     /**Initializes the Recycler Adapter*/
     private void updateRecyclerViewAdapter() {
-        mAdapter = new RecyclerAdapter(
-                nameDataset, messageContentDataset, dateDataset, timeDataSet, uriDataset, photoDataset);
+        mAdapter = new RecyclerAdapter(nameDataset, messageContentDataset, dateDataset, timeDataSet, photoDataset);
         mRecyclerView.setAdapter(mAdapter);
 
         updateRecyclerState();
+        Log.i(TAG, "updateRecyclerViewAdapter: Successfully updated recycler view adapter");
     }
 
     /**Removes a ghost recycler row if needed*/
@@ -463,7 +469,7 @@ public class Home extends Activity {
                     final String TEMP_DATE = dateDataset.remove(position);
                     final String TEMP_TIME = timeDataSet.remove(position);
                     final Integer TEMP_ALARM = alarmNumberDataset.remove(position);
-                    final String TEMP_URI = uriDataset.remove(position);
+                    final Uri TEMP_URI = uriDataset.remove(position);
                     final Bitmap TEMP_PHOTO = photoDataset.remove(position);
                     mAdapter.notifyItemRemoved(position);
 

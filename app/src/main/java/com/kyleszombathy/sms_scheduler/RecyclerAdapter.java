@@ -21,7 +21,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     private ArrayList<String> messageContentDataset;
     private ArrayList<String> dateDataset;
     private ArrayList<String> timeDataSet;
-    private ArrayList<String> uriDataSet;
     private ArrayList<Bitmap> photoDataset;
 
     // Provide a reference to the views for each data item
@@ -59,13 +58,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                            ArrayList<String> messageContentDataset,
                            ArrayList<String> dateDataset,
                            ArrayList<String> timeDataSet,
-                           ArrayList<String> uriDataSet,
                            ArrayList<Bitmap> photoDataset) {
         this.nameDataset = nameDataset;
         this.messageContentDataset = messageContentDataset;
         this.dateDataset = dateDataset;
         this.timeDataSet = timeDataSet;
-        this.uriDataSet = uriDataSet;
         this.photoDataset = photoDataset;
     }
 
@@ -92,6 +89,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         // Set image
         if (photoDataset.get(position) != null) {
             holder.mBadge.setImageBitmap(photoDataset.get(position));
+
         }
         holder.getSwipableView().bringToFront();
         holder.getSwipableView().setX(0);
