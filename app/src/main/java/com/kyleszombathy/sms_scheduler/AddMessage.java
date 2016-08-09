@@ -193,10 +193,8 @@ public class AddMessage extends AppCompatActivity
                             public void onGlobalLayout() {
                                 // Submit chips to phoneRetv while pulling icons from database
                                 for (int i = 0; i < name.size(); i++) {
-                                    byte[] byteArray = SQLUtilities.getPhotoValuesFromSQL(
-                                            AddMessage.this, photoUri.get(i).trim());
-                                    phoneRetv.submitItem(name.get(i), phone.get(i),
-                                            Uri.parse(photoUri.get(i).trim()), byteArray);
+                                    Uri uri = Uri.parse(photoUri.get(i).trim());
+                                    phoneRetv.submitItem(name.get(i), phone.get(i), uri);
                                 }
 
                                 clearArrayLists();
@@ -257,7 +255,6 @@ public class AddMessage extends AppCompatActivity
         // Add to sql database and schedule the alarm
         SQLUtilities.addDataToSQL(AddMessage.this, name, phone, fullChipString,
                 messageContentString, year, month, day, hour, minute, alarmNumber, photoUri);
-        SQLUtilities.addPhotoDataToSQL(AddMessage.this, photoUri, chips);
         scheduleMessage();
         hideKeyboard();
         createSnackBar(getString(R.string.AddMessage_Notifications_CreateSuccess));
