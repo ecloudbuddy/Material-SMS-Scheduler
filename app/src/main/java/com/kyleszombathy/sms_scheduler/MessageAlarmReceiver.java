@@ -277,12 +277,12 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
      * @param messageContent The content of the message you want to send
      * @param alarmNumber Provide an identifier for the alarm
      * @param nameList The list of names, corresponding with the phone numbers*/
-    public void setAlarm(Context context,
-                         Calendar timeToSend,
-                         ArrayList<String> phoneNumberList,
-                         String messageContent,
-                         int alarmNumber,
-                         ArrayList<String> nameList) {
+    public void createAlarm(Context context,
+                            Calendar timeToSend,
+                            ArrayList<String> phoneNumberList,
+                            String messageContent,
+                            int alarmNumber,
+                            ArrayList<String> nameList) {
         this.context = context;
 
         // Creates new alarm
@@ -313,6 +313,8 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         pm.setComponentEnabledSetting(receiver,
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                 PackageManager.DONT_KILL_APP);
+
+        Log.i(TAG, "createAlarm: Alarm Created. alarmNumber: " + alarmNumber);
     }
     // END_INCLUDE(set_alarm)
 }

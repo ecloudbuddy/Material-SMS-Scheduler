@@ -6,10 +6,13 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.text.format.DateUtils;
+import android.util.Log;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 public class Tools {
@@ -39,8 +42,20 @@ public class Tools {
         drawable.draw(canvas);
         return bitmap;
     }
+    //================Time and Date==============//
+    /** Returns a calendar instance given a set of time values*/
+    public static Calendar getNewCalendarInstance(int year, int month, int day, int hour, int minute) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.MONTH, month);
+        cal.set(Calendar.DAY_OF_MONTH, day);
+        cal.set(Calendar.HOUR_OF_DAY, hour);
+        cal.set(Calendar.MINUTE, minute);
+        return cal;
+    }
 
     //================Strings and Arrays==============//
+    /**Turns the output of an Arraylist.toString method back to an arraylist*/
     public static ArrayList<String> parseString(String s) {
         if(s == null) {
             return null;
@@ -48,7 +63,10 @@ public class Tools {
         s = s.replace("[", "");
         s = s.replace("]", "");
         String[] chars = s.split(",");
-        return new ArrayList(Arrays.asList(chars));
+
+        ArrayList<String> returnStr= new ArrayList(Arrays.asList(chars));
+        Log.d(TAG, "parseString: Input string is " + s + ", returning " + returnStr);
+        return returnStr;
     }
 
     public static String parseArrayList(ArrayList<String> arrayList) {
@@ -115,10 +133,21 @@ public class Tools {
         return message;
     }
 
-    /**Creates a full date string in a format for sorting in Home*/
-    public static String getFullDateString(int year, int month, int day, int hour, int minute) {
+    /**Creates a full date string in a format for sorting*/
+    public static String getFullDateStr(int year, int month, int day, int hour, int minute) {
         GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         return format.format(date.getTime());
+    }
+
+    /**Get full date string in a human readable format*/
+    public static String getFullDateStrReadable(Calendar cal){
+        CharSequence dateString;
+        GregorianCalendar dateNow = new GregorianCalendar();
+        dateString = DateUtils.getRelativeTimeSpanString(
+                cal.getTimeInMillis(),
+                dateNow.getTimeInMillis(),
+                DateUtils.MINUTE_IN_MILLIS);
+        return dateString.toString();
     }
 }

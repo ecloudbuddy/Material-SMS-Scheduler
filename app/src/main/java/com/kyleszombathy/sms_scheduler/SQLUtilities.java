@@ -47,7 +47,7 @@ public class SQLUtilities {
         values.put(SQLContract.MessageEntry.ALARM_NUMBER, alarmNumber);
         values.put(SQLContract.MessageEntry.PHOTO_URI, photoUri.toString());
         values.put(SQLContract.MessageEntry.ARCHIVED, 0);
-        values.put(SQLContract.MessageEntry.DATETIME, Tools.getFullDateString(year, month, day, hour, minute));
+        values.put(SQLContract.MessageEntry.DATETIME, Tools.getFullDateStr(year, month, day, hour, minute));
 
         // Insert the new row, returning the primary key value of the new row
         long sqlRowId = db.insert(
