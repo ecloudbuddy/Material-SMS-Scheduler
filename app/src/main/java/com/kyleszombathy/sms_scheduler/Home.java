@@ -25,7 +25,6 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.format.DateUtils;
 import android.transition.Fade;
 import android.util.Log;
 import android.view.Menu;
@@ -43,7 +42,7 @@ import com.daimajia.androidanimations.library.YoYo;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
+import java.util.Calendar;
 import java.util.Objects;
 
 import jp.wasabeef.recyclerview.animators.SlideInDownAnimator;
@@ -61,8 +60,8 @@ public class Home extends Activity {
     public RecyclerView.LayoutManager mLayoutManager;
     public ArrayList<String> nameDataset = new ArrayList<>();
     public ArrayList<String> messageContentDataset = new ArrayList<>();
-    public ArrayList<String> dateDataset = new ArrayList<>();
-    public ArrayList<String> timeDataSet = new ArrayList<>();
+    public ArrayList<String> phoneDataset = new ArrayList<>();
+    public ArrayList<Calendar> dateTimeDataset = new ArrayList<>();
     public ArrayList<Integer> alarmNumberDataset = new ArrayList<>();
     public ArrayList<Uri> uriDataset = new ArrayList<>();
     public ArrayList<Bitmap> photoDataset= new ArrayList<>();
@@ -164,7 +163,8 @@ public class Home extends Activity {
         // Loop through db
         for (int i = 0; i < cursor.getCount(); i++) {
             int year, month, day, hour, minute, alarmNumber;
-            String name, messageContent, uriString, date, time;
+            String name, messageContent, uriString, phone;
+            Calendar dateTime;
             ArrayList<String> uriArrayList;
             Uri uri;
 
@@ -187,11 +187,12 @@ public class Home extends Activity {
                     (SQLContract.MessageEntry.MESSAGE));
             uriString = cursor.getString(cursor.getColumnIndexOrThrow
                     (SQLContract.MessageEntry.PHOTO_URI));
+            phone = cursor.getString(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.PHONE));
 
             // Add retrieved data to datasets
             name = extractName(name);
-            date = getFullDate(year, month, day, hour, minute);
-            time = getFullTime(); // Set to empty string for now
+            dateTime = Tools.getNewCalendarInstance(year, month, day, hour, minute);
 
             //Extract URI
             uriArrayList = Tools.parseString(uriString.trim());
@@ -199,7 +200,7 @@ public class Home extends Activity {
                 uri = Uri.parse(uriArrayList.get(0).trim());
             else uri = null;
 
-            addValuesToDataSet(name, messageContent, date, time, alarmNumber, uri, null);
+            addValuesToDataSet(name, messageContent, phone, dateTime, alarmNumber, uri, null);
 
             // Move to next row
             cursor.moveToNext();
@@ -223,7 +224,8 @@ public class Home extends Activity {
                 SQLContract.MessageEntry.HOUR,
                 SQLContract.MessageEntry.MINUTE,
                 SQLContract.MessageEntry.ALARM_NUMBER,
-                SQLContract.MessageEntry.PHOTO_URI
+                SQLContract.MessageEntry.PHOTO_URI,
+                SQLContract.MessageEntry.PHONE
         };
 
         // How you want the results sorted in the resulting Cursor
@@ -252,20 +254,20 @@ public class Home extends Activity {
     }
 
     /** Add values to the end of the dataset*/
-    private void addValuesToDataSet(String name, String content,
-                                    String date, String time, Integer alarm,
+    private void addValuesToDataSet(String name, String content, String phone,
+                                    Calendar dateTime, Integer alarm,
                                     Uri uri, Bitmap photo) {
-        addValuesToDataSet(nameDataset.size(), name, content, date, time, alarm, uri, photo);
+        addValuesToDataSet(nameDataset.size(), name, content, phone, dateTime, alarm, uri, photo);
     }
 
     /** Add values to a @param position in the dataset*/
-    private void addValuesToDataSet(int position, String name, String content,
-                                    String date, String time, Integer alarm,
+    private void addValuesToDataSet(int position, String name, String content, String phone,
+                                    Calendar dateTime, Integer alarm,
                                     Uri uri, Bitmap photo) {
         nameDataset.add(position, name);
         messageContentDataset.add(position, content);
-        dateDataset.add(position, date);
-        timeDataSet.add(position, time);
+        phoneDataset.add(position, phone);
+        dateTimeDataset.add(position, dateTime);
         alarmNumberDataset.add(position, alarm);
         uriDataset.add(position, uri);
         photoDataset.add(position, photo);
@@ -274,8 +276,8 @@ public class Home extends Activity {
     private void clearDatasets() {
         nameDataset.clear();
         messageContentDataset.clear();
-        dateDataset.clear();
-        timeDataSet.clear();
+        phoneDataset.clear();
+        dateTimeDataset.clear();
         alarmNumberDataset.clear();
         uriDataset.clear();
         photoDataset.clear();
@@ -341,20 +343,6 @@ public class Home extends Activity {
             nameCondensedString += ", +" + (nameListSize);
         }
         return nameCondensedString.trim();
-    }
-
-    public String getFullDate(int year, int month, int day, int hour, int minute){
-        CharSequence dateString;
-
-        GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
-        GregorianCalendar dateNow = new GregorianCalendar();
-
-        long time = date.getTimeInMillis();
-        long timeNow = dateNow.getTimeInMillis();
-
-        dateString = DateUtils.getRelativeTimeSpanString(time, timeNow, DateUtils.MINUTE_IN_MILLIS);
-
-        return dateString.toString();
     }
 
     public String getFullTime(){
@@ -424,7 +412,7 @@ public class Home extends Activity {
 
     /**Initializes the Recycler Adapter*/
     private void updateRecyclerViewAdapter() {
-        mAdapter = new RecyclerAdapter(nameDataset, messageContentDataset, dateDataset, timeDataSet, photoDataset);
+        mAdapter = new RecyclerAdapter(nameDataset, messageContentDataset, dateTimeDataset, photoDataset);
         mRecyclerView.setAdapter(mAdapter);
 
         updateRecyclerState();
@@ -466,8 +454,8 @@ public class Home extends Activity {
                     final int position = viewHolder.getAdapterPosition();
                     final String TEMP_NAME = nameDataset.remove(position);
                     final String TEMP_CONTENT = messageContentDataset.remove(position);
-                    final String TEMP_DATE = dateDataset.remove(position);
-                    final String TEMP_TIME = timeDataSet.remove(position);
+                    final String TEMP_PHONE = phoneDataset.remove(position);
+                    final Calendar TEMP_DATE_TIME = dateTimeDataset.remove(position);
                     final Integer TEMP_ALARM = alarmNumberDataset.remove(position);
                     final Uri TEMP_URI = uriDataset.remove(position);
                     final Bitmap TEMP_PHOTO = photoDataset.remove(position);
@@ -483,6 +471,7 @@ public class Home extends Activity {
                         cancelAlarm(TEMP_ALARM);
                         SQLUtilities.setAsArchived(Home.this, TEMP_ALARM);
                     }
+
                     // Update Recyclerview
                     setRecyclerStateToDefault();
 
@@ -492,14 +481,20 @@ public class Home extends Activity {
                         // When Undo button is pressed
                         @Override
                         public void onClick(View v) {
-                            addValuesToDataSet(position, TEMP_NAME, TEMP_CONTENT, TEMP_DATE, TEMP_TIME, TEMP_ALARM, TEMP_URI, TEMP_PHOTO);
                             // Add back temp values
-
+                            addValuesToDataSet(position, TEMP_NAME, TEMP_CONTENT, TEMP_PHONE, TEMP_DATE_TIME, TEMP_ALARM, TEMP_URI, TEMP_PHOTO);
+                            // Add back alarm
+                            new MessageAlarmReceiver().createAlarm(
+                                    Home.this,
+                                    TEMP_DATE_TIME,
+                                    Tools.parseString(TEMP_PHONE),
+                                    TEMP_CONTENT,
+                                    TEMP_ALARM,
+                                    Tools.parseString(TEMP_NAME));
                             // Remove empty state
                             updateRecyclerState();
                             // Return to default position
                             setRecyclerStateToDefault();
-                            //mAdapter.notifyItemRangeChanged(position,nameDataset.size());
                             mAdapter.notifyItemInserted(position);
                             mRecyclerView.scrollToPosition(position);
                             setRecyclerStateToDefault();
@@ -629,8 +624,8 @@ public class Home extends Activity {
         // Remove from dataset
         nameDataset.remove(position);
         messageContentDataset.remove(position);
-        dateDataset.remove(position);
-        timeDataSet.remove(position);
+        phoneDataset.remove(position);
+        dateTimeDataset.remove(position);
         alarmNumberDataset.remove(position);
         uriDataset.remove(position);
         photoDataset.remove(position);

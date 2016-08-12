@@ -74,7 +74,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
-                        android:text="Example application"
                         android:textSize="16sp" />
 
                     <TextView
@@ -82,7 +81,6 @@
                         android:layout_width="fill_parent"
                         android:ellipsize="marquee"
                         android:singleLine="true"
-                        android:text="testing this text"
                         android:textSize="14sp"
                         android:layout_height="wrap_content" />
 
@@ -94,16 +92,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:id="@+id/dateDisplay"
-                            android:text="11/11/11"
-                            android:paddingEnd="20dp"
-                            android:textSize="14sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/timeDisplay"
-                            android:text="11:11 PM"
+                            android:id="@+id/dateTimeDisplay"
                             android:textSize="14sp" />
                     </LinearLayout>
 

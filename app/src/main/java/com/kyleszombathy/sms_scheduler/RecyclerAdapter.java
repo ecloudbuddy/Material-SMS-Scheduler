@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -19,8 +20,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     private static final String TAG = "RecyclerAdapter";
     private ArrayList<String> nameDataset;
     private ArrayList<String> messageContentDataset;
-    private ArrayList<String> dateDataset;
-    private ArrayList<String> timeDataSet;
+    private ArrayList<Calendar> dateDataset;
     private ArrayList<Bitmap> photoDataset;
 
     // Provide a reference to the views for each data item
@@ -32,7 +32,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         // each data item is just a string in this case
         public TextView nameHeader;
         public TextView messageContentHeader;
-        public TextView dateHeader;
+        public TextView dateTimeHeader;
         public TextView timeHeader;
         public CircleImageView mBadge;
 
@@ -41,12 +41,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             mRemoveableView = itemView.findViewById(R.id.front);
             nameHeader = (TextView) v.findViewById(R.id.nameDisplay);
             messageContentHeader = (TextView) v.findViewById(R.id.messageContentDisplay);
-            dateHeader = (TextView) v.findViewById(R.id.dateDisplay);
-            timeHeader = (TextView) v.findViewById(R.id.timeDisplay);
+            dateTimeHeader = (TextView) v.findViewById(R.id.dateTimeDisplay);
             mBadge = (CircleImageView) v.findViewById(R.id.circleImageView);
         }
-
-
 
         public View getSwipableView() {
             return mRemoveableView;
@@ -56,13 +53,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     // Provide a suitable constructor (depends on the kind of dataset)
     public RecyclerAdapter(ArrayList<String> nameDataset,
                            ArrayList<String> messageContentDataset,
-                           ArrayList<String> dateDataset,
-                           ArrayList<String> timeDataSet,
+                           ArrayList<Calendar> dateDataset,
                            ArrayList<Bitmap> photoDataset) {
         this.nameDataset = nameDataset;
         this.messageContentDataset = messageContentDataset;
         this.dateDataset = dateDataset;
-        this.timeDataSet = timeDataSet;
         this.photoDataset = photoDataset;
     }
 
@@ -71,8 +66,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     public RecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v;
         v = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_text_view, parent, false);
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
+        return new ViewHolder(v);
     }
 
     // Replace the contents of a view (invoked by the layout manager)
@@ -83,8 +77,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         // - replace the contents of the view with that element
         holder.nameHeader.setText(nameDataset.get(position));
         holder.messageContentHeader.setText(messageContentDataset.get(position));
-        holder.dateHeader.setText(dateDataset.get(position));
-        holder.timeHeader.setText(timeDataSet.get(position));
+        holder.dateTimeHeader.setText(Tools.getFullDateStrReadable(dateDataset.get(position)));
 
         // Set image
         if (photoDataset.get(position) != null) {

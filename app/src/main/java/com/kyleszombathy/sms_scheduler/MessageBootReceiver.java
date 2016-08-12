@@ -35,7 +35,7 @@ public class MessageBootReceiver extends BroadcastReceiver {
             for (int i = 0; i < phoneDataset.size(); i++) {
                 ArrayList<String> phoneNumbers = parsePhoneNumbers(phoneDataset.get(i));
                 ArrayList<String> names = parsePhoneNumbers(nameDataset.get(i));
-                alarm.setAlarm(
+                alarm.createAlarm(
                         context,
                         calendarDataset.get(i),
                         phoneNumbers,

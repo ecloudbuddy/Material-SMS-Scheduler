@@ -374,16 +374,9 @@ public class AddMessage extends AppCompatActivity
     /**Utility method to schedule alarm*/
     private void scheduleMessage() {
         // Create calendar with class values
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, month);
-        cal.set(Calendar.DAY_OF_MONTH, day);
-        cal.set(Calendar.HOUR_OF_DAY, hour);
-        cal.set(Calendar.MINUTE, minute);
-
+        Calendar cal = Tools.getNewCalendarInstance(year, month, day, hour, minute);
         // Starts alarm
-        MessageAlarmReceiver receiver = new MessageAlarmReceiver();
-        receiver.setAlarm(this, cal, phone, messageContentString, alarmNumber, name);
+        new MessageAlarmReceiver().createAlarm(this, cal, phone, messageContentString, alarmNumber, name);
     }
 
     //======================Listeners=======================//
