@@ -32,6 +32,7 @@ public class SQLDbHelper extends SQLiteOpenHelper {
                     SQLContract.MessageEntry.MMS + INTEGER_TYPE + COMMA_SEP +
                     SQLContract.MessageEntry.DATETIME + TEXT_TYPE +
                     " )";
+<<<<<<< HEAD
     private static final String SQL_CREATE_ENTRIES_PHOTO =
             "CREATE TABLE " + SQLContract.MessageEntry.TABLE_PHOTO + " (" +
                     SQLContract.MessageEntry._ID + " INTEGER PRIMARY KEY," +
@@ -39,6 +40,9 @@ public class SQLDbHelper extends SQLiteOpenHelper {
                     SQLContract.MessageEntry.PHOTO_BYTES + BLOB_TYPE + COMMA_SEP +
                     SQLContract.MessageEntry.NULLABLE + TEXT_TYPE +
                     " )";
+=======
+
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
     private static final String SQL_CREATE_ENTRIES_NOTIFICATIONS =
             "CREATE TABLE " + SQLContract.MessageEntry.TABLE_NOTIFICATIONS + " (" +
                     SQLContract.MessageEntry._ID + " INTEGER PRIMARY KEY," +
@@ -48,8 +52,11 @@ public class SQLDbHelper extends SQLiteOpenHelper {
                     " )";
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + SQLContract.MessageEntry.TABLE_NAME;
+<<<<<<< HEAD
     private static final String SQL_DELETE_ENTRIES_PHOTO =
             "DROP TABLE IF EXISTS " + SQLContract.MessageEntry.TABLE_PHOTO;
+=======
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
     private static final String SQL_DELETE_ENTRIES_NOTIFICATIONS =
             "DROP TABLE IF EXISTS " + SQLContract.MessageEntry.TABLE_NOTIFICATIONS;
 
@@ -62,14 +69,20 @@ public class SQLDbHelper extends SQLiteOpenHelper {
     }
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_ENTRIES);
+<<<<<<< HEAD
         db.execSQL(SQL_CREATE_ENTRIES_PHOTO);
+=======
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
         db.execSQL(SQL_CREATE_ENTRIES_NOTIFICATIONS);
     }
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // This database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over
         db.execSQL(SQL_DELETE_ENTRIES);
+<<<<<<< HEAD
         db.execSQL(SQL_DELETE_ENTRIES_PHOTO);
+=======
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
         db.execSQL(SQL_DELETE_ENTRIES_NOTIFICATIONS);
         onCreate(db);
     }

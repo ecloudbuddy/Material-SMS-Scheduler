@@ -4,11 +4,22 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+<<<<<<< HEAD
 import android.util.Log;
 
 import com.android.ex.chips.recipientchip.DrawableRecipientChip;
 
 import java.util.ArrayList;
+=======
+import android.net.Uri;
+import android.provider.ContactsContract;
+import android.util.Log;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
 
 /**
  * Class for SQL DB add/retrieve
@@ -44,7 +55,11 @@ public class SQLUtilities {
         values.put(SQLContract.MessageEntry.ALARM_NUMBER, alarmNumber);
         values.put(SQLContract.MessageEntry.PHOTO_URI, photoUri.toString());
         values.put(SQLContract.MessageEntry.ARCHIVED, 0);
+<<<<<<< HEAD
         values.put(SQLContract.MessageEntry.DATETIME, Tools.getFullDateString(year, month, day, hour, minute));
+=======
+        values.put(SQLContract.MessageEntry.DATETIME, Tools.getFullDateStr(year, month, day, hour, minute));
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
 
         // Insert the new row, returning the primary key value of the new row
         long sqlRowId = db.insert(
@@ -56,6 +71,7 @@ public class SQLUtilities {
         mDbHelper.close();
     }
 
+<<<<<<< HEAD
     public static void addPhotoDataToSQL(Context context,
                                    ArrayList<String> photoUri,
                                    DrawableRecipientChip[] chips) {
@@ -141,6 +157,29 @@ public class SQLUtilities {
         } else {
             return photoBytes;
         }
+=======
+    //=========================Getters======================//
+    public static InputStream getPhoto(Context context, Uri photoUri) {
+        Cursor cursor = context.getContentResolver().query(photoUri,
+                new String[] {ContactsContract.Contacts.Photo.PHOTO}, null, null, null);
+        if (cursor == null) {
+            Log.e(TAG, "getPhoto: photo is null for photoUri " + photoUri.toString());
+            return null;
+        }
+        try {
+            if (cursor.moveToFirst()) {
+                byte[] data = cursor.getBlob(0);
+                if (data != null) {
+                    Log.i(TAG, "getPhoto: photo retrieved successfully for photoUri " + photoUri.toString());
+                    Log.d(TAG, "getPhoto: data is " + Arrays.toString(data));
+                    return new ByteArrayInputStream(data);
+                }
+            }
+        } finally {
+            cursor.close();
+        }
+        return null;
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
     }
 
     //===================Delete/Archive==================//

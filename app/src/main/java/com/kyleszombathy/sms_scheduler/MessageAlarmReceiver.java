@@ -10,8 +10,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -208,7 +206,14 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     }
 
     public static byte[] getNotifications(Context context, String uri) {
+<<<<<<< HEAD
         SQLDbHelper mDbHelper = new SQLDbHelper(context);
+=======
+        // TODO: Build out notifications.
+        // Disabled because PhotoUri and Photo_Bytes was removed.
+
+/*        SQLDbHelper mDbHelper = new SQLDbHelper(context);
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         String[] projection = {
@@ -251,7 +256,8 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
             return null;
         } else {
             return notification;
-        }
+        }*/
+        return null;
     }
 
     /** Marks the specific alarm number as sent and sends a broadcast to home
@@ -275,12 +281,12 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
      * @param messageContent The content of the message you want to send
      * @param alarmNumber Provide an identifier for the alarm
      * @param nameList The list of names, corresponding with the phone numbers*/
-    public void setAlarm(Context context,
-                         Calendar timeToSend,
-                         ArrayList<String> phoneNumberList,
-                         String messageContent,
-                         int alarmNumber,
-                         ArrayList<String> nameList) {
+    public void createAlarm(Context context,
+                            Calendar timeToSend,
+                            ArrayList<String> phoneNumberList,
+                            String messageContent,
+                            int alarmNumber,
+                            ArrayList<String> nameList) {
         this.context = context;
 
         // Creates new alarm
@@ -311,6 +317,8 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         pm.setComponentEnabledSetting(receiver,
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                 PackageManager.DONT_KILL_APP);
+
+        Log.i(TAG, "createAlarm: Alarm Created. alarmNumber: " + alarmNumber);
     }
     // END_INCLUDE(set_alarm)
 }

@@ -193,10 +193,15 @@ public class AddMessage extends AppCompatActivity
                             public void onGlobalLayout() {
                                 // Submit chips to phoneRetv while pulling icons from database
                                 for (int i = 0; i < name.size(); i++) {
+<<<<<<< HEAD
                                     byte[] byteArray = SQLUtilities.getPhotoValuesFromSQL(
                                             AddMessage.this, photoUri.get(i).trim());
                                     phoneRetv.submitItem(name.get(i), phone.get(i),
                                             Uri.parse(photoUri.get(i).trim()), byteArray);
+=======
+                                    Uri uri = Uri.parse(photoUri.get(i).trim());
+                                    phoneRetv.submitItem(name.get(i), phone.get(i), uri);
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
                                 }
 
                                 clearArrayLists();
@@ -257,7 +262,10 @@ public class AddMessage extends AppCompatActivity
         // Add to sql database and schedule the alarm
         SQLUtilities.addDataToSQL(AddMessage.this, name, phone, fullChipString,
                 messageContentString, year, month, day, hour, minute, alarmNumber, photoUri);
+<<<<<<< HEAD
         SQLUtilities.addPhotoDataToSQL(AddMessage.this, photoUri, chips);
+=======
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
         scheduleMessage();
         hideKeyboard();
         createSnackBar(getString(R.string.AddMessage_Notifications_CreateSuccess));
@@ -377,16 +385,14 @@ public class AddMessage extends AppCompatActivity
     /**Utility method to schedule alarm*/
     private void scheduleMessage() {
         // Create calendar with class values
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, month);
-        cal.set(Calendar.DAY_OF_MONTH, day);
-        cal.set(Calendar.HOUR_OF_DAY, hour);
-        cal.set(Calendar.MINUTE, minute);
-
+        Calendar cal = Tools.getNewCalendarInstance(year, month, day, hour, minute);
         // Starts alarm
+<<<<<<< HEAD
         MessageAlarmReceiver receiver = new MessageAlarmReceiver();
         receiver.setAlarm(this, cal, phone, messageContentString, alarmNumber, name);
+=======
+        new MessageAlarmReceiver().createAlarm(this, cal, phone, messageContentString, alarmNumber, name);
+>>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
     }
 
     //======================Listeners=======================//
