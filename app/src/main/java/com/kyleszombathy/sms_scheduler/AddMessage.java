@@ -48,6 +48,7 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class AddMessage extends AppCompatActivity
         implements
@@ -290,52 +291,45 @@ public class AddMessage extends AppCompatActivity
         hour = cal.get(Calendar.HOUR_OF_DAY);
         minute = cal.get(Calendar.MINUTE);
 
+        // Message Content error handling
+        if (messageContentString.length() == 0) {
+            errorMessageContentWrong();
+            return false;
+        }
+
         // PhoneRetv error handling
         if (chips == null || chips.length == 0) {
-            result = errorChipsEmpty();
+            errorChipsEmpty();
+            return false;
         } else if (chips.length > 0) {
             for (DrawableRecipientChip chip : chips) {
+                Pattern regex = Pattern.compile("^.*<[^\n\ra-zA-Z]+>$");
                 String chipStr = chip.toString().trim();
-                String phoneNum = getPhoneNumberFromChip(chipStr);
-                Log.d(TAG, "phoneNum from chip is '" + phoneNum + "'");
+                Log.d(TAG, "chipStr from chip is '" + chipStr + "'");
 
-                if (phoneNum.length() == 0) {
-                    result = errorPhoneWrong();
-                } else {
-                    // Checks if phone contains letters
-                    for (char c: phoneNum.toCharArray()) {
-                        if (Character.isLetter(c) || c == '<' || c == '>' || c == ',') {
-                            result = errorPhoneWrong();
-                            break;
-                        }
-                    }
+                if (!regex.matcher(chipStr).matches()) {
+                    errorPhoneWrong();
+                    return false;
                 }
 
                 //Result okay from here, add to final result
-                if (result) {
-                    fullChipString.add(chipStr);
-                    name.add(getNameFromString(chipStr));
-                    phone.add(getPhoneNumberFromChip(chipStr));
-                    Uri uri = chip.getEntry().getPhotoThumbnailUri();
-                    if (uri != null) {
-                        photoUri.add(uri.toString().trim());
-                    } else {
-                        photoUri.add(null);
-                    }
+                fullChipString.add(chipStr);
+                name.add(getNameFromString(chipStr));
+                phone.add(getPhoneNumberFromChip(chipStr));
+                Uri uri = chip.getEntry().getPhotoThumbnailUri();
+                if (uri != null) {
+                    photoUri.add(uri.toString().trim());
+                } else {
+                    photoUri.add(null);
                 }
             }
         }
 
-        // Message Content error handling
-        if (messageContentString.length() == 0) {
-            result = errorMessageContentWrong();
-        }
-
-        return result;
+        return true;
     }
 
     /**Creates error message if phone number is wrong*/
-    private boolean errorPhoneWrong() {
+    private void errorPhoneWrong() {
         // Invalid contact without number
         phoneRetvErrorMessage.setText(getResources().getString(R.string.AddMessage_PhoneRetv_InvalidEntries));
         phoneRetv.getBackground().setColorFilter(getResources().
@@ -344,11 +338,10 @@ public class AddMessage extends AppCompatActivity
                 .duration(ERROR_ANIMATION_DURATION)
                 .playOn(findViewById(R.id.AddMessage_PhoneRetv));
         phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
-        return false;
     }
 
     /**Creates error message if phoneRetv is empty*/
-    private boolean errorChipsEmpty() {
+    private void errorChipsEmpty() {
         // Sets error message
         phoneRetvErrorMessage.setText(getResources().getString(R.string.AddMessage_PhoneRetv_ErrorMustHaveRecipient));
         phoneRetv.getBackground().setColorFilter(getResources().
@@ -356,11 +349,10 @@ public class AddMessage extends AppCompatActivity
         YoYo.with(Techniques.Shake)
                 .duration(ERROR_ANIMATION_DURATION)
                 .playOn(findViewById(R.id.AddMessage_PhoneRetv));
-        return false;
     }
 
     /**Creates error message if messageContent is wrong*/
-    private boolean errorMessageContentWrong() {
+    private void errorMessageContentWrong() {
         messageContentErrorMessage.setText(getResources().
                 getString(R.string.AddMessage_MessageContentError));
         messageContentEditText.getBackground().setColorFilter(getResources().
@@ -368,7 +360,6 @@ public class AddMessage extends AppCompatActivity
         YoYo.with(Techniques.Shake)
                 .duration(ERROR_ANIMATION_DURATION)
                 .playOn(findViewById(R.id.AddMessage_Message_Content));
-        return false;
     }
 
     /**Utility method to schedule alarm*/
