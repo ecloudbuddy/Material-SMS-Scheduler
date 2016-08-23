@@ -48,7 +48,6 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class AddMessage extends AppCompatActivity
         implements
@@ -194,15 +193,8 @@ public class AddMessage extends AppCompatActivity
                             public void onGlobalLayout() {
                                 // Submit chips to phoneRetv while pulling icons from database
                                 for (int i = 0; i < name.size(); i++) {
-<<<<<<< HEAD
-                                    byte[] byteArray = SQLUtilities.getPhotoValuesFromSQL(
-                                            AddMessage.this, photoUri.get(i).trim());
-                                    phoneRetv.submitItem(name.get(i), phone.get(i),
-                                            Uri.parse(photoUri.get(i).trim()), byteArray);
-=======
                                     Uri uri = Uri.parse(photoUri.get(i).trim());
                                     phoneRetv.submitItem(name.get(i), phone.get(i), uri);
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
                                 }
 
                                 clearArrayLists();
@@ -263,10 +255,6 @@ public class AddMessage extends AppCompatActivity
         // Add to sql database and schedule the alarm
         SQLUtilities.addDataToSQL(AddMessage.this, name, phone, fullChipString,
                 messageContentString, year, month, day, hour, minute, alarmNumber, photoUri);
-<<<<<<< HEAD
-        SQLUtilities.addPhotoDataToSQL(AddMessage.this, photoUri, chips);
-=======
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
         scheduleMessage();
         hideKeyboard();
         createSnackBar(getString(R.string.AddMessage_Notifications_CreateSuccess));
@@ -302,45 +290,52 @@ public class AddMessage extends AppCompatActivity
         hour = cal.get(Calendar.HOUR_OF_DAY);
         minute = cal.get(Calendar.MINUTE);
 
-        // Message Content error handling
-        if (messageContentString.length() == 0) {
-            errorMessageContentWrong();
-            return false;
-        }
-
         // PhoneRetv error handling
         if (chips == null || chips.length == 0) {
-            errorChipsEmpty();
-            return false;
+            result = errorChipsEmpty();
         } else if (chips.length > 0) {
             for (DrawableRecipientChip chip : chips) {
-                Pattern regex = Pattern.compile("^.*<[^\n\ra-zA-Z]+>$");
                 String chipStr = chip.toString().trim();
-                Log.d(TAG, "chipStr from chip is '" + chipStr + "'");
+                String phoneNum = getPhoneNumberFromChip(chipStr);
+                Log.d(TAG, "phoneNum from chip is '" + phoneNum + "'");
 
-                if (!regex.matcher(chipStr).matches()) {
-                    errorPhoneWrong();
-                    return false;
+                if (phoneNum.length() == 0) {
+                    result = errorPhoneWrong();
+                } else {
+                    // Checks if phone contains letters
+                    for (char c: phoneNum.toCharArray()) {
+                        if (Character.isLetter(c) || c == '<' || c == '>' || c == ',') {
+                            result = errorPhoneWrong();
+                            break;
+                        }
+                    }
                 }
 
                 //Result okay from here, add to final result
-                fullChipString.add(chipStr);
-                name.add(getNameFromString(chipStr));
-                phone.add(getPhoneNumberFromChip(chipStr));
-                Uri uri = chip.getEntry().getPhotoThumbnailUri();
-                if (uri != null) {
-                    photoUri.add(uri.toString().trim());
-                } else {
-                    photoUri.add(null);
+                if (result) {
+                    fullChipString.add(chipStr);
+                    name.add(getNameFromString(chipStr));
+                    phone.add(getPhoneNumberFromChip(chipStr));
+                    Uri uri = chip.getEntry().getPhotoThumbnailUri();
+                    if (uri != null) {
+                        photoUri.add(uri.toString().trim());
+                    } else {
+                        photoUri.add(null);
+                    }
                 }
             }
         }
 
-        return true;
+        // Message Content error handling
+        if (messageContentString.length() == 0) {
+            result = errorMessageContentWrong();
+        }
+
+        return result;
     }
 
     /**Creates error message if phone number is wrong*/
-    private void errorPhoneWrong() {
+    private boolean errorPhoneWrong() {
         // Invalid contact without number
         phoneRetvErrorMessage.setText(getResources().getString(R.string.AddMessage_PhoneRetv_InvalidEntries));
         phoneRetv.getBackground().setColorFilter(getResources().
@@ -349,10 +344,11 @@ public class AddMessage extends AppCompatActivity
                 .duration(ERROR_ANIMATION_DURATION)
                 .playOn(findViewById(R.id.AddMessage_PhoneRetv));
         phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
+        return false;
     }
 
     /**Creates error message if phoneRetv is empty*/
-    private void errorChipsEmpty() {
+    private boolean errorChipsEmpty() {
         // Sets error message
         phoneRetvErrorMessage.setText(getResources().getString(R.string.AddMessage_PhoneRetv_ErrorMustHaveRecipient));
         phoneRetv.getBackground().setColorFilter(getResources().
@@ -360,10 +356,11 @@ public class AddMessage extends AppCompatActivity
         YoYo.with(Techniques.Shake)
                 .duration(ERROR_ANIMATION_DURATION)
                 .playOn(findViewById(R.id.AddMessage_PhoneRetv));
+        return false;
     }
 
     /**Creates error message if messageContent is wrong*/
-    private void errorMessageContentWrong() {
+    private boolean errorMessageContentWrong() {
         messageContentErrorMessage.setText(getResources().
                 getString(R.string.AddMessage_MessageContentError));
         messageContentEditText.getBackground().setColorFilter(getResources().
@@ -371,6 +368,7 @@ public class AddMessage extends AppCompatActivity
         YoYo.with(Techniques.Shake)
                 .duration(ERROR_ANIMATION_DURATION)
                 .playOn(findViewById(R.id.AddMessage_Message_Content));
+        return false;
     }
 
     /**Utility method to schedule alarm*/
@@ -378,12 +376,7 @@ public class AddMessage extends AppCompatActivity
         // Create calendar with class values
         Calendar cal = Tools.getNewCalendarInstance(year, month, day, hour, minute);
         // Starts alarm
-<<<<<<< HEAD
-        MessageAlarmReceiver receiver = new MessageAlarmReceiver();
-        receiver.setAlarm(this, cal, phone, messageContentString, alarmNumber, name);
-=======
         new MessageAlarmReceiver().createAlarm(this, cal, phone, messageContentString, alarmNumber, name);
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
     }
 
     //======================Listeners=======================//

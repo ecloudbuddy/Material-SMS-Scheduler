@@ -185,15 +185,10 @@ public class Home extends Activity {
                     (SQLContract.MessageEntry.ALARM_NUMBER));
             messageContent = cursor.getString(cursor.getColumnIndexOrThrow
                     (SQLContract.MessageEntry.MESSAGE));
-<<<<<<< HEAD
-            photoUri = cursor.getString(cursor.getColumnIndexOrThrow
-                    (SQLContract.MessageEntry.PHOTO_URI));
-=======
             uriString = cursor.getString(cursor.getColumnIndexOrThrow
                     (SQLContract.MessageEntry.PHOTO_URI));
             phone = cursor.getString(cursor.getColumnIndexOrThrow
                     (SQLContract.MessageEntry.PHONE));
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
 
             // Add retrieved data to datasets
             name = extractName(name);
@@ -229,12 +224,8 @@ public class Home extends Activity {
                 SQLContract.MessageEntry.HOUR,
                 SQLContract.MessageEntry.MINUTE,
                 SQLContract.MessageEntry.ALARM_NUMBER,
-<<<<<<< HEAD
-                SQLContract.MessageEntry.PHOTO_URI
-=======
                 SQLContract.MessageEntry.PHOTO_URI,
                 SQLContract.MessageEntry.PHONE
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
         };
 
         // How you want the results sorted in the resulting Cursor
@@ -256,11 +247,7 @@ public class Home extends Activity {
         } catch(Exception e) {
             Log.e(TAG, "dbRetrieveContactData: Retrieve encountered exception", e);
         } if (cursor != null) {
-<<<<<<< HEAD
-            Log.i(TAG, "dbRetrieveContactData: Retrieve successful. Found " + cursor.getCount() + "entries");
-=======
             Log.i(TAG, "dbRetrieveContactData: Retrieve successful. Found " + cursor.getCount() + " contact entries");
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
         }
 
         return cursor;
@@ -328,16 +315,8 @@ public class Home extends Activity {
         }
     }
 
-<<<<<<< HEAD
-    private Bitmap dbRetrieveContactImage(String uri) {
-        // Get byte array
-        byte[] byteArray = SQLUtilities.getPhotoValuesFromSQL(Home.this, uri);
-        // Convert to bitmap and drawable
-        ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(byteArray);
-=======
     private Bitmap retrieveContactImage(Uri uri) {
         InputStream arrayInputStream =SQLUtilities.getPhoto(Home.this, uri);
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
         return BitmapFactory.decodeStream(arrayInputStream);
     }
 

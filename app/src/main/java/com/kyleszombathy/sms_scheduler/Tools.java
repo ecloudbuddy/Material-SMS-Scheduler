@@ -6,19 +6,13 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-<<<<<<< HEAD
-=======
 import android.text.format.DateUtils;
 import android.util.Log;
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-<<<<<<< HEAD
-=======
 import java.util.Calendar;
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
 import java.util.GregorianCalendar;
 
 public class Tools {
@@ -139,19 +133,12 @@ public class Tools {
         return message;
     }
 
-<<<<<<< HEAD
-    /**Creates a full date string in a format for sorting in Home*/
-    public static String getFullDateString(int year, int month, int day, int hour, int minute) {
-=======
     /**Creates a full date string in a format for sorting*/
     public static String getFullDateStr(int year, int month, int day, int hour, int minute) {
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
         GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         return format.format(date.getTime());
     }
-<<<<<<< HEAD
-=======
 
     /**Get full date string in a human readable format*/
     public static String getFullDateStrReadable(Calendar cal){
@@ -163,5 +150,4 @@ public class Tools {
                 DateUtils.MINUTE_IN_MILLIS);
         return dateString.toString();
     }
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
 }

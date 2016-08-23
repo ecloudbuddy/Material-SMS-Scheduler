@@ -206,14 +206,10 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
     }
 
     public static byte[] getNotifications(Context context, String uri) {
-<<<<<<< HEAD
-        SQLDbHelper mDbHelper = new SQLDbHelper(context);
-=======
         // TODO: Build out notifications.
         // Disabled because PhotoUri and Photo_Bytes was removed.
 
 /*        SQLDbHelper mDbHelper = new SQLDbHelper(context);
->>>>>>> 657b36e3228dbd46f1e89f8c0f70643f7b6a6074
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         String[] projection = {
