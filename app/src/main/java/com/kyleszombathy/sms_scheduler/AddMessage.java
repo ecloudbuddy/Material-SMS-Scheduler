@@ -24,6 +24,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.transition.Fade;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,6 +44,7 @@ import com.daimajia.androidanimations.library.YoYo;
 import com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -77,6 +79,8 @@ public class AddMessage extends AppCompatActivity
     private DrawableRecipientChip[] chips;
     private ArrayList<String> photoUri = new ArrayList<>();
     private TextView phoneRetvErrorMessage;
+    private String lastCharPhoneRetvToString = "";
+    private static final String[] PHONERETV_CUSTOM_ENDKEYS = {",", " "};
 
     // Message Content Field
     private EditText messageContentEditText;
@@ -87,11 +91,17 @@ public class AddMessage extends AppCompatActivity
 
     // Error Messages/ Validation
     private static final int ERROR_ANIMATION_DURATION = 700;
+    private static final String PHONERETV_FULL_REGEX = "^.*<[^\n\ra-zA-Z]+>$";
+    private static final String PHONERETV_PHONE_REGEX_STRICT = "^[^<>a-zA-Z]+$";
+    private static final String PHONERETV_PHONE_REGEX_LOOSE = "^[^a-zA-Z]+$";
 
     // Permissions Request
     final private int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 0;
     final private int MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS = 1;
     private boolean allPermissionsGranted = false;
+
+    // Random
+    private static final String EMPTY_STRING = "";
 
     //=============Activity Creation Methods================//
     @Override
@@ -158,14 +168,20 @@ public class AddMessage extends AppCompatActivity
         phoneRetv.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
         phoneRetv.setAdapter(new BaseRecipientAdapter(BaseRecipientAdapter.QUERY_TYPE_PHONE, this));
         phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
+        phoneRetv.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if(keyCode == KeyEvent.KEYCODE_DEL) {
+                    Log.d(TAG, "PhoneRetv:OnKeyListener: Backspace pressed");
+                    clearPhoneRetvError();
+                }
+                return false;
+            }
+        });
 
         // Remove any ghost errors
-        messageContentEditText.getBackground().setColorFilter(getResources().
-                getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
-        messageContentErrorMessage.setText("");
-        phoneRetv.getBackground().setColorFilter(getResources().
-                getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
-        phoneRetvErrorMessage.setText("");
+        clearPhoneRetvError();
+        clearMessageContentError();
 
         // Set up Date and Time pickers
         datePicker.setCustomDatePicker(new View.OnClickListener() {
@@ -299,16 +315,16 @@ public class AddMessage extends AppCompatActivity
 
         // PhoneRetv error handling
         if (chips == null || chips.length == 0) {
-            errorChipsEmpty();
+            errorPhoneWrong(getResources().getString(R.string.AddMessage_PhoneRetv_ErrorMustHaveRecipient));
             return false;
         } else if (chips.length > 0) {
             for (DrawableRecipientChip chip : chips) {
-                Pattern regex = Pattern.compile("^.*<[^\n\ra-zA-Z]+>$");
+                Pattern regex = Pattern.compile(PHONERETV_FULL_REGEX);
                 String chipStr = chip.toString().trim();
                 Log.d(TAG, "chipStr from chip is '" + chipStr + "'");
 
                 if (!regex.matcher(chipStr).matches()) {
-                    errorPhoneWrong();
+                    errorPhoneWrong(getResources().getString(R.string.AddMessage_PhoneRetv_InvalidEntries));
                     return false;
                 }
 
@@ -329,23 +345,11 @@ public class AddMessage extends AppCompatActivity
     }
 
     /**Creates error message if phone number is wrong*/
-    private void errorPhoneWrong() {
+    private void errorPhoneWrong(String errorMessage) {
         // Invalid contact without number
-        phoneRetvErrorMessage.setText(getResources().getString(R.string.AddMessage_PhoneRetv_InvalidEntries));
-        phoneRetv.getBackground().setColorFilter(getResources().
-                getColor(R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
-        YoYo.with(Techniques.Shake)
-                .duration(ERROR_ANIMATION_DURATION)
-                .playOn(findViewById(R.id.AddMessage_PhoneRetv));
-        phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
-    }
-
-    /**Creates error message if phoneRetv is empty*/
-    private void errorChipsEmpty() {
-        // Sets error message
-        phoneRetvErrorMessage.setText(getResources().getString(R.string.AddMessage_PhoneRetv_ErrorMustHaveRecipient));
-        phoneRetv.getBackground().setColorFilter(getResources().
-                getColor(R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
+        phoneRetvErrorMessage.setText(errorMessage);
+        phoneRetv.getBackground().setColorFilter(
+                ContextCompat.getColor(this, R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
         YoYo.with(Techniques.Shake)
                 .duration(ERROR_ANIMATION_DURATION)
                 .playOn(findViewById(R.id.AddMessage_PhoneRetv));
@@ -355,8 +359,8 @@ public class AddMessage extends AppCompatActivity
     private void errorMessageContentWrong() {
         messageContentErrorMessage.setText(getResources().
                 getString(R.string.AddMessage_MessageContentError));
-        messageContentEditText.getBackground().setColorFilter(getResources().
-                getColor(R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
+        messageContentEditText.getBackground().setColorFilter(
+                ContextCompat.getColor(this, R.color.error_primary), PorterDuff.Mode.SRC_ATOP);
         YoYo.with(Techniques.Shake)
                 .duration(ERROR_ANIMATION_DURATION)
                 .playOn(findViewById(R.id.AddMessage_Message_Content));
@@ -379,9 +383,7 @@ public class AddMessage extends AppCompatActivity
             int length = s.length();
             // Begins counting length of message
             if (length == 1) {
-                messageContentEditText.getBackground().setColorFilter(getResources().
-                        getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
-                messageContentErrorMessage.setText("");
+                clearMessageContentError();
             }
             // If length exceeds 1 message, shows user
             if (length <= SMS_MAX_LENGTH && length >= SMS_MAX_LENGTH_BEFORE_SHOWING_WARNING) {
@@ -390,7 +392,7 @@ public class AddMessage extends AppCompatActivity
                 counterTextView.setText(String.valueOf(SMS_MAX_LENGTH - length % SMS_MAX_LENGTH)
                         + " / " + String.valueOf(1 + (length / SMS_MAX_LENGTH)));
             } else {
-                counterTextView.setText("");
+                counterTextView.setText(EMPTY_STRING);
             }
         }
         public void afterTextChanged(Editable s) {}
@@ -401,15 +403,137 @@ public class AddMessage extends AppCompatActivity
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         }
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            //askForContactsReadPermission();
+            //TODO: Fix for contacts with images
+            //TODO: add comments
+            //TODO: Implement deleting whole text instead of allowing editing. Ensure deletion on EditMessage as well
+            //TODO: Implement delete duplicate number upon entry
+            //TODO: Clean
+            //TODO: Replace try catches with ifs
+
+            if (count != 0) {
+                final Pattern regex_strict = Pattern.compile(PHONERETV_PHONE_REGEX_STRICT);
+                final Pattern regex_loose = Pattern.compile(PHONERETV_PHONE_REGEX_LOOSE);
+                chips = phoneRetv.getRecipients();
+                final String lastChipPhoneString = getLastPhoneFromChip(chips);
+                final String phoneRetvToString = phoneRetv.getText().toString();
+                final String[] phoneRetvToStringArray = phoneRetvToString.split(",");
+                final String phoneRetvToStringLastArrayIndex = getLastPhone(phoneRetvToStringArray);
+                lastCharPhoneRetvToString = getLastCharOfString(phoneRetvToString);
+
+                clearPhoneRetvError();
+
+                Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: BEGINNING TO SEARCH ========================================");
+                Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: phoneRetvToString - '" + phoneRetvToString + "'");
+                Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Arrays.toString(chips) - '" + Arrays.toString(chips) + "'");
+                Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: phoneRetvToStringLastArrayIndex - '" + phoneRetvToStringLastArrayIndex + "'");
+                Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: lastChipPhoneString - " + lastChipPhoneString);
+                Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: regex_loose.matcher(phoneRetvToStringLastArrayIndex).matches() - " + regex_loose.matcher(phoneRetvToStringLastArrayIndex).matches());
+
+                if (lastCharPhoneRetvToString != null && !lastCharPhoneRetvToString.equals(EMPTY_STRING) && regex_loose.matcher(phoneRetvToStringLastArrayIndex).matches() && isStringInStringArray(lastCharPhoneRetvToString, PHONERETV_CUSTOM_ENDKEYS) ) {
+                    Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: lastCharPhoneRetvToString pressed - '" + lastCharPhoneRetvToString + "'");
+                    if (detectDuplicates(chips, phoneRetvToStringLastArrayIndex)) {
+                        errorPhoneWrong(getString(R.string.AddMessage_PhoneRetv_DuplicatePhone));
+                    } else {
+                        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: regex_strict.matcher(phoneRetvToStringLastArrayIndex).matches() - " + regex_strict.matcher(phoneRetvToStringLastArrayIndex).matches());
+
+                        if (regex_strict.matcher(phoneRetvToStringLastArrayIndex).matches()) {
+                            // TODO: Add logic for "<123>" here
+                            Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Creating new chip with phoneRetvToStringLastArrayIndex - '" + phoneRetvToStringLastArrayIndex + "'");
+                            // create new chip
+                            phoneRetv.submitItem(phoneRetvToStringLastArrayIndex, phoneRetvToStringLastArrayIndex);
+                        }
+                    }
+                }
+            }
         }
+
+        private boolean isStringInStringArray(String str, String[] items) {
+            for (String item : items) if (str.equalsIgnoreCase(item)) return true;
+            return false;
+        }
+
+
         public void afterTextChanged(Editable s) {
             // Removes error message once user adds a contact
-            phoneRetv.getBackground().setColorFilter(getResources().
-                    getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
-            phoneRetvErrorMessage.setText("");
+
+        }
+
+        private String getLastPhone(String[] phoneArray) {
+            // TODO: Implement for editMessage
+            //Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: getLastPhone - " + Arrays.toString(phoneArray));
+            String lastPhone = phoneArray[phoneArray.length - 1].trim();
+            if (lastPhone.equals(EMPTY_STRING) && phoneArray.length >= 2) {
+                lastPhone = phoneArray[phoneArray.length - 2].trim();
+            }
+            return lastPhone;
+        }
+
+        private String getLastPhoneFromChip(DrawableRecipientChip[] chips) {
+            if (chips.length > 0)
+                return getPhoneNumberFromChip( chips[chips.length - 1].toString().trim() );
+            else return null;
+        }
+
+        private String getLastCharOfString(String str) {
+            if (str.length()>0)
+                return str.substring(str.length() - 1);
+            else return EMPTY_STRING;
+        }
+
+        // Detects duplicates in an array. O(n^2) but it's a small array, so doesn't matter.
+        private boolean detectDuplicates(DrawableRecipientChip[] chips, String typedPhone) {
+            final String regexRemoveNonNumerical = "[^0-9]";
+            //typedPhone = typedPhone.replaceAll(regexRemoveNonNumerical,EMPTY_STRING);
+            String phoneArray[] = new String[chips.length];
+
+            // Replace everything that isn't a number with empty string
+            for (int i = 0; i < phoneArray.length; i++) {
+                phoneArray[i] = getPhoneNumberFromChip(chips[i].toString()).replaceAll(regexRemoveNonNumerical,EMPTY_STRING);
+            }
+
+            for (int j = 0; j < phoneArray.length; j++) {
+                for (int k = j + 1; k < phoneArray.length; k++) {
+                    if (k != j && !phoneArray[j].equals(EMPTY_STRING) && !phoneArray[k].equals(EMPTY_STRING) &&
+                            (phoneArray[k].equals(phoneArray[j]) || phoneArray[k].equals(typedPhone))) {
+                        Log.d(TAG, "phoneRetvEditTextWatcher:detectDuplicates: " +
+                                "Duplicates found for phoneArray[j] - '" + phoneArray[j] + "' " +
+                                "phoneArray[k] - '" + phoneArray[k] + "' " +
+                                "phoneArray.toString() - " + Arrays.toString(phoneArray));
+                        return true;
+                    } else {
+                        Log.d(TAG, "phoneRetvEditTextWatcher:detectDuplicates: " +
+                                "Duplicates FAILED for phoneArray[j] - '" + phoneArray[j] + "' " +
+                                "phoneArray[k] - '" + phoneArray[k] + "' " +
+                                "phoneArray.toString() - " + Arrays.toString(phoneArray));
+                    }
+                }
+            }
+            for (int l = 0; l < phoneArray.length; l++) {
+                if (phoneArray[l].equals(typedPhone)) {
+                    // TODO: Check logic for <123> here
+                    Log.d(TAG, "phoneRetvEditTextWatcher:detectDuplicates: " +
+                            "Duplicates found for phoneArray[l] - '" + phoneArray[l] + "' " +
+                            "typedPhone - " + typedPhone);
+                    // Submit the item here also, so that the user is presented with a chip instead of their filled out text
+                    phoneRetv.submitItem(typedPhone, typedPhone);
+                    return true;
+                }
+            }
+
+            return false;
         }
     };
+
+    private void clearPhoneRetvError() {
+        phoneRetv.getBackground().setColorFilter(getResources().
+                getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
+        phoneRetvErrorMessage.setText(EMPTY_STRING);
+    }
+    private void clearMessageContentError() {
+        messageContentEditText.getBackground().setColorFilter(getResources().
+                getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
+        messageContentErrorMessage.setText(EMPTY_STRING);
+    }
 
     /**Checks if READ_CONTACTS permission exists and prompts user*/
     @TargetApi(Build.VERSION_CODES.M)
@@ -560,7 +684,7 @@ public class AddMessage extends AppCompatActivity
 
     /**Gets name from phoneRetv string*/
     public String getNameFromString(String chipStr) {
-        String temp = "";
+        String temp = EMPTY_STRING;
         for (int i =0; i < chipStr.length(); i++) {
             char c = chipStr.charAt(i);
             char d = chipStr.charAt(i + 1);

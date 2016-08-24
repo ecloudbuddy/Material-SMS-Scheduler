@@ -28,4 +28,5 @@
     <string name="AddMessage.Permissions.PhoneCalls">\'make and manage phone calls\'</string>
     <string name="AddMessage.Permissions.PermissionsPrompt1">"You need to grant access to "</string>
     <string name="AddMessage.Permissions.PermissionPromt2">" for vital app functions."</string>
+    <string name="AddMessage.PhoneRetv.DuplicatePhone">Cannot have duplicate phone number</string>
 </resources>
