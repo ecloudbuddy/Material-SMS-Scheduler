@@ -1,2 +1,3 @@
-include ':app', ':lib'
+include ':app', ':lib' , ':TextDrawable:library'
 project(':lib').projectDir = new File('app/lib')
+project(':TextDrawable').projectDir = new File('app/TextDrawable/library')

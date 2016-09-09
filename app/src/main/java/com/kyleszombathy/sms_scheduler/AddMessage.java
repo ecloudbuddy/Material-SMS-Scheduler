@@ -315,8 +315,8 @@ public class AddMessage extends AppCompatActivity
         Pattern regexStrict = Pattern.compile(PHONERETV_PHONE_REGEX_STRICT);
 
         final String phoneRetvToString = phoneRetv.getText().toString();
-        String lastCharPhoneRetvToString = getLastCharOfString(phoneRetvToString);
-        String[] phoneRetvToStringArray = getValidFieldTextArray(phoneRetvToString, lastCharPhoneRetvToString);
+        String lastTypedChar = getLastCharOfString(phoneRetvToString);
+        String[] fieldTextArray = getValidFieldTextArray(phoneRetvToString, lastTypedChar);
 
         clearArrayLists();
         clearPhoneRetvError();
@@ -336,10 +336,11 @@ public class AddMessage extends AppCompatActivity
         hour = cal.get(Calendar.HOUR_OF_DAY);
         minute = cal.get(Calendar.MINUTE);
 
-        if (chips.length != phoneRetvToStringArray.length) {
+        if (chips.length != fieldTextArray.length) {
             // Arrays should be the same length. If they are not, there is something wrong in getValidFieldTextArray()
             Log.e(TAG + "verifyData:", "Error: chips length is not equal to phoneRetv length");
-            throw new ArrayIndexOutOfBoundsException(); //TODO: In Prod, change this to an Error code so it does not impact user experience
+            Log.e(TAG + "verifyData:", "chips is " + Arrays.toString(chips) + " fieldTextArray " + Arrays.toString(fieldTextArray));
+            //throw new ArrayIndexOutOfBoundsException(); //TODO: In Prod, change this to an Error code so it does not impact user experience
         }
 
         // PhoneRetv error handling
@@ -352,10 +353,10 @@ public class AddMessage extends AppCompatActivity
 
                 String chipStr = chip.toString().trim();
                 Log.d(TAG, "chipStr from chip is '" + chipStr + "'");
-                Log.d(TAG, "phoneRetvToStringArray[i] is '" + phoneRetvToStringArray[i] + "'");
+                Log.d(TAG, "fieldTextArray[i] is '" + fieldTextArray[i] + "'");
 
-                if (!regex.matcher(chipStr).matches() || !regexStrict.matcher(phoneRetvToStringArray[i]).matches()) {
-                    Log.e(TAG, "verifyData: Error - Invalid Entry for chipStr - '" + chipStr + "' or phoneRetvToStringArray[i] - '" + phoneRetvToStringArray[i] + "'");
+                if (!regex.matcher(chipStr).matches() || !regexStrict.matcher(fieldTextArray[i]).matches()) {
+                    Log.e(TAG, "verifyData: Error - Invalid Entry for chipStr - '" + chipStr + "' or fieldTextArray[i] - '" + fieldTextArray[i] + "'");
                     errorPhoneWrong(getResources().getString(R.string.AddMessage_PhoneRetv_InvalidEntries));
                     return false;
                 }
@@ -424,13 +425,14 @@ public class AddMessage extends AppCompatActivity
 
     // Detects duplicates in an array. O(n^2) but it's a small array, so doesn't matter.
     private boolean throwErrorIfDuplicate(DrawableRecipientChip[] chips) {
-        final String nonNumericalRegex = "[^0-9]";
-        final int arrayLength = chips.length;
+                final int arrayLength = chips.length;
         String phones[] = new String[arrayLength];
+
 
         for (int i = 0; i < arrayLength; i++) {
             // Replace all non-numericals with an empty string
-            phones[i] = getPhoneNumbersFromChip(chips[i]).replaceAll(nonNumericalRegex,EMPTY_STRING);
+            phones[i] = replaceAllNonNumbericals(getPhoneNumbersFromChip(chips[i]));
+
             // If phone is has a preceding "1", remove it
             if (phones[i].startsWith("1")) phones[i] = phones[i].substring(1);
         }
@@ -558,15 +560,16 @@ public class AddMessage extends AppCompatActivity
         String[] fieldTextArray;
         ArrayList<String> fieldTextArrayList;
 
-        // Replace < and > with blank chars
-        fieldText = fieldText.replace("<", "");
-        fieldText = fieldText.replace(">", "");
-
         // Split phoneRetvToString
         if (lastTypedChar.equals(PHONERETV_CUSTOM_ENDKEYS[0])) {
             fieldTextArray = fieldText.split(PHONERETV_CUSTOM_ENDKEYS[0]);
         } else {
             fieldTextArray = fieldText.split(PHONERETV_CUSTOM_ENDKEYS[0] + PHONERETV_CUSTOM_ENDKEYS[1]);
+        }
+
+        // Remove all non-numericals from array
+        for (int i =0; i < fieldTextArray.length; i++) {
+            fieldTextArray[i] = replaceAllNonNumbericals(fieldTextArray[i]);
         }
 
         // Trim last array index if last index is an empty string
@@ -581,6 +584,11 @@ public class AddMessage extends AppCompatActivity
 
         return fieldTextArray;
 
+    }
+
+    private String replaceAllNonNumbericals(String fieldText) {
+        final String nonNumericalRegex = "[^0-9]";
+        return fieldText.replaceAll(nonNumericalRegex,EMPTY_STRING);
     }
 
     private String getFieldLastPhone(String[] phoneArray) {
