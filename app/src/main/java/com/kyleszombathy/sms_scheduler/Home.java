@@ -296,7 +296,7 @@ public class Home extends Activity {
                     // Get color
                     ColorGenerator generator = ColorGenerator.MATERIAL;
                     int color = generator.getColor(nameDataset.get(i));
-                    TextDrawable drawable = TextDrawable.builder()
+                    TextDrawable drawable = TextDrawable.builder(this)
                             .beginConfig()
                             .useFont(Typeface.DEFAULT_BOLD)
                             .fontSize(60)
