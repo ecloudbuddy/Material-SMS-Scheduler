@@ -232,7 +232,7 @@ public class AddMessage extends AppCompatActivity
                                 // Submit chips to phoneRetv while pulling icons from database
                                 for (int i = 0; i < name.size(); i++) {
                                     Uri uri = Uri.parse(photoUri.get(i).trim());
-                                    phoneRetv.submitItem(name.get(i), phone.get(i), uri);
+                                    addNewChip(name.get(i), phone.get(i), uri);
                                 }
 
                                 clearArrayLists();
@@ -316,7 +316,7 @@ public class AddMessage extends AppCompatActivity
 
         final String phoneRetvToString = phoneRetv.getText().toString();
         String lastCharPhoneRetvToString = getLastCharOfString(phoneRetvToString);
-        String[] phoneRetvToStringArray = getPhoneRetvValidArray(phoneRetvToString, lastCharPhoneRetvToString);
+        String[] phoneRetvToStringArray = getValidFieldTextArray(phoneRetvToString, lastCharPhoneRetvToString);
 
         clearArrayLists();
         clearPhoneRetvError();
@@ -337,7 +337,7 @@ public class AddMessage extends AppCompatActivity
         minute = cal.get(Calendar.MINUTE);
 
         if (chips.length != phoneRetvToStringArray.length) {
-            // Arrays should be the same length. If they are not, there is something wrong in getPhoneRetvValidArray()
+            // Arrays should be the same length. If they are not, there is something wrong in getValidFieldTextArray()
             Log.e(TAG + "verifyData:", "Error: chips length is not equal to phoneRetv length");
             throw new ArrayIndexOutOfBoundsException(); //TODO: In Prod, change this to an Error code so it does not impact user experience
         }
@@ -521,8 +521,7 @@ public class AddMessage extends AppCompatActivity
                 && (enterKeyPressed || isLastCharValid(lastTypedChar))
                 && !throwErrorIfDuplicate(chips)
                 && isPhoneValid(fieldLastPhone)) {
-
-            phoneRetv.submitItem(fieldLastPhone, fieldLastPhone);
+            addNewChip(fieldLastPhone, fieldLastPhone);
             throwErrorIfDuplicate(chips);
             Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Created chip with phoneRetvToStringLastArrayIndex - '" + fieldLastPhone + " <------CHIP CREATED------");
             isChipAddSuccessful = true;
@@ -531,37 +530,56 @@ public class AddMessage extends AppCompatActivity
         return isChipAddSuccessful;
     }
 
+    private void addNewChip(String name, String phone) {
+        addNewChip(name, phone, null);
+    }
+
+    private void addNewChip(String name, String phone, Uri uri) {
+        if (uri == null) {
+            phoneRetv.submitItem(name, phone);
+        } else {
+            phoneRetv.submitItem(name, phone, uri);
+        }
+        updateChips();
+    }
+
     private boolean isPhoneValid(String phone) {
         final Pattern phone_regex_strict = Pattern.compile(PHONERETV_PHONE_REGEX_STRICT);
         return phone_regex_strict.matcher(phone).matches();
     }
 
-    private String getFieldLastPhone(String phoneRetvToString, String lastCharPhoneRetvToString) {
-        String[] phoneRetvToStringArray = getPhoneRetvValidArray(phoneRetvToString, lastCharPhoneRetvToString);
-        return phoneRetvToStringArray[phoneRetvToStringArray.length - 1];
+    private String getFieldLastPhone(String fieldText, String lastTypedChar) {
+        String[] fieldTextArray = getValidFieldTextArray(fieldText, lastTypedChar);
+        return fieldTextArray[fieldTextArray.length - 1].trim();
     }
 
     /**Gets an array of phoneRetvToString, trimming empty array indexs on the end*/
-    private String[] getPhoneRetvValidArray(String phoneRetvToString, String lastCharPhoneRetvToString){
-        String[] phoneRetvToStringArray;
-        ArrayList<String> phoneRetvToStringArrayList;
+    private String[] getValidFieldTextArray(String fieldText, String lastTypedChar){
+        String[] fieldTextArray;
+        ArrayList<String> fieldTextArrayList;
+
+        // Replace < and > with blank chars
+        fieldText = fieldText.replace("<", "");
+        fieldText = fieldText.replace(">", "");
 
         // Split phoneRetvToString
-        if (lastCharPhoneRetvToString.equals(PHONERETV_CUSTOM_ENDKEYS[0])) {
-            phoneRetvToStringArray = phoneRetvToString.split(PHONERETV_CUSTOM_ENDKEYS[0]);
+        if (lastTypedChar.equals(PHONERETV_CUSTOM_ENDKEYS[0])) {
+            fieldTextArray = fieldText.split(PHONERETV_CUSTOM_ENDKEYS[0]);
         } else {
-            phoneRetvToStringArray = phoneRetvToString.split(PHONERETV_CUSTOM_ENDKEYS[0] + PHONERETV_CUSTOM_ENDKEYS[1]);
+            fieldTextArray = fieldText.split(PHONERETV_CUSTOM_ENDKEYS[0] + PHONERETV_CUSTOM_ENDKEYS[1]);
         }
 
-        // Trim last array index
-        if (phoneRetvToStringArray[phoneRetvToStringArray.length - 1].trim().equals(EMPTY_STRING)
-                && phoneRetvToStringArray.length > 1) { // phoneRetvToStringArray.length is needed to avoid Exception
-            phoneRetvToStringArrayList = new ArrayList<>(Arrays.asList(phoneRetvToStringArray));
-            phoneRetvToStringArrayList.remove(phoneRetvToStringArray.length - 1);
-            return (String[]) phoneRetvToStringArrayList.toArray();
+        // Trim last array index if last index is an empty string
+        if ((fieldTextArray[fieldTextArray.length - 1].trim().equals(EMPTY_STRING)
+                || fieldTextArray[fieldTextArray.length - 1].trim().equals(",") )
+                && fieldTextArray.length > 1) { // fieldTextArray.length is needed to avoid Exception
+            fieldTextArrayList = new ArrayList<>(Arrays.asList(fieldTextArray));
+            fieldTextArrayList.remove(fieldTextArray.length - 1);
+            //noinspection ToArrayCallWithZeroLengthArrayArgument
+            return fieldTextArrayList.toArray(new String[0]);
         }
 
-        return phoneRetvToStringArray;
+        return fieldTextArray;
 
     }
 
