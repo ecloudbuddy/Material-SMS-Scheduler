@@ -18,10 +18,8 @@ import android.graphics.Canvas;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -52,7 +50,6 @@ public class Home extends Activity {
     private static final String ALARM_EXTRA = "alarmNumber";
     private static final String EDIT_MESSAGE_EXTRA = "EDIT_MESSAGE";
     private final int circleImageViewWidth = 56;
-    private SwipeRefreshLayout swipeContainer;
     // Recyclerview adapter dataset
     private RelativeLayout mRecyclerEmptyState;
     private RecyclerView mRecyclerView;
@@ -90,28 +87,6 @@ public class Home extends Activity {
 
         populateDatasets();
         setUpRecyclerView();
-
-        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.Home_swipeContainer);
-        // Setup refresh listener which triggers new data loading
-        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-
-            @Override
-            public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        populateDatasets();
-                        mAdapter.notifyDataSetChanged();
-                        swipeContainer.setRefreshing(false);
-                    }
-                }, 1000);
-            }
-        });
-        // Configure the refreshing colors
-        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
-                android.R.color.holo_green_light,
-                android.R.color.holo_orange_light,
-                android.R.color.holo_red_light);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
                 new IntentFilter("custom-event-name"));
