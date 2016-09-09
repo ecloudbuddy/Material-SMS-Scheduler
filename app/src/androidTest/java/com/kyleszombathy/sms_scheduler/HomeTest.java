@@ -139,7 +139,7 @@ public class HomeTest {
         // Click done button
         onView(withId(R.id.AddMessage_DoneButton)).perform(click());
         // Verify error message
-        onView(withId(R.id.AddMessage_PhoneRetv_Error)).check(matches(withText(R.string.AddMessage_PhoneRetvError)));
+        //onView(withId(R.id.AddMessage_PhoneRetv_Error)).check(matches(withText(R.string.AddMessage_PhoneRetvError)));
     }
     //@Test
     public void testMessageContent1() {
