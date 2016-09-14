@@ -270,6 +270,15 @@ public class MessageAlarmReceiver extends WakefulBroadcastReceiver {
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
+    public void createAlarm(Context context, Message message) {
+        createAlarm(context,
+                message.getDateTime(),
+                message.getPhoneList(),
+                message.getContent(),
+                message.getAlarmNumber(),
+                message.getNameList());
+    }
+
     /** Method to set a new alarm
      * @param context The app context
      * @param timeToSend The Time to send the message (in Calendar format)

@@ -68,11 +68,7 @@ public class AddMessage extends AppCompatActivity
     private int editMessageNewAlarmNumber;
 
     // User input info
-    private int year, month, day, hour, minute;
-    private ArrayList<String> name = new ArrayList<>();
-    private ArrayList<String> phone = new ArrayList<>();
-    private String messageContentString = "";
-    private int alarmNumber;
+    private Message message = new Message();
 
     // ReminderDatePicker Library
     private ReminderDatePicker datePicker;
@@ -80,7 +76,6 @@ public class AddMessage extends AppCompatActivity
     // Contact Picker Field
     private RecipientEditTextView phoneRetv;
     private DrawableRecipientChip[] chips;
-    private ArrayList<String> photoUri = new ArrayList<>();
     private TextView phoneRetvErrorMessage;
 
     // Message Content Field
@@ -122,7 +117,7 @@ public class AddMessage extends AppCompatActivity
         // Get "Edit" extras from Home
         Intent i = getIntent();
         Bundle extras = i.getExtras();
-        alarmNumber = extras.getInt("alarmNumber", -1);
+        message.setAlarmNumber(extras.getInt("alarmNumber", -1));
         editMessageNewAlarmNumber = extras.getInt("NEW_ALARM", -1);
         editMessage = extras.getBoolean("EDIT_MESSAGE", false);
 
@@ -229,20 +224,19 @@ public class AddMessage extends AppCompatActivity
                             @Override
                             public void onGlobalLayout() {
                                 // Submit chips to phoneRetv while pulling icons from database
-                                for (int i = 0; i < name.size(); i++) {
-                                    Uri uri = Uri.parse(photoUri.get(i).trim());
-                                    addNewChip(name.get(i), phone.get(i), uri);
+                                for (int i = 0; i < message.getNameList().size(); i++) {
+                                    Uri uri = message.getUriList().get(i);
+                                    addNewChip(message.getNameList().get(i), message.getPhoneList().get(i), uri);
                                 }
 
                                 clearArrayLists();
-                                alarmNumber = editMessageNewAlarmNumber;
+                                message.setAlarmNumber(editMessageNewAlarmNumber);
                                 phoneRetv.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                             }
                 });
                 // Set new data to view
-                messageContentEditText.setText(messageContentString);
-                datePicker.setSelectedDate(new GregorianCalendar(year, month, day));
-                datePicker.setSelectedTime(hour, minute);
+                messageContentEditText.setText(message.getContent());
+                datePicker.setSelectedDate(message.getDateTime());
             } catch (Exception e) {
                 // To catch sql error on return to app because onResume is called again.
                 // It's okay if this happens
@@ -302,7 +296,7 @@ public class AddMessage extends AppCompatActivity
     /**Adds to sql, creates alarms, returns to Home*/
     private void finishAndReturn() {
         // Add to sql database and schedule the alarm
-        SQLUtilities.addDataToSQL(AddMessage.this, name, phone, messageContentString, year, month, day, hour, minute, alarmNumber, photoUri);
+        SQLUtilities.addDataToSQL(AddMessage.this, message);
         scheduleMessage();
         hideKeyboard();
         createSnackBar(getString(R.string.AddMessage_Notifications_CreateSuccess));
@@ -310,7 +304,7 @@ public class AddMessage extends AppCompatActivity
         // Create bundle of extras to pass back to Home
         Intent returnIntent = new Intent();
         Bundle extras = new Bundle();
-        extras.putInt("ALARM_EXTRA", alarmNumber);
+        extras.putInt("ALARM_EXTRA", message.getAlarmNumber());
         returnIntent.putExtras(extras);
 
         // Return to HOME
@@ -334,17 +328,12 @@ public class AddMessage extends AppCompatActivity
 
         //Retrieve data from fields
         messageContentEditText.requestFocus();
-        messageContentString = messageContentEditText.getText().toString();
+        message.setContent(messageContentEditText.getText().toString());
         phoneRetv.requestFocus();
         updateChips();
 
         // Get time from datePicker
-        Calendar cal = datePicker.getSelectedDate();
-        year = cal.get(Calendar.YEAR);
-        month = cal.get(Calendar.MONTH);
-        day = cal.get(Calendar.DAY_OF_MONTH);
-        hour = cal.get(Calendar.HOUR_OF_DAY);
-        minute = cal.get(Calendar.MINUTE);
+        message.setDateTime(datePicker.getSelectedDate());
 
         if (chips.length != fieldTextArray.length) {
             // Arrays should be the same length. If they are not, there is something wrong in getValidFieldTextArray()
@@ -376,19 +365,19 @@ public class AddMessage extends AppCompatActivity
                 }
 
                 //Result okay from here, add to final result
-                name.add(getNameFromString(chipStr));
-                phone.add(getPhoneNumbersFromChip(chipStr));
+                message.addToNameList(getNameFromString(chipStr));
+                message.addToPhoneList(getPhoneNumbersFromChip(chipStr));
                 Uri uri = chip.getEntry().getPhotoThumbnailUri();
                 if (uri != null) {
-                    photoUri.add(uri.toString().trim());
+                    message.addToUriList(uri);
                 } else {
-                    photoUri.add(null);
+                    message.addToUriList(null);
                 }
             }
         }
 
         // Message Content error handling
-        if (messageContentString.length() == 0) {
+        if (message.getContent().length() == 0) {
             errorMessageContentWrong();
             return false;
         }
@@ -426,10 +415,8 @@ public class AddMessage extends AppCompatActivity
 
     /**Utility method to schedule alarm*/
     private void scheduleMessage() {
-        // Create calendar with class values
-        Calendar cal = Tools.getNewCalendarInstance(year, month, day, hour, minute);
         // Starts alarm
-        new MessageAlarmReceiver().createAlarm(this, cal, phone, messageContentString, alarmNumber, name);
+        new MessageAlarmReceiver().createAlarm(this, message);
     }
 
     // Detects duplicates in an array. O(n^2) but it's a small array, so doesn't matter.
@@ -773,9 +760,7 @@ public class AddMessage extends AppCompatActivity
     //================Utility Methods==================//
     /**Clears all Arraylist Values*/
     private void clearArrayLists() {
-        name.clear();
-        phone.clear();
-        photoUri.clear();
+        message.clearLists();
     }
 
     /**Puts away keyboard*/
@@ -828,7 +813,7 @@ public class AddMessage extends AppCompatActivity
 
         // Which row to update, based on the ID
         String selection = SQLContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
-        String[] selectionArgs = { String.valueOf(alarmNumber) };
+        String[] selectionArgs = { String.valueOf(message.getAlarmNumber()) };
         String[] projection = {
                 SQLContract.MessageEntry.NAME,
                 SQLContract.MessageEntry.MESSAGE,
@@ -854,25 +839,24 @@ public class AddMessage extends AppCompatActivity
 
         // Moves to first row
         cursor.moveToFirst();
-        name = Tools.stringToArrayList(cursor.getString(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.NAME)));
-        String phoneNumbTempString = cursor.getString(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.PHONE));
-        phone = Tools.stringToArrayList(phoneNumbTempString);
-        year = cursor.getInt(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.YEAR));
-        month = cursor.getInt(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.MONTH));
-        day = cursor.getInt(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.DAY));
-        hour = cursor.getInt(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.HOUR));
-        minute = cursor.getInt(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.MINUTE));
-        photoUri = Tools.stringToArrayList(cursor.getString(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.PHOTO_URI)));
-        messageContentString = cursor.getString(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.MESSAGE));
+        message.setNameList(Tools.stringToArrayList(cursor.getString(cursor.getColumnIndexOrThrow
+                (SQLContract.MessageEntry.NAME))));
+        message.setPhoneList(Tools.stringToArrayList(cursor.getString(cursor.getColumnIndexOrThrow
+                (SQLContract.MessageEntry.PHONE))));
+        message.setYear(cursor.getInt(cursor.getColumnIndexOrThrow
+                (SQLContract.MessageEntry.YEAR)));
+        message.setMonth(cursor.getInt(cursor.getColumnIndexOrThrow
+                (SQLContract.MessageEntry.MONTH)));
+        message.setDay(cursor.getInt(cursor.getColumnIndexOrThrow
+                (SQLContract.MessageEntry.DAY)));
+        message.setHour(cursor.getInt(cursor.getColumnIndexOrThrow
+                (SQLContract.MessageEntry.HOUR)));
+        message.setMinute(cursor.getInt(cursor.getColumnIndexOrThrow
+                (SQLContract.MessageEntry.MINUTE)));
+        message.setPhotoUriString(Tools.stringToArrayList(cursor.getString(cursor.getColumnIndexOrThrow
+                (SQLContract.MessageEntry.PHOTO_URI))));
+        message.setContent(cursor.getString(cursor.getColumnIndexOrThrow
+                (SQLContract.MessageEntry.MESSAGE)));
 
         // Close everything so android doesn't complain
         cursor.close();

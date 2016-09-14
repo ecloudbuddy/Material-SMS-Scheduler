@@ -20,6 +20,14 @@ public class SQLUtilities {
     private static final String TAG = "SQLUtilities";
 
     //=========================Setters======================//
+    public static void addDataToSQL(Context context, Message message) {
+        addDataToSQL(context, message.getNameList(),
+                message.getPhoneList(),
+                message.getContent(),
+                message.getYear(), message.getMonth(), message.getDay(), message.getHour(), message.getMinute(),
+                message.getAlarmNumber(),
+                message.getPhotoUriStrList());
+    }
     /** Adds data to sql db*/
     public static void addDataToSQL(Context context,
                                     ArrayList<String> name,
