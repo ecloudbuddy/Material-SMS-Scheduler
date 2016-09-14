@@ -28,7 +28,6 @@ public final class SQLContract {
         public static final String PHOTO_URI = "photoUri";
         public static final String NULLABLE = "nullable";
         public static final String DATETIME = "dateTime";
-        public static final String MMS = "MMS";
         // Notifications Table
         public static final String TABLE_NOTIFICATIONS = "notificationsTable";
         public static final String NAME_LIST = "nameList";

@@ -28,7 +28,6 @@ public class SQLDbHelper extends SQLiteOpenHelper {
                     SQLContract.MessageEntry.ARCHIVED + INTEGER_TYPE + COMMA_SEP +
                     SQLContract.MessageEntry.PHOTO_URI + TEXT_TYPE + COMMA_SEP +
                     SQLContract.MessageEntry.NULLABLE + TEXT_TYPE + COMMA_SEP +
-                    SQLContract.MessageEntry.MMS + INTEGER_TYPE + COMMA_SEP +
                     SQLContract.MessageEntry.DATETIME + TEXT_TYPE +
                     " )";
 
@@ -45,7 +44,7 @@ public class SQLDbHelper extends SQLiteOpenHelper {
             "DROP TABLE IF EXISTS " + SQLContract.MessageEntry.TABLE_NOTIFICATIONS;
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 8;
+    public static final int DATABASE_VERSION = 9;
     public static final String DATABASE_NAME = "MessageDB.db";
 
     public SQLDbHelper(Context context) {
