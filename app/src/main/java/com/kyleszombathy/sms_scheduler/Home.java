@@ -170,7 +170,7 @@ public class Home extends Activity {
             dateTime = Tools.getNewCalendarInstance(year, month, day, hour, minute);
 
             //Extract URI
-            uriArrayList = Tools.parseString(uriString.trim());
+            uriArrayList = Tools.stringToArrayList(uriString.trim());
             if (uriArrayList.size() == 1 && !Objects.equals(uriArrayList.get(0).trim(), "null"))
                 uri = Uri.parse(uriArrayList.get(0).trim());
             else uri = null;
@@ -462,10 +462,28 @@ public class Home extends Activity {
                             new MessageAlarmReceiver().createAlarm(
                                     Home.this,
                                     TEMP_DATE_TIME,
-                                    Tools.parseString(TEMP_PHONE),
+                                    Tools.stringToArrayList(TEMP_PHONE),
                                     TEMP_CONTENT,
                                     TEMP_ALARM,
-                                    Tools.parseString(TEMP_NAME));
+                                    Tools.stringToArrayList(TEMP_NAME));
+
+                            ArrayList<String> uriArrayList = new ArrayList<String>();
+                            if (TEMP_URI == null) uriArrayList.add("");
+                            else uriArrayList = Tools.stringToArrayList(TEMP_URI.toString());
+
+                            // Add to sql
+                            SQLUtilities.addDataToSQL(Home.this,
+                                    Tools.stringToArrayList(TEMP_NAME),
+                                    Tools.stringToArrayList(TEMP_PHONE),
+                                    TEMP_CONTENT,
+                                    TEMP_DATE_TIME.get(Calendar.YEAR),
+                                    TEMP_DATE_TIME.get(Calendar.MONTH),
+                                    TEMP_DATE_TIME.get(Calendar.DAY_OF_MONTH),
+                                    TEMP_DATE_TIME.get(Calendar.HOUR),
+                                    TEMP_DATE_TIME.get(Calendar.MINUTE),
+                                    TEMP_ALARM,
+                                    uriArrayList);
+
                             // Remove empty state
                             updateRecyclerState();
                             // Return to default position
@@ -558,12 +576,13 @@ public class Home extends Activity {
         }
 
         if (resultCode == RESULT_OK) {
+            Log.i(TAG, "onActivityResult: RESULT_OK called");
             Bundle extras = data.getExtras();
 
-            // Delete old stuff
+            // Delete old alarm
             if (requestCode == EDIT_MESSAGE) {
                 cancelAlarm(oldAlarmNumber);
-                SQLUtilities.deleteAlarmNumberFromDatabase(Home.this, oldAlarmNumber);
+                SQLUtilities.deleteFromDB(Home.this, oldAlarmNumber);
             }
 
             // Update all items from db
