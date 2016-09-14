@@ -18,7 +18,6 @@ public class SQLDbHelper extends SQLiteOpenHelper {
                     SQLContract.MessageEntry._ID + " INTEGER PRIMARY KEY," +
                     SQLContract.MessageEntry.NAME + TEXT_TYPE + COMMA_SEP +
                     SQLContract.MessageEntry.PHONE + TEXT_TYPE + COMMA_SEP +
-                    SQLContract.MessageEntry.NAME_PHONE_FULL + TEXT_TYPE + COMMA_SEP +
                     SQLContract.MessageEntry.MESSAGE + TEXT_TYPE + COMMA_SEP +
                     SQLContract.MessageEntry.YEAR + INTEGER_TYPE + COMMA_SEP +
                     SQLContract.MessageEntry.MONTH + INTEGER_TYPE + COMMA_SEP +
@@ -46,7 +45,7 @@ public class SQLDbHelper extends SQLiteOpenHelper {
             "DROP TABLE IF EXISTS " + SQLContract.MessageEntry.TABLE_NOTIFICATIONS;
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 7;
+    public static final int DATABASE_VERSION = 8;
     public static final String DATABASE_NAME = "MessageDB.db";
 
     public SQLDbHelper(Context context) {

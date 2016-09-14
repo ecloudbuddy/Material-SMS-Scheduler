@@ -56,7 +56,7 @@ public class Tools {
 
     //================Strings and Arrays==============//
     /**Turns the output of an Arraylist.toString method back to an arraylist*/
-    public static ArrayList<String> parseString(String s) {
+    public static ArrayList<String> stringToArrayList(String s) {
         if(s == null) {
             return null;
         }
@@ -65,7 +65,7 @@ public class Tools {
         String[] chars = s.split(",");
 
         ArrayList<String> returnStr= new ArrayList(Arrays.asList(chars));
-        Log.d(TAG, "parseString: Input string is " + s + ", returning " + returnStr);
+        Log.d(TAG, "stringToArrayList: Input string is " + s + ", returning " + returnStr);
         return returnStr;
     }
 

@@ -71,7 +71,6 @@ public class AddMessage extends AppCompatActivity
     private int year, month, day, hour, minute;
     private ArrayList<String> name = new ArrayList<>();
     private ArrayList<String> phone = new ArrayList<>();
-    private ArrayList<String> fullChipString = new ArrayList<>();
     private String messageContentString = "";
     private int alarmNumber;
 
@@ -303,8 +302,7 @@ public class AddMessage extends AppCompatActivity
     /**Adds to sql, creates alarms, returns to Home*/
     private void finishAndReturn() {
         // Add to sql database and schedule the alarm
-        SQLUtilities.addDataToSQL(AddMessage.this, name, phone, fullChipString,
-                messageContentString, year, month, day, hour, minute, alarmNumber, photoUri);
+        SQLUtilities.addDataToSQL(AddMessage.this, name, phone, messageContentString, year, month, day, hour, minute, alarmNumber, photoUri);
         scheduleMessage();
         hideKeyboard();
         createSnackBar(getString(R.string.AddMessage_Notifications_CreateSuccess));
@@ -378,7 +376,6 @@ public class AddMessage extends AppCompatActivity
                 }
 
                 //Result okay from here, add to final result
-                fullChipString.add(chipStr);
                 name.add(getNameFromString(chipStr));
                 phone.add(getPhoneNumbersFromChip(chipStr));
                 Uri uri = chip.getEntry().getPhotoThumbnailUri();
@@ -779,7 +776,6 @@ public class AddMessage extends AppCompatActivity
         name.clear();
         phone.clear();
         photoUri.clear();
-        fullChipString.clear();
     }
 
     /**Puts away keyboard*/
@@ -858,11 +854,11 @@ public class AddMessage extends AppCompatActivity
 
         // Moves to first row
         cursor.moveToFirst();
-        name = Tools.parseString(cursor.getString(cursor.getColumnIndexOrThrow
+        name = Tools.stringToArrayList(cursor.getString(cursor.getColumnIndexOrThrow
                 (SQLContract.MessageEntry.NAME)));
         String phoneNumbTempString = cursor.getString(cursor.getColumnIndexOrThrow
                 (SQLContract.MessageEntry.PHONE));
-        phone = Tools.parseString(phoneNumbTempString);
+        phone = Tools.stringToArrayList(phoneNumbTempString);
         year = cursor.getInt(cursor.getColumnIndexOrThrow
                 (SQLContract.MessageEntry.YEAR));
         month = cursor.getInt(cursor.getColumnIndexOrThrow
@@ -873,7 +869,7 @@ public class AddMessage extends AppCompatActivity
                 (SQLContract.MessageEntry.HOUR));
         minute = cursor.getInt(cursor.getColumnIndexOrThrow
                 (SQLContract.MessageEntry.MINUTE));
-        photoUri = Tools.parseString(cursor.getString(cursor.getColumnIndexOrThrow
+        photoUri = Tools.stringToArrayList(cursor.getString(cursor.getColumnIndexOrThrow
                 (SQLContract.MessageEntry.PHOTO_URI)));
         messageContentString = cursor.getString(cursor.getColumnIndexOrThrow
                 (SQLContract.MessageEntry.MESSAGE));

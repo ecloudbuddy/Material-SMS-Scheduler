@@ -24,7 +24,6 @@ public class SQLUtilities {
     public static void addDataToSQL(Context context,
                                     ArrayList<String> name,
                                     ArrayList<String> phone,
-                                    ArrayList<String> fullChipString,
                                     String messageContentString,
                                     int year, int month, int day, int hour, int minute,
                                     int alarmNumber,
@@ -37,7 +36,6 @@ public class SQLUtilities {
         ContentValues values = new ContentValues();
         values.put(SQLContract.MessageEntry.NAME, name.toString());
         values.put(SQLContract.MessageEntry.PHONE, phone.toString());
-        values.put(SQLContract.MessageEntry.NAME_PHONE_FULL, fullChipString.toString());
         values.put(SQLContract.MessageEntry.MESSAGE, messageContentString);
         values.put(SQLContract.MessageEntry.YEAR, year);
         values.put(SQLContract.MessageEntry.MONTH, month);
@@ -113,7 +111,7 @@ public class SQLUtilities {
     /**Removes Item given alarm Number from database
      * @param context Application context
      * @param alarmNumb The alarm number to delete*/
-    public static void deleteAlarmNumberFromDatabase(Context context, int alarmNumb) {
+    public static void deleteFromDB(Context context, int alarmNumb) {
         try {
             SQLDbHelper mDbHelper = new SQLDbHelper(context);
             SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -127,9 +125,9 @@ public class SQLUtilities {
                     selection,
                     selectionArgs);
             mDbHelper.close();
-            Log.i(TAG, "deleteAlarmNumberFromDatabase: Alarm Deleted");
+            Log.i(TAG, "deleteFromDB: Alarm Deleted");
         } catch(Exception e) {
-            Log.e(TAG, "deleteAlarmNumberFromDatabase: Exception encountered", e);
+            Log.e(TAG, "deleteFromDB: Exception encountered", e);
         }
     }
 }

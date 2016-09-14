@@ -17,7 +17,6 @@ public final class SQLContract {
         public static final String TABLE_NAME = "scheduledMessage";
         public static final String NAME = "name";
         public static final String PHONE = "phone";
-        public static final String NAME_PHONE_FULL = "namePhoneFull";
         public static final String MESSAGE = "message";
         public static final String YEAR = "year";
         public static final String MONTH = "month";
