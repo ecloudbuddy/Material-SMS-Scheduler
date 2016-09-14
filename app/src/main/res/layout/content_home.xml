@@ -9,57 +9,47 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_home" tools:context=".Home">
 
-    <android.support.v4.widget.SwipeRefreshLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/Home_swipeContainer"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <FrameLayout
+        <android.support.v7.widget.RecyclerView
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:id="@+id/Home_recycler_view"
+            android:scrollbars="vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+        </android.support.v7.widget.RecyclerView>
+
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/Home_recycler_empty_state"
+            android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <android.support.v7.widget.RecyclerView
 
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_gravity="center"
-                android:id="@+id/Home_recycler_view"
-                android:scrollbars="vertical"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp">
-            </android.support.v7.widget.RecyclerView>
-
-            <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:id="@+id/Home_recycler_empty_state"
+            <LinearLayout
                 android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
+            </LinearLayout>
 
-                <LinearLayout
-                    android:orientation="vertical"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="No Scheduled Messages"
+                android:id="@+id/textView"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true" />
 
-                </LinearLayout>
+        </RelativeLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceLarge"
-                    android:text="No Scheduled Messages"
-                    android:id="@+id/textView"
-                    android:layout_centerVertical="true"
-                    android:layout_centerHorizontal="true" />
-
-            </RelativeLayout>
-
-        </FrameLayout>
-
-    </android.support.v4.widget.SwipeRefreshLayout>
-
-
+    </FrameLayout>
 
 </LinearLayout>
 
