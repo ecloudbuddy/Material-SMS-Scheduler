@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="@android:style/Theme.Material.Light">
+    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -12,7 +12,7 @@
         <item name="android:windowEnterTransition">@transition/change_image_transform</item>
         <item name="android:windowExitTransition">@transition/change_image_transform</item>
     </style>
-    <style name="AppTheme.NoActionBar" parent="@android:style/Theme.Material.Light.NoActionBar">
+    <style name="AppTheme.NoActionBar" parent="@android:style/Theme.DeviceDefault.Light.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowContentTransitions">true</item>
@@ -20,7 +20,7 @@
         <item name="android:windowEnterTransition">@transition/change_image_transform</item>
         <item name="android:windowExitTransition">@transition/change_image_transform</item>
     </style>
-    <style name="AppTheme.AppBarOverlay" parent="@android:style/Theme.Material.Light" />
-    <style name="AppTheme.PopupOverlay" parent="@android:style/Theme.Material.Light" />
+    <style name="AppTheme.AppBarOverlay" parent="@android:style/Theme.DeviceDefault.Light" />
+    <style name="AppTheme.PopupOverlay" parent="@android:style/Theme.DeviceDefault.Light" />
 
 </resources>
