@@ -112,8 +112,6 @@ public class MessageBootReceiver extends BroadcastReceiver {
                         (SQLContract.MessageEntry.PHONE)));
                 alarmNumberDateset.add(cursor.getInt(cursor.getColumnIndexOrThrow
                         (SQLContract.MessageEntry.ALARM_NUMBER)));
-                int intBooleanTemp = (cursor.getInt(cursor.getColumnIndexOrThrow
-                        (SQLContract.MessageEntry.MMS)));
 
                 // Set calendar database
                 Calendar cal = Calendar.getInstance();
