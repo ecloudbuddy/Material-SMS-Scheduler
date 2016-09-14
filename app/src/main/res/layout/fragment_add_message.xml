@@ -9,8 +9,11 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+<com.kyleszombathy.sms_scheduler.CustomVerticalScrollview
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:id="@+id/AddMessage_ScrollView">
 
     <LinearLayout
         xmlns:tools="http://schemas.android.com/tools"
@@ -73,8 +76,10 @@
             android:inputType="textCapSentences|textAutoCorrect|textMultiLine"
             android:paddingTop="16dp"
             android:nestedScrollingEnabled="true"
+            android:scrollbars = "vertical"
             android:paddingBottom="16dp"
             android:maxHeight="175dp"
+            android:fillViewport="true"
             />
 
         <RelativeLayout
@@ -131,6 +136,6 @@
         </LinearLayout>
 
     </LinearLayout>
-</ScrollView>
+</com.kyleszombathy.sms_scheduler.CustomVerticalScrollview>
 
 
