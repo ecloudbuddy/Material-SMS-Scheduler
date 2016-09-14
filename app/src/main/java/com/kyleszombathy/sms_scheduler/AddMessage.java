@@ -14,7 +14,6 @@ import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -48,6 +47,7 @@ import com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -267,11 +267,23 @@ public class AddMessage extends AppCompatActivity
     public void onComplete(int year, int month, int day) {
         GregorianCalendar calendar = new GregorianCalendar(year, month, day);
         datePicker.setSelectedDate(calendar);
+        fixDateIfBeforeCurrentTime();
     }
+
     @Override
     /** Retrieves data from TimePickerFragment on completion*/
     public void onComplete(int hourOfDay, int minute) {
         datePicker.setSelectedTime(hourOfDay, minute);
+        fixDateIfBeforeCurrentTime();
+    }
+
+    private void fixDateIfBeforeCurrentTime() {
+        Calendar dateTimeNow = Calendar.getInstance();
+        Date selDateTime = datePicker.getSelectedDate().getTime();
+
+        if (selDateTime.before(dateTimeNow.getTime())) {
+            datePicker.setSelectedDate(dateTimeNow);
+        }
     }
 
     //============="Done" button press actions================//
@@ -731,7 +743,7 @@ public class AddMessage extends AppCompatActivity
 
     /**Retrieves result of askForSmsSendPermission*/
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,  int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS:
             {
