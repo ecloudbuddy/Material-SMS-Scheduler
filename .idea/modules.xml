@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/SMS_Scheduler.iml" filepath="$PROJECT_DIR$/SMS_Scheduler.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/TextDrawable/library/TextDrawable.iml" filepath="$PROJECT_DIR$/app/TextDrawable/library/TextDrawable.iml" />
-      <module fileurl="file://$PROJECT_DIR$/TextDrawable/TextDrawable.iml" filepath="$PROJECT_DIR$/TextDrawable/TextDrawable.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/lib/lib.iml" filepath="$PROJECT_DIR$/app/lib/lib.iml" />
       <module fileurl="file://$PROJECT_DIR$/TextDrawable/library/library.iml" filepath="$PROJECT_DIR$/TextDrawable/library/library.iml" />
