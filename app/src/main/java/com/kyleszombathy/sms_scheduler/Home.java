@@ -41,7 +41,6 @@ import com.daimajia.androidanimations.library.YoYo;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Objects;
 
 import jp.wasabeef.recyclerview.animators.SlideInDownAnimator;
 
@@ -49,19 +48,17 @@ public class Home extends Activity {
     private static final String TAG = "HOME";
     private static final String ALARM_EXTRA = "alarmNumber";
     private static final String EDIT_MESSAGE_EXTRA = "EDIT_MESSAGE";
-    private final int circleImageViewWidth = 56;
+    private final int circleImageViewWidth = 112;
+    private final int circleImageViewTextSize = 60;
+    private final int screenFadeDuration = 700;
+    private final int offScreenRecyclerDistance = 10000;
+    private View parentView;
     // Recyclerview adapter dataset
     private RelativeLayout mRecyclerEmptyState;
     private RecyclerView mRecyclerView;
-    public RecyclerAdapter mAdapter;
-    public RecyclerView.LayoutManager mLayoutManager;
-    public ArrayList<String> nameDataset = new ArrayList<>();
-    public ArrayList<String> messageContentDataset = new ArrayList<>();
-    public ArrayList<String> phoneDataset = new ArrayList<>();
-    public ArrayList<Calendar> dateTimeDataset = new ArrayList<>();
-    public ArrayList<Integer> alarmNumberDataset = new ArrayList<>();
-    public ArrayList<Uri> uriDataset = new ArrayList<>();
-    public ArrayList<Bitmap> photoDataset= new ArrayList<>();
+    private RecyclerAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private MessagesArrayList messages = new MessagesArrayList();
     // For random number retrieval
     private final int MAX_INT = Integer.MAX_VALUE ;
     private final int MIN_INT = 1;
@@ -90,6 +87,8 @@ public class Home extends Activity {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
                 new IntentFilter("custom-event-name"));
+
+        parentView = findViewById(R.id.Home_coordLayout);
 
 
         // Floating action button start activity
@@ -146,6 +145,8 @@ public class Home extends Activity {
             // Retriever data from cursor
             name = cursor.getString(cursor.getColumnIndexOrThrow
                     (SQLContract.MessageEntry.NAME));
+            phone = cursor.getString(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.PHONE));
             year = cursor.getInt(cursor.getColumnIndexOrThrow
                     (SQLContract.MessageEntry.YEAR));
             month = cursor.getInt(cursor.getColumnIndexOrThrow
@@ -162,20 +163,15 @@ public class Home extends Activity {
                     (SQLContract.MessageEntry.MESSAGE));
             uriString = cursor.getString(cursor.getColumnIndexOrThrow
                     (SQLContract.MessageEntry.PHOTO_URI));
-            phone = cursor.getString(cursor.getColumnIndexOrThrow
-                    (SQLContract.MessageEntry.PHONE));
-
-            // Add retrieved data to datasets
-            name = extractName(name);
-            dateTime = Tools.getNewCalendarInstance(year, month, day, hour, minute);
 
             //Extract URI
             uriArrayList = Tools.stringToArrayList(uriString.trim());
-            if (uriArrayList.size() == 1 && !Objects.equals(uriArrayList.get(0).trim(), "null"))
-                uri = Uri.parse(uriArrayList.get(0).trim());
-            else uri = null;
 
-            addValuesToDataSet(name, messageContent, phone, dateTime, alarmNumber, uri, null);
+            Message message = new Message(Tools.stringToArrayList(name),
+                    Tools.stringToArrayList(phone),
+                    year, month, day, hour, minute,
+                    messageContent, alarmNumber, Message.stringListToUriList(uriArrayList));
+            addValuesToDataSet(message);
 
             // Move to next row
             cursor.moveToNext();
@@ -183,7 +179,7 @@ public class Home extends Activity {
         cursor.close();
         mDbHelper.close();
         // Get bitmaps
-        setContactImage();
+        setContactImages();
     }
 
     /**Retrieves values from sql Database and store locally*/
@@ -203,7 +199,7 @@ public class Home extends Activity {
                 SQLContract.MessageEntry.PHONE
         };
 
-        // How you want the results sorted in the resulting Cursor
+        // Sort the contact data by date/time
         String sortOrder =
                 SQLContract.MessageEntry.DATETIME+ " ASC";
         String selection = SQLContract.MessageEntry.ARCHIVED + " LIKE ?";
@@ -229,95 +225,60 @@ public class Home extends Activity {
     }
 
     /** Add values to the end of the dataset*/
-    private void addValuesToDataSet(String name, String content, String phone,
-                                    Calendar dateTime, Integer alarm,
-                                    Uri uri, Bitmap photo) {
-        addValuesToDataSet(nameDataset.size(), name, content, phone, dateTime, alarm, uri, photo);
+    private void addValuesToDataSet(Message message) {
+        addValuesToDataSet(messages.size(), message);
     }
 
     /** Add values to a @param position in the dataset*/
-    private void addValuesToDataSet(int position, String name, String content, String phone,
-                                    Calendar dateTime, Integer alarm,
-                                    Uri uri, Bitmap photo) {
-        nameDataset.add(position, name);
-        messageContentDataset.add(position, content);
-        phoneDataset.add(position, phone);
-        dateTimeDataset.add(position, dateTime);
-        alarmNumberDataset.add(position, alarm);
-        uriDataset.add(position, uri);
-        photoDataset.add(position, photo);
+    private void addValuesToDataSet(int position, Message message) {
+        messages.add(position, message);
     }
 
     private void clearDatasets() {
-        nameDataset.clear();
-        messageContentDataset.clear();
-        phoneDataset.clear();
-        dateTimeDataset.clear();
-        alarmNumberDataset.clear();
-        uriDataset.clear();
-        photoDataset.clear();
+        messages.clear();
     }
 
     /**Retreieves bitmap from database*/
     // TODO: Move this off the UI thread
-    private void setContactImage() {
-        for (int i = 0; i < uriDataset.size(); i++) {
-            if (uriDataset.get(i)!= null) {
-                photoDataset.set(i, retrieveContactImage(uriDataset.get(i)));
+    private void setContactImages() {
+        for (int msgIndex = 0; msgIndex < messages.size(); msgIndex++) {
+            Message message = messages.get(msgIndex);
+            ArrayList<Uri> uriList = message.getUriList();
+            Bitmap contactPhoto = null;
+
+            if (uriList != null) {
+                contactPhoto = retrieveContactImage(uriList.get(0));
             } else {
                 // Set custom contact image based off first letter of contact name
-                Character nameFirstLetter = nameDataset.get(i).charAt(0);
-                if (Character.isLetter(nameFirstLetter)) {
+                String firstName = message.getNameList().get(0);
+                Character firstLetter = firstName.charAt(0);
+                // Ensure character is not a number
+                if (Character.isLetter(firstLetter)) {
                     // Get color
                     ColorGenerator generator = ColorGenerator.MATERIAL;
-                    int color = generator.getColor(nameDataset.get(i));
+                    int color = generator.getColor(firstName); //Always use same color for a specific person
                     TextDrawable drawable = TextDrawable.builder(this)
                             .beginConfig()
                             .useFont(Typeface.DEFAULT_BOLD)
-                            .fontSize(60)
-                            .height(circleImageViewWidth * 2)
-                            .width(circleImageViewWidth * 2)
+                            .fontSize(circleImageViewTextSize)
+                            .height(circleImageViewWidth)
+                            .width(circleImageViewWidth)
                             .endConfig()
-                            .buildRound(nameFirstLetter.toString().toUpperCase(), color);
-                    Bitmap bitmap = Tools.drawableToBitmap(drawable);
-                    photoDataset.set(i, bitmap);
-                    Log.i(TAG, "setContactImage: Created custom image based off first letter: " + nameFirstLetter);
+                            .buildRound(firstLetter.toString().toUpperCase(), color);
+                    contactPhoto = Tools.drawableToBitmap(drawable); // Convert to bitmap
+                    Log.i(TAG, "setContactImages: Created custom image based off first letter: " + firstLetter);
                 } else {
                     // TODO: Write code for handling messages to multiple people
                 }
 
             }
+            message.setContactPhoto(contactPhoto);
         }
     }
 
     private Bitmap retrieveContactImage(Uri uri) {
         InputStream arrayInputStream =SQLUtilities.getPhoto(Home.this, uri);
         return BitmapFactory.decodeStream(arrayInputStream);
-    }
-
-    /**Extracts name from given string */
-    private String extractName(String names) {
-        String nameCondensedString;
-        ArrayList<String> nameList = new ArrayList<>();
-        // Trim brackets
-        names = names.replace("[", "");
-        names = names.replace("]", "");
-
-        if(names.contains(",")) {
-            for (String name: names.split(",")) {
-                name = name.trim();
-                nameList.add(name);
-            }
-            nameCondensedString = nameList.remove(0) + ", " + nameList.remove(0);
-        } else {
-            nameCondensedString = names;
-        }
-
-        int nameListSize = nameList.size();
-        if (nameListSize > 0) {
-            nameCondensedString += ", +" + (nameListSize);
-        }
-        return nameCondensedString.trim();
     }
 
     public String getFullTime(){
@@ -358,21 +319,20 @@ public class Home extends Activity {
                         new RecyclerItemClickListener.OnItemClickListener() {
                             @Override
                             public void onItemClick(View view, int position) {
+                                Message messageAtPosition = messages.get(position);
+                                // Tie to global values for use after AddMessage return
                                 tempSelectedPosition = position;
-                                oldAlarmNumber = alarmNumberDataset.get(position);
+                                oldAlarmNumber = messageAtPosition.getAlarmNumber();
                                 int newAlarmNumber = getRandomInt(MIN_INT, MAX_INT);
 
                                 // Update Adapter with new alarm number
-                                alarmNumberDataset.set(position, newAlarmNumber);
+                                messageAtPosition.setAlarmNumber(newAlarmNumber);
 
                                 // Create new intent to AddMessage with data from item in position
                                 Intent intent = new Intent(new Intent(Home.this, AddMessage.class));
                                 Bundle extras = new Bundle();
-                                // Older alarm. For SQL retrieval
                                 extras.putInt(ALARM_EXTRA, oldAlarmNumber);
-                                // New alarm number
                                 extras.putInt("NEW_ALARM", newAlarmNumber);
-                                // Designates that we're editing the message
                                 extras.putBoolean(EDIT_MESSAGE_EXTRA, true);
                                 intent.putExtras(extras);
 
@@ -387,23 +347,27 @@ public class Home extends Activity {
 
     /**Initializes the Recycler Adapter*/
     private void updateRecyclerViewAdapter() {
-        mAdapter = new RecyclerAdapter(nameDataset, messageContentDataset, dateTimeDataset, photoDataset);
+        mAdapter = new RecyclerAdapter(messages);
         mRecyclerView.setAdapter(mAdapter);
 
         updateRecyclerState();
         Log.i(TAG, "updateRecyclerViewAdapter: Successfully updated recycler view adapter");
     }
 
+    private void updateAdapterData() {
+        mAdapter.update(messages);
+    }
+
     /**Removes a ghost recycler row if needed*/
     private void updateRecyclerState() {
-        if (nameDataset.isEmpty()) {
+        if (messages.isEmpty()) {
             mRecyclerEmptyState.setX(0);
             YoYo.with(Techniques.FadeIn)
-                    .duration(700)
+                    .duration(screenFadeDuration)
                     .playOn(mRecyclerEmptyState);
         } else {
             // Moves view out of way. If turned off, creates weird bug on swipe
-            mRecyclerEmptyState.setX(10000);
+            mRecyclerEmptyState.setX(offScreenRecyclerDistance);
         }
     }
 
@@ -427,67 +391,41 @@ public class Home extends Activity {
                 public void onSwiped(final RecyclerView.ViewHolder viewHolder, int swipeDir) {
                     // Remove values from dataset and store them in temp values
                     final int position = viewHolder.getAdapterPosition();
-                    final String TEMP_NAME = nameDataset.remove(position);
-                    final String TEMP_CONTENT = messageContentDataset.remove(position);
-                    final String TEMP_PHONE = phoneDataset.remove(position);
-                    final Calendar TEMP_DATE_TIME = dateTimeDataset.remove(position);
-                    final Integer TEMP_ALARM = alarmNumberDataset.remove(position);
-                    final Uri TEMP_URI = uriDataset.remove(position);
-                    final Bitmap TEMP_PHOTO = photoDataset.remove(position);
+                    final Message swipedMessage = messages.remove(position);
+                    final int swipedAlarm = swipedMessage.getAlarmNumber();
+                    updateAdapterData();
                     mAdapter.notifyItemRemoved(position);
 
                     // Solves ghost issue and insert empty state
-                    if (nameDataset.size() == 0) {
+                    if (messages.isEmpty()) {
                         updateRecyclerViewAdapter();
                     }
 
-                    // Deletes alarm and sets as archived
-                    if (alarmNumberDataset.indexOf(TEMP_ALARM) == -1) {
-                        cancelAlarm(TEMP_ALARM);
-                        SQLUtilities.setAsArchived(Home.this, TEMP_ALARM);
+                    if (messages.getAlarmIndex(swipedAlarm) == -1) {
+                        cancelAlarm(swipedAlarm);
+                        SQLUtilities.setAsArchived(Home.this, swipedAlarm);
                     }
 
-                    // Update Recyclerview
                     setRecyclerStateToDefault();
 
                     // Makes snackbar with undo button
-                    Snackbar.make(findViewById(R.id.Home_coordLayout),"1 "+ getString(R.string.Home_Notifications_archived),
-                            Snackbar.LENGTH_LONG).setAction(R.string.Home_Notifications_Undo, new View.OnClickListener() {
+                    Snackbar.make(parentView,"1 "+ getString(R.string.Home_Notifications_archived), Snackbar.LENGTH_LONG).setAction(R.string.Home_Notifications_Undo, new View.OnClickListener() {
                         // When Undo button is pressed
                         @Override
                         public void onClick(View v) {
                             // Add back temp values
-                            addValuesToDataSet(position, TEMP_NAME, TEMP_CONTENT, TEMP_PHONE, TEMP_DATE_TIME, TEMP_ALARM, TEMP_URI, TEMP_PHOTO);
-                            // Add back alarm
-                            new MessageAlarmReceiver().createAlarm(
-                                    Home.this,
-                                    TEMP_DATE_TIME,
-                                    Tools.stringToArrayList(TEMP_PHONE),
-                                    TEMP_CONTENT,
-                                    TEMP_ALARM,
-                                    Tools.stringToArrayList(TEMP_NAME));
+                            addValuesToDataSet(position, swipedMessage);
 
-                            ArrayList<String> uriArrayList = new ArrayList<String>();
-                            if (TEMP_URI == null) uriArrayList.add("");
-                            else uriArrayList = Tools.stringToArrayList(TEMP_URI.toString());
+                            // Add back alarm
+                            new MessageAlarmReceiver().createAlarm(Home.this, swipedMessage);
 
                             // Add to sql
-                            SQLUtilities.addDataToSQL(Home.this,
-                                    Tools.stringToArrayList(TEMP_NAME),
-                                    Tools.stringToArrayList(TEMP_PHONE),
-                                    TEMP_CONTENT,
-                                    TEMP_DATE_TIME.get(Calendar.YEAR),
-                                    TEMP_DATE_TIME.get(Calendar.MONTH),
-                                    TEMP_DATE_TIME.get(Calendar.DAY_OF_MONTH),
-                                    TEMP_DATE_TIME.get(Calendar.HOUR),
-                                    TEMP_DATE_TIME.get(Calendar.MINUTE),
-                                    TEMP_ALARM,
-                                    uriArrayList);
+                            SQLUtilities.addDataToSQL(Home.this, swipedMessage);
 
-                            // Remove empty state
+                            // Re-add to adapter
                             updateRecyclerState();
-                            // Return to default position
                             setRecyclerStateToDefault();
+                            updateAdapterData();
                             mAdapter.notifyItemInserted(position);
                             mRecyclerView.scrollToPosition(position);
                             setRecyclerStateToDefault();
@@ -589,7 +527,7 @@ public class Home extends Activity {
             populateDatasets();
 
             // Get new alarm number position
-            int position = alarmNumberDataset.indexOf(extras.getInt("ALARM_EXTRA"));
+            int position = messages.getAlarmIndex(extras.getInt("ALARM_EXTRA"));
 
             // Remove empty state
             updateRecyclerState();
@@ -597,18 +535,20 @@ public class Home extends Activity {
             // Remove previous position if edit message
             // Deisgnates that user did not cancel edit message function
             if (requestCode == EDIT_MESSAGE) {
+                updateAdapterData();
                 mAdapter.notifyItemChanged(position);
                 mRecyclerView.scrollToPosition(position);
             }
 
             if (requestCode == NEW_MESSAGE) {
+                updateAdapterData();
                 mAdapter.notifyItemInserted(position);
                 mRecyclerView.scrollToPosition(position);
             }
         } else {
             if (requestCode == EDIT_MESSAGE) {
                 // Edit message altered the alarm number. Return it to the old alarm number now
-                alarmNumberDataset.set(tempSelectedPosition, oldAlarmNumber);
+                messages.get(tempSelectedPosition).setAlarmNumber(oldAlarmNumber);
             }
         }
     }
@@ -616,15 +556,9 @@ public class Home extends Activity {
     /** Removes given position from dataset*/
     private void removeFromDataset(int position) {
         // Remove from dataset
-        nameDataset.remove(position);
-        messageContentDataset.remove(position);
-        phoneDataset.remove(position);
-        dateTimeDataset.remove(position);
-        alarmNumberDataset.remove(position);
-        uriDataset.remove(position);
-        photoDataset.remove(position);
+        messages.remove(position);
         // Show empty state if necessary
-        if (nameDataset.isEmpty()) {
+        if (messages.isEmpty()) {
             updateRecyclerViewAdapter();
         }
     }
@@ -637,13 +571,14 @@ public class Home extends Activity {
             // Get extra data included in the Intent
             String notificationMessage = intent.getStringExtra("notificationMessage");
             int alarmNumber = intent.getIntExtra("alarmNumber", -1);
-            int position = alarmNumberDataset.indexOf(alarmNumber);
+            int position = messages.getAlarmIndex(alarmNumber);
             if(position != -1) {
                 removeFromDataset(position);
+                updateAdapterData();
                 mAdapter.notifyItemRemoved(position);
             }
             Snackbar snackbar = Snackbar
-                    .make(findViewById(R.id.Home_coordLayout), notificationMessage, Snackbar.LENGTH_LONG);
+                    .make(parentView, notificationMessage, Snackbar.LENGTH_LONG);
             snackbar.show();
         }
     };

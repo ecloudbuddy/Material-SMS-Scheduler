@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.text.format.DateUtils;
 import android.util.Log;
 
 import java.text.SimpleDateFormat;
@@ -138,16 +137,5 @@ public class Tools {
         GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         return format.format(date.getTime());
-    }
-
-    /**Get full date string in a human readable format*/
-    public static String getFullDateStrReadable(Calendar cal){
-        CharSequence dateString;
-        GregorianCalendar dateNow = new GregorianCalendar();
-        dateString = DateUtils.getRelativeTimeSpanString(
-                cal.getTimeInMillis(),
-                dateNow.getTimeInMillis(),
-                DateUtils.MINUTE_IN_MILLIS);
-        return dateString.toString();
     }
 }

@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -20,7 +19,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     private static final String TAG = "RecyclerAdapter";
     private ArrayList<String> nameDataset;
     private ArrayList<String> messageContentDataset;
-    private ArrayList<Calendar> dateDataset;
+    private ArrayList<String> dateDataset;
     private ArrayList<Bitmap> photoDataset;
 
     // Provide a reference to the views for each data item
@@ -51,14 +50,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public RecyclerAdapter(ArrayList<String> nameDataset,
-                           ArrayList<String> messageContentDataset,
-                           ArrayList<Calendar> dateDataset,
-                           ArrayList<Bitmap> photoDataset) {
-        this.nameDataset = nameDataset;
-        this.messageContentDataset = messageContentDataset;
-        this.dateDataset = dateDataset;
-        this.photoDataset = photoDataset;
+    public RecyclerAdapter(MessagesArrayList messages) {
+        this.nameDataset = messages.getNameDataset();
+        this.messageContentDataset = messages.getContentDataset();
+        this.dateDataset = messages.getDateDataset();
+        this.photoDataset = messages.getPhotoDataset();
     }
 
     // Create new views (invoked by the layout manager)
@@ -77,7 +73,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         // - replace the contents of the view with that element
         holder.nameHeader.setText(nameDataset.get(position));
         holder.messageContentHeader.setText(messageContentDataset.get(position));
-        holder.dateTimeHeader.setText(Tools.getFullDateStrReadable(dateDataset.get(position)));
+        holder.dateTimeHeader.setText(dateDataset.get(position));
 
         // Set image
         if (photoDataset.get(position) != null) {
@@ -99,4 +95,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     public int getItemCount() {
         return nameDataset.size();
     }
+
+    public void update(MessagesArrayList messages) {
+        this.nameDataset = messages.getNameDataset();
+        this.messageContentDataset = messages.getContentDataset();
+        this.dateDataset = messages.getDateDataset();
+        this.photoDataset = messages.getPhotoDataset();
+    }
+
 }
