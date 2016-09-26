@@ -1,5 +1,6 @@
 package com.kyleszombathy.sms_scheduler;
 
+import android.graphics.Bitmap;
 import android.net.Uri;
 
 import java.util.ArrayList;
@@ -17,46 +18,45 @@ public class Message {
     private String content;
     private int alarmNumber;
     private ArrayList<Uri> uriList;
+    private Bitmap contactPhoto;
 
     public Message(){
-        final String emptyStr = "";
         nameList = new ArrayList<>();
         phoneList = new ArrayList<>();
         dateTime = new GregorianCalendar();
-        content = emptyStr;
+        content = "";
         alarmNumber = -1;
         uriList = new ArrayList<>();
+        contactPhoto = null;
     }
 
-    public Message(ArrayList<String> name, ArrayList<String> phone, String messageContentString, int alarmNumber) {
+    public Message(ArrayList<String> name, ArrayList<String> phone, int year, int month, int day, int hour, int minute, String messageContentString, int alarmNumber, ArrayList<Uri> uriList) {
         this.nameList = name;
         this.phoneList = phone;
-        dateTime = new GregorianCalendar();
+        dateTime = new GregorianCalendar(year, month, day, hour, minute);
         this.content = messageContentString;
         this.alarmNumber = alarmNumber;
-        uriList = null;
+        this.uriList = uriList;
+        contactPhoto = null;
     }
 
-    public Message(ArrayList<String> name, ArrayList<String> phone, int year, int month, int day, int hour, int minute, String messageContentString, int alarmNumber, ArrayList<Uri> photoUri) {
+    public Message(ArrayList<String> name, ArrayList<String> phone, int year, int month, int day, int hour, int minute, String messageContentString, int alarmNumber, ArrayList<Uri> uriList, Bitmap contactPhoto) {
         this.nameList = name;
         this.phoneList = phone;
-        dateTime.set(Calendar.YEAR, year);
-        dateTime.set(Calendar.MONTH, month);
-        dateTime.set(Calendar.DAY_OF_MONTH, day);
-        dateTime.set(Calendar.HOUR, hour);
-        dateTime.set(Calendar.MINUTE, minute);
+        dateTime = new GregorianCalendar(year, month, day, hour, minute);
         this.content = messageContentString;
         this.alarmNumber = alarmNumber;
-        this.uriList = photoUri;
+        this.uriList = uriList;
+        this.contactPhoto = contactPhoto;
     }
 
-    public Message(ArrayList<String> name, ArrayList<String> phone, Calendar dateTime, String messageContentString, int alarmNumber, ArrayList<Uri> photoUri) {
+    public Message(ArrayList<String> name, ArrayList<String> phone, Calendar dateTime, String messageContentString, int alarmNumber, ArrayList<Uri> uriList) {
         this.nameList = name;
         this.phoneList = phone;
         this.dateTime = dateTime;
         this.content = messageContentString;
         this.alarmNumber = alarmNumber;
-        this.uriList = photoUri;
+        this.uriList = uriList;
     }
 
     // Setters
@@ -85,7 +85,7 @@ public class Message {
     }
 
     public void setHour(int hour) {
-        dateTime.set(Calendar.HOUR, hour);
+        dateTime.set(Calendar.HOUR_OF_DAY, hour);
     }
 
     public void setMinute(int minute) {
@@ -106,9 +106,11 @@ public class Message {
 
     public void setPhotoUriString(ArrayList<String> uriStrList) {
         uriList.clear();
-        for (String uriStr : uriStrList) {
-            uriList.add(Uri.parse(uriStr.trim()));
-        }
+        uriList = stringListToUriList(uriStrList);
+    }
+
+    public void setContactPhoto(Bitmap contactPhoto) {
+        this.contactPhoto = contactPhoto;
     }
 
     // Getters
@@ -137,7 +139,7 @@ public class Message {
     }
 
     public int getHour() {
-        return dateTime.get(Calendar.HOUR);
+        return dateTime.get(Calendar.HOUR_OF_DAY);
     }
 
     public int getMinute() {
@@ -168,6 +170,10 @@ public class Message {
         return uriStrList;
     }
 
+    public Bitmap getContactPhoto() {
+        return contactPhoto;
+    }
+
     // List utils
     public void addToNameList(String nameToAdd) {
         nameList.add(nameToAdd);
@@ -189,5 +195,15 @@ public class Message {
         nameList.clear();
         phoneList.clear();
         uriList.clear();
+    }
+
+    /** Use this method if you have an ArrayList of Uri in String form but need a Uri form
+     * @param strList String ArrayList
+     * @return Uri ArrayList
+     */
+    public static ArrayList<Uri> stringListToUriList (ArrayList<String> strList) {
+        ArrayList<Uri> uriList = new ArrayList<>();
+        for (String uriStr : strList) uriList.add(Uri.parse(uriStr.trim()));
+        return uriList;
     }
 }
