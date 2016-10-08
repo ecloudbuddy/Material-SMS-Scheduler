@@ -203,15 +203,14 @@ public class Home extends Activity {
                 SQLContract.MessageEntry.PHONE
         };
 
-        // Sort the contact data by date/time
-        String sortOrder =
-                SQLContract.MessageEntry.DATETIME+ " ASC";
+        // Sort the contact data by date/time, then by Name, then by Message Content
+        String sortOrder = SQLContract.MessageEntry.DATETIME+ " ASC, " + SQLContract.MessageEntry.NAME + " ASC, " + SQLContract.MessageEntry.MESSAGE + " ASC";
         String selection = SQLContract.MessageEntry.ARCHIVED + " LIKE ?";
         String[] selectionArgs = { String.valueOf(0) };
 
         try {
             cursor =  db.query(
-                    SQLContract.MessageEntry.TABLE_NAME,  // The table to query
+                    SQLContract.MessageEntry.TABLE_NAME,      // The table to query
                     projection,                               // The columns to return
                     selection,                                // The columns for the WHERE clause
                     selectionArgs,                            // The values for the WHERE clause
@@ -380,20 +379,17 @@ public class Home extends Activity {
                     // Remove values from dataset and store them in temp values
                     final int position = viewHolder.getAdapterPosition();
                     final Message swipedMessage = removeFromDataset(position);
+                    if (swipedMessage == null) throw new NullPointerException("swipedMessage should not be null");
                     final int swipedAlarm = swipedMessage.getAlarmNumber();
                     mAdapter.notifyItemRemoved(position);
 
                     // Solves ghost issue and insert empty state
-                    if (messages.isEmpty()) {
-                        initializeRecyclerAdapter();
-                    }
+                    updateRecyclerEmptyState();
 
+                    // Archive and Delete alarm
                     if (messages.getAlarmIndex(swipedAlarm) == -1) {
-                        cancelAlarmInAndroidSystem(swipedAlarm);
-                        SQLUtilities.setAsArchived(Home.this, swipedAlarm);
+                        archiveAndDeleteAlarm(swipedAlarm);
                     }
-
-                    setRecyclerStateToDefault();
 
                     // Makes snackbar with undo button
                     Snackbar.make(parentView,"1 "+ getString(R.string.Home_Notifications_archived), Snackbar.LENGTH_LONG).setAction(R.string.Home_Notifications_Undo, new View.OnClickListener() {
@@ -409,8 +405,10 @@ public class Home extends Activity {
                             // Add to sql
                             SQLUtilities.addDataToSQL(Home.this, swipedMessage);
 
-                            // Re-add to adapter
+                            // Remove zero state screen
                             updateRecyclerEmptyState();
+
+                            // Re-add to adapter
                             setRecyclerStateToDefault();
                             mAdapter.notifyItemInserted(position);
                             mRecyclerView.scrollToPosition(position);
@@ -523,6 +521,12 @@ public class Home extends Activity {
     private void cancelAndDeleteAlarm(int oldAlarmNumber) {
         cancelAlarmInAndroidSystem(oldAlarmNumber);
         SQLUtilities.deleteAlarmFromDB(Home.this, oldAlarmNumber);
+    }
+
+    /**Cancel alrm in system and Archive DB entry*/
+    private void archiveAndDeleteAlarm(int alarmNumber) {
+        cancelAlarmInAndroidSystem(alarmNumber);
+        SQLUtilities.setAsArchived(Home.this, alarmNumber);
     }
 
     private void displayErrorMessageIfDeviceCannotSendMessages() {
