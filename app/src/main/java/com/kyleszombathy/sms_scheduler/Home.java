@@ -65,8 +65,6 @@ public class Home extends Activity {
     // For edit message function
     private static final int NEW_MESSAGE = 1;
     private static final int EDIT_MESSAGE = 0;
-    private int tempSelectedPosition;
-    private int oldAlarmNumber;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +121,12 @@ public class Home extends Activity {
         return min + (int) (Math.random() * ((max - min) + 1));
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(TAG, "OnResume called");
+    }
+
     //=============== Data Retrieval and Initialization ===============//
     private void populateDatasets() {
         clearDatasets();
@@ -171,7 +175,7 @@ public class Home extends Activity {
                     Tools.stringToArrayList(phone),
                     year, month, day, hour, minute,
                     messageContent, alarmNumber, Message.stringListToUriList(uriArrayList));
-            addValuesToDataSet(message);
+            messages.add(message);
 
             // Move to next row
             cursor.moveToNext();
@@ -224,16 +228,6 @@ public class Home extends Activity {
         return cursor;
     }
 
-    /** Add values to the end of the dataset*/
-    private void addValuesToDataSet(Message message) {
-        addValuesToDataSet(messages.size(), message);
-    }
-
-    /** Add values to a @param position in the dataset*/
-    private void addValuesToDataSet(int position, Message message) {
-        messages.add(position, message);
-    }
-
     private void clearDatasets() {
         messages.clear();
     }
@@ -251,29 +245,34 @@ public class Home extends Activity {
             } else {
                 // Set custom contact image based off first letter of contact name
                 String firstName = message.getNameList().get(0);
-                Character firstLetter = firstName.charAt(0);
                 // Ensure character is not a number
-                if (Character.isLetter(firstLetter)) {
-                    // Get color
-                    ColorGenerator generator = ColorGenerator.MATERIAL;
-                    int color = generator.getColor(firstName); //Always use same color for a specific person
-                    TextDrawable drawable = TextDrawable.builder(this)
-                            .beginConfig()
-                            .useFont(Typeface.DEFAULT_BOLD)
-                            .fontSize(circleImageViewTextSize)
-                            .height(circleImageViewWidth)
-                            .width(circleImageViewWidth)
-                            .endConfig()
-                            .buildRound(firstLetter.toString().toUpperCase(), color);
-                    contactPhoto = Tools.drawableToBitmap(drawable); // Convert to bitmap
-                    Log.i(TAG, "setContactImages: Created custom image based off first letter: " + firstLetter);
+                if (Character.isLetter(firstName.charAt(0))) {
+                    contactPhoto = createCircleImageFromFirstLetterOfName(firstName);
+                    Log.i(TAG, "setContactImages: Created custom image based off first letter: " + firstName.charAt(0));
                 } else {
                     // TODO: Write code for handling messages to multiple people
                 }
 
             }
             message.setContactPhoto(contactPhoto);
+            messages.setPhotoDataset(msgIndex);
         }
+
+    }
+
+    private Bitmap createCircleImageFromFirstLetterOfName(String firstName) {
+        // Get color
+        ColorGenerator generator = ColorGenerator.MATERIAL;
+        int color = generator.getColor(firstName); //Always use same color for a specific person
+        TextDrawable drawable = TextDrawable.builder(this)
+                .beginConfig()
+                .useFont(Typeface.DEFAULT_BOLD)
+                .fontSize(circleImageViewTextSize)
+                .height(circleImageViewWidth)
+                .width(circleImageViewWidth)
+                .endConfig()
+                .buildRound(Character.toString(firstName.charAt(0)).toUpperCase(), color);
+        return Tools.drawableToBitmap(drawable); // Convert to bitmap
     }
 
     private Bitmap retrieveContactImage(Uri uri) {
@@ -281,19 +280,15 @@ public class Home extends Activity {
         return BitmapFactory.decodeStream(arrayInputStream);
     }
 
-    public String getFullTime(){
-        // Don't know why I left this code
-        return "";
-    }
 
     /**Cancels alarm given alarm service number
      * @param alarmNumb alarmNumber to delete*/
-    private void cancelAlarm(int alarmNumb) {
+    private void cancelAlarmInAndroidSystem(int alarmNumb) {
         Intent intent = new Intent(this, MessageAlarmReceiver.class);
         PendingIntent sender = PendingIntent.getBroadcast(this, alarmNumb, intent, 0);
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.cancel(sender);
-        Log.i(TAG, "cancelAlarm: Alarm number " + alarmNumb + " Canceled");
+        Log.i(TAG, "cancelAlarmInAndroidSystem: Alarm number " + alarmNumb + " Canceled");
     }
 
 
@@ -310,7 +305,7 @@ public class Home extends Activity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new SlideInDownAnimator());
 
-        updateRecyclerViewAdapter();
+        initializeRecyclerAdapter();
 
         // Item touch listener for editing message
         itemTouchHelper.attachToRecyclerView(mRecyclerView);
@@ -318,22 +313,19 @@ public class Home extends Activity {
                 new RecyclerItemClickListener(Home.this,
                         new RecyclerItemClickListener.OnItemClickListener() {
                             @Override
-                            public void onItemClick(View view, int position) {
-                                Message messageAtPosition = messages.get(position);
+                            public void onItemClick(View view, int clickedPosition) {
                                 // Tie to global values for use after AddMessage return
-                                tempSelectedPosition = position;
-                                oldAlarmNumber = messageAtPosition.getAlarmNumber();
+                                int oldAlarmNumber = messages.get(clickedPosition).getAlarmNumber();
                                 int newAlarmNumber = getRandomInt(MIN_INT, MAX_INT);
 
-                                // Update Adapter with new alarm number
-                                messageAtPosition.setAlarmNumber(newAlarmNumber);
-
-                                // Create new intent to AddMessage with data from item in position
-                                Intent intent = new Intent(new Intent(Home.this, AddMessage.class));
+                                // Bundle extras
                                 Bundle extras = new Bundle();
                                 extras.putInt(ALARM_EXTRA, oldAlarmNumber);
                                 extras.putInt("NEW_ALARM", newAlarmNumber);
                                 extras.putBoolean(EDIT_MESSAGE_EXTRA, true);
+
+                                // Create new intent to AddMessage with data from item in position
+                                Intent intent = new Intent(new Intent(Home.this, AddMessage.class));
                                 intent.putExtras(extras);
 
                                 // Go to AddMessage
@@ -346,20 +338,16 @@ public class Home extends Activity {
     }
 
     /**Initializes the Recycler Adapter*/
-    private void updateRecyclerViewAdapter() {
-        mAdapter = new RecyclerAdapter(messages);
-        mRecyclerView.setAdapter(mAdapter);
+    private void initializeRecyclerAdapter() {
+       mAdapter = new RecyclerAdapter(messages);
+       mRecyclerView.setAdapter(mAdapter);
 
-        updateRecyclerState();
-        Log.i(TAG, "updateRecyclerViewAdapter: Successfully updated recycler view adapter");
-    }
-
-    private void updateAdapterData() {
-        mAdapter.update(messages);
+        updateRecyclerEmptyState();
+        Log.i(TAG, "initializeRecyclerAdapter: Successfully updated recycler view adapter");
     }
 
     /**Removes a ghost recycler row if needed*/
-    private void updateRecyclerState() {
+    private void updateRecyclerEmptyState() {
         if (messages.isEmpty()) {
             mRecyclerEmptyState.setX(0);
             YoYo.with(Techniques.FadeIn)
@@ -391,18 +379,17 @@ public class Home extends Activity {
                 public void onSwiped(final RecyclerView.ViewHolder viewHolder, int swipeDir) {
                     // Remove values from dataset and store them in temp values
                     final int position = viewHolder.getAdapterPosition();
-                    final Message swipedMessage = messages.remove(position);
+                    final Message swipedMessage = removeFromDataset(position);
                     final int swipedAlarm = swipedMessage.getAlarmNumber();
-                    updateAdapterData();
                     mAdapter.notifyItemRemoved(position);
 
                     // Solves ghost issue and insert empty state
                     if (messages.isEmpty()) {
-                        updateRecyclerViewAdapter();
+                        initializeRecyclerAdapter();
                     }
 
                     if (messages.getAlarmIndex(swipedAlarm) == -1) {
-                        cancelAlarm(swipedAlarm);
+                        cancelAlarmInAndroidSystem(swipedAlarm);
                         SQLUtilities.setAsArchived(Home.this, swipedAlarm);
                     }
 
@@ -414,7 +401,7 @@ public class Home extends Activity {
                         @Override
                         public void onClick(View v) {
                             // Add back temp values
-                            addValuesToDataSet(position, swipedMessage);
+                            messages.add(position, swipedMessage);
 
                             // Add back alarm
                             new MessageAlarmReceiver().createAlarm(Home.this, swipedMessage);
@@ -423,9 +410,8 @@ public class Home extends Activity {
                             SQLUtilities.addDataToSQL(Home.this, swipedMessage);
 
                             // Re-add to adapter
-                            updateRecyclerState();
+                            updateRecyclerEmptyState();
                             setRecyclerStateToDefault();
-                            updateAdapterData();
                             mAdapter.notifyItemInserted(position);
                             mRecyclerView.scrollToPosition(position);
                             setRecyclerStateToDefault();
@@ -506,61 +492,59 @@ public class Home extends Activity {
     /** Retrieves results on return from AddMessage and creates animations*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Check if able to send sms
+        displayErrorMessageIfDeviceCannotSendMessages();
+        Log.i(TAG, "onActivityResult: resultCode = " + resultCode);
+
+        if (resultCode == RESULT_OK) {
+            Bundle extras = data.getExtras();
+            int oldAlarmNumber = extras.getInt("OLD_ALARM");
+            int newPosition = messages.getAlarmIndex(extras.getInt("ALARM_EXTRA"));
+
+            // Remove adapter position and db entry if edit message
+            if (requestCode == EDIT_MESSAGE) cancelAndDeleteAlarm(oldAlarmNumber);
+
+            updateAllMessagesAndRecyclerAdapter();
+
+            // do recyclerview animations
+            if (requestCode == EDIT_MESSAGE) mAdapter.notifyItemChanged(newPosition);
+            if (requestCode == NEW_MESSAGE) mAdapter.notifyItemInserted(newPosition);
+            mRecyclerView.scrollToPosition(newPosition);
+        }
+    }
+
+    private void updateAllMessagesAndRecyclerAdapter() {
+        // Update all items from db.
+        populateDatasets();
+        // Remove empty state
+        initializeRecyclerAdapter();
+    }
+
+    /**Cancel alarm in system and delete alarm from DB*/
+    private void cancelAndDeleteAlarm(int oldAlarmNumber) {
+        cancelAlarmInAndroidSystem(oldAlarmNumber);
+        SQLUtilities.deleteAlarmFromDB(Home.this, oldAlarmNumber);
+    }
+
+    private void displayErrorMessageIfDeviceCannotSendMessages() {
         PackageManager pm = this.getPackageManager();
         if (!pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY) &&
                 !pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY_CDMA)) {
             Toast.makeText(this, R.string.Home_Notifications_CantSendMessages, Toast.LENGTH_SHORT).show();
         }
-
-        if (resultCode == RESULT_OK) {
-            Log.i(TAG, "onActivityResult: RESULT_OK called");
-            Bundle extras = data.getExtras();
-
-            // Delete old alarm
-            if (requestCode == EDIT_MESSAGE) {
-                cancelAlarm(oldAlarmNumber);
-                SQLUtilities.deleteFromDB(Home.this, oldAlarmNumber);
-            }
-
-            // Update all items from db
-            populateDatasets();
-
-            // Get new alarm number position
-            int position = messages.getAlarmIndex(extras.getInt("ALARM_EXTRA"));
-
-            // Remove empty state
-            updateRecyclerState();
-
-            // Remove previous position if edit message
-            // Deisgnates that user did not cancel edit message function
-            if (requestCode == EDIT_MESSAGE) {
-                updateAdapterData();
-                mAdapter.notifyItemChanged(position);
-                mRecyclerView.scrollToPosition(position);
-            }
-
-            if (requestCode == NEW_MESSAGE) {
-                updateAdapterData();
-                mAdapter.notifyItemInserted(position);
-                mRecyclerView.scrollToPosition(position);
-            }
-        } else {
-            if (requestCode == EDIT_MESSAGE) {
-                // Edit message altered the alarm number. Return it to the old alarm number now
-                messages.get(tempSelectedPosition).setAlarmNumber(oldAlarmNumber);
-            }
-        }
     }
 
     /** Removes given position from dataset*/
-    private void removeFromDataset(int position) {
-        // Remove from dataset
-        messages.remove(position);
-        // Show empty state if necessary
-        if (messages.isEmpty()) {
-            updateRecyclerViewAdapter();
+    private Message removeFromDataset(int position) {
+        if (position >= 0) {
+            // Remove from dataset
+            Message returnMsg = messages.remove(position);
+            // Show empty state if necessary
+            if (messages.isEmpty()) {
+                initializeRecyclerAdapter();
+            }
+            return returnMsg;
         }
+        return null;
     }
 
     //=============== Broadcast Receiver for Sent Message ===============//
@@ -571,17 +555,19 @@ public class Home extends Activity {
             // Get extra data included in the Intent
             String notificationMessage = intent.getStringExtra("notificationMessage");
             int alarmNumber = intent.getIntExtra("alarmNumber", -1);
-            int position = messages.getAlarmIndex(alarmNumber);
-            if(position != -1) {
-                removeFromDataset(position);
-                updateAdapterData();
-                mAdapter.notifyItemRemoved(position);
+            int sentMessageDatasetPosition = messages.getAlarmIndex(alarmNumber);
+            if(sentMessageDatasetPosition != -1) {
+                removeFromDataset(sentMessageDatasetPosition);
+                mAdapter.notifyItemRemoved(sentMessageDatasetPosition);
             }
-            Snackbar snackbar = Snackbar
-                    .make(parentView, notificationMessage, Snackbar.LENGTH_LONG);
-            snackbar.show();
+            createSnackbar(notificationMessage);
         }
     };
+
+    private void createSnackbar(String messsageToShow) {
+        Snackbar snackbar = Snackbar.make(parentView, messsageToShow, Snackbar.LENGTH_LONG);
+        snackbar.show();
+    }
 
     @Override
     protected void onDestroy() {

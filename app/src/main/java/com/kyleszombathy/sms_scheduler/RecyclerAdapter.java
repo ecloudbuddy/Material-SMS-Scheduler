@@ -1,13 +1,10 @@
 package com.kyleszombathy.sms_scheduler;
 
-import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -17,10 +14,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
     private static final String TAG = "RecyclerAdapter";
-    private ArrayList<String> nameDataset;
-    private ArrayList<String> messageContentDataset;
-    private ArrayList<String> dateDataset;
-    private ArrayList<Bitmap> photoDataset;
+    private MessagesArrayList messages;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -51,10 +45,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     // Provide a suitable constructor (depends on the kind of dataset)
     public RecyclerAdapter(MessagesArrayList messages) {
-        this.nameDataset = messages.getNameDataset();
-        this.messageContentDataset = messages.getContentDataset();
-        this.dateDataset = messages.getDateDataset();
-        this.photoDataset = messages.getPhotoDataset();
+        this.messages = messages;
     }
 
     // Create new views (invoked by the layout manager)
@@ -68,18 +59,15 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
-        holder.nameHeader.setText(nameDataset.get(position));
-        holder.messageContentHeader.setText(messageContentDataset.get(position));
-        holder.dateTimeHeader.setText(dateDataset.get(position));
+        holder.nameHeader.setText(messages.getNameDataset().get(position));
+        holder.messageContentHeader.setText(messages.getContentDataset().get(position));
+        holder.dateTimeHeader.setText(messages.getDateDataset().get(position));
 
         // Set image
-        if (photoDataset.get(position) != null) {
-            holder.mBadge.setImageBitmap(photoDataset.get(position));
-
+        if (messages.getPhotoDataset().get(position) != null) {
+            holder.mBadge.setImageBitmap(messages.getPhotoDataset().get(position));
         }
+
         holder.getSwipableView().bringToFront();
         holder.getSwipableView().setX(0);
         holder.getSwipableView().setY(0);
@@ -93,14 +81,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return nameDataset.size();
-    }
-
-    public void update(MessagesArrayList messages) {
-        this.nameDataset = messages.getNameDataset();
-        this.messageContentDataset = messages.getContentDataset();
-        this.dateDataset = messages.getDateDataset();
-        this.photoDataset = messages.getPhotoDataset();
+        return messages.size();
     }
 
 }
