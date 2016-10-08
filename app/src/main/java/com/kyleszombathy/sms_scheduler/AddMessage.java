@@ -104,46 +104,164 @@ public class AddMessage extends AppCompatActivity
     //=============Activity Creation Methods================//
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // Sets window transition animations
+        setWindowTransitionAnimation();
+        createView(savedInstanceState);
+        getExtrasFromHome();
+        setUpToolbar();
+        createFragmentView();
+        askForContactsReadPermission();
+    }
+
+    private void setWindowTransitionAnimation() {
         getWindow().setAllowEnterTransitionOverlap(true);
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         getWindow().setEnterTransition(new Fade());
+    }
 
-        // Create view
+    private void createView(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_message);
         Log.d(TAG, "Activity View Created");
+    }
 
+    private void getExtrasFromHome() {
         // Get "Edit" extras from Home
-        Intent i = getIntent();
-        Bundle extras = i.getExtras();
+        Bundle extras = getIntent().getExtras();
         message.setAlarmNumber(extras.getInt("alarmNumber", -1));
         editMessageNewAlarmNumber = extras.getInt("NEW_ALARM", -1);
         editMessage = extras.getBoolean("EDIT_MESSAGE", false);
+    }
 
-        // Setting up toolbar
+    private void setUpToolbar() {
         Toolbar myChildToolbar = (Toolbar) findViewById(R.id.SMSScheduler_Toolbar);
         setSupportActionBar(myChildToolbar);
         ActionBar ab = getSupportActionBar();
         if (ab != null) ab.setDisplayHomeAsUpEnabled(true);
+    }
 
-        // Create fragment view
+    private void createFragmentView() {
         AddMessageFragment firstFragment = new AddMessageFragment();
         firstFragment.setArguments(getIntent().getExtras());
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.replace(R.id.AddMessage_FragmentContainer, firstFragment);
         transaction.commit();
-
         Log.d(TAG, "Fragment view created");
-
-        // Ask for contact permissions
-        askForContactsReadPermission();
     }
 
     @Override /** Create Toolbar buttons*/
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_add_message, menu);
         return true;
+    }
+
+    /**Checks if READ_CONTACTS permission exists and prompts user*/
+    @TargetApi(Build.VERSION_CODES.M)
+    private void askForContactsReadPermission() {
+        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
+
+        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
+            if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
+                showMessageOKCancel(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                requestPermissions(new String[] {Manifest.permission.READ_CONTACTS},
+                                        MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+                            }
+                        });
+                return;
+            }
+            requestPermissions(new String[] {Manifest.permission.READ_CONTACTS},
+                    MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+        }
+    }
+    /**Checks if other permissions exists and prompts user*/
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean askForSmsSendPermission() {
+        List<String> permissionsNeeded = new ArrayList<>();
+        final List<String> permissionsList = new ArrayList<>();
+
+        if (!addPermission(permissionsList, Manifest.permission.SEND_SMS)) {
+            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_SMSMessages));
+        }
+        if (!addPermission(permissionsList, Manifest.permission.READ_PHONE_STATE)) {
+            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_PhoneCalls));
+        }
+
+        if (permissionsList.size() > 0) {
+            if (permissionsNeeded.size() > 0) {
+                // Need Rationale
+                String message = getString(R.string.AddMessage_Permissions_PermissionsPrompt1) + permissionsNeeded.get(0);
+                for (int i = 1; i < permissionsNeeded.size(); i++)
+                    message = message + ", " + permissionsNeeded.get(i);
+
+                message = message + getString(R.string.AddMessage_Permissions_PermissionPromt2);
+                showMessageOKCancel(message, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
+                    }
+                });
+            }
+            requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
+
+            Log.i(TAG, "askForSmsSendPermission: allPermissionsGranted value is " + allPermissionsGranted);
+            return allPermissionsGranted;
+        } else {
+            Log.i(TAG, "askForSmsSendPermission: All permissions are granted");
+            return true;
+        }
+    }
+    /**Utility method for askForSmsSendPermission*/
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean addPermission(List<String> permissionsList, String permission) {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            permissionsList.add(permission);
+            // Check for Rationale Option
+            if (!shouldShowRequestPermissionRationale(permission))
+                return false;
+        }
+        return true;
+    }
+    /** Shows a dialog box with OK/cancel boxes*/
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(AddMessage.this)
+                .setMessage(message)
+                .setPositiveButton(R.string.ok, okListener)
+                .setNegativeButton(R.string.AddMessage_ButtonDeny, null)
+                .create()
+                .show();
+    }
+    /**Retrieves result of askForSmsSendPermission*/
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,  int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS:
+            {
+                Map<String, Integer> perms = new HashMap<>();
+                // Initial
+                perms.put(Manifest.permission.SEND_SMS, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.READ_PHONE_STATE, PackageManager.PERMISSION_GRANTED);
+                // Fill with results
+                for (int i = 0; i < permissions.length; i++)
+                    perms.put(permissions[i], grantResults[i]);
+                // Check for ACCESS_FINE_LOCATION
+                if (perms.get(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED
+                        && perms.get(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+                    Log.i(TAG, "onRequestPermissionsResult: All Permissions Granted");
+                    allPermissionsGranted = true;
+                } else {
+                    // Permission Denied
+                    Log.i(TAG, "onRequestPermissionsResult: Permissions were denied");
+                    Toast.makeText(AddMessage.this, R.string.AddMessage_Permissions_SomePermissionDenied, Toast.LENGTH_SHORT).show();
+                    allPermissionsGranted = false;
+                }
+            }
+            break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                allPermissionsGranted = false;
+        }
     }
 
     /** Called when fragment view is created*/
@@ -305,6 +423,7 @@ public class AddMessage extends AppCompatActivity
         Intent returnIntent = new Intent();
         Bundle extras = new Bundle();
         extras.putInt("ALARM_EXTRA", message.getAlarmNumber());
+        extras.putInt("OLD_ALARM", getIntent().getExtras().getInt("alarmNumber", -1));
         returnIntent.putExtras(extras);
 
         // Return to HOME
@@ -642,120 +761,6 @@ public class AddMessage extends AppCompatActivity
         }
         public void afterTextChanged(Editable s) {}
     };
-
-    /**Checks if READ_CONTACTS permission exists and prompts user*/
-    @TargetApi(Build.VERSION_CODES.M)
-    private void askForContactsReadPermission() {
-        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
-
-        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
-            if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
-                showMessageOKCancel(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                requestPermissions(new String[] {Manifest.permission.READ_CONTACTS},
-                                        MY_PERMISSIONS_REQUEST_READ_CONTACTS);
-                            }
-                        });
-                return;
-            }
-            requestPermissions(new String[] {Manifest.permission.READ_CONTACTS},
-                    MY_PERMISSIONS_REQUEST_READ_CONTACTS);
-        }
-    }
-
-    /**Checks if other permissions exists and prompts user*/
-    @TargetApi(Build.VERSION_CODES.M)
-    private boolean askForSmsSendPermission() {
-        List<String> permissionsNeeded = new ArrayList<>();
-        final List<String> permissionsList = new ArrayList<>();
-
-        if (!addPermission(permissionsList, Manifest.permission.SEND_SMS)) {
-            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_SMSMessages));
-        }
-        if (!addPermission(permissionsList, Manifest.permission.READ_PHONE_STATE)) {
-            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_PhoneCalls));
-        }
-
-        if (permissionsList.size() > 0) {
-            if (permissionsNeeded.size() > 0) {
-                // Need Rationale
-                String message = getString(R.string.AddMessage_Permissions_PermissionsPrompt1) + permissionsNeeded.get(0);
-                for (int i = 1; i < permissionsNeeded.size(); i++)
-                    message = message + ", " + permissionsNeeded.get(i);
-
-                message = message + getString(R.string.AddMessage_Permissions_PermissionPromt2);
-                showMessageOKCancel(message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
-                    }
-                });
-            }
-            requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
-
-            Log.i(TAG, "askForSmsSendPermission: allPermissionsGranted value is " + allPermissionsGranted);
-            return allPermissionsGranted;
-        } else {
-            Log.i(TAG, "askForSmsSendPermission: All permissions are granted");
-            return true;
-        }
-    }
-
-    /**Utility method for askForSmsSendPermission*/
-    @TargetApi(Build.VERSION_CODES.M)
-    private boolean addPermission(List<String> permissionsList, String permission) {
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-            permissionsList.add(permission);
-            // Check for Rationale Option
-            if (!shouldShowRequestPermissionRationale(permission))
-                return false;
-        }
-        return true;
-    }
-
-    /** Shows a dialog box with OK/cancel boxes*/
-    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(AddMessage.this)
-                .setMessage(message)
-                .setPositiveButton(R.string.ok, okListener)
-                .setNegativeButton(R.string.AddMessage_ButtonDeny, null)
-                .create()
-                .show();
-    }
-
-    /**Retrieves result of askForSmsSendPermission*/
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,  int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS:
-            {
-                Map<String, Integer> perms = new HashMap<>();
-                // Initial
-                perms.put(Manifest.permission.SEND_SMS, PackageManager.PERMISSION_GRANTED);
-                perms.put(Manifest.permission.READ_PHONE_STATE, PackageManager.PERMISSION_GRANTED);
-                // Fill with results
-                for (int i = 0; i < permissions.length; i++)
-                    perms.put(permissions[i], grantResults[i]);
-                // Check for ACCESS_FINE_LOCATION
-                if (perms.get(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED
-                        && perms.get(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    Log.i(TAG, "onRequestPermissionsResult: All Permissions Granted");
-                    allPermissionsGranted = true;
-                } else {
-                    // Permission Denied
-                    Log.i(TAG, "onRequestPermissionsResult: Permissions were denied");
-                    Toast.makeText(AddMessage.this, R.string.AddMessage_Permissions_SomePermissionDenied, Toast.LENGTH_SHORT).show();
-                    allPermissionsGranted = false;
-                }
-            }
-            break;
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-                allPermissionsGranted = false;
-        }
-    }
 
     //================Utility Methods==================//
     /**Clears all Arraylist Values*/
