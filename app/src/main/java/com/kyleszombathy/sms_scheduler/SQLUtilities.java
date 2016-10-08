@@ -11,7 +11,6 @@ import android.util.Log;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 /**
  * Class for SQL DB add/retrieve
@@ -78,7 +77,6 @@ public class SQLUtilities {
                 byte[] data = cursor.getBlob(0);
                 if (data != null) {
                     Log.i(TAG, "getPhoto: photo retrieved successfully for photoUri " + photoUri.toString());
-                    Log.d(TAG, "getPhoto: data is " + Arrays.toString(data));
                     return new ByteArrayInputStream(data);
                 }
             }
@@ -119,7 +117,7 @@ public class SQLUtilities {
     /**Removes Item given alarm Number from database
      * @param context Application context
      * @param alarmNumb The alarm number to delete*/
-    public static void deleteFromDB(Context context, int alarmNumb) {
+    public static void deleteAlarmFromDB(Context context, int alarmNumb) {
         try {
             SQLDbHelper mDbHelper = new SQLDbHelper(context);
             SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -133,9 +131,9 @@ public class SQLUtilities {
                     selection,
                     selectionArgs);
             mDbHelper.close();
-            Log.i(TAG, "deleteFromDB: Alarm Deleted");
+            Log.i(TAG, "deleteAlarmFromDB: Alarm Deleted");
         } catch(Exception e) {
-            Log.e(TAG, "deleteFromDB: Exception encountered", e);
+            Log.e(TAG, "deleteAlarmFromDB: Exception encountered", e);
         }
     }
 }
