@@ -1,11 +1,9 @@
 package com.kyleszombathy.sms_scheduler;
 
 import android.graphics.Bitmap;
-import android.text.format.DateUtils;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 
 /**
  * Custom holder for Message type
@@ -13,7 +11,7 @@ import java.util.GregorianCalendar;
 public class MessagesArrayList extends ArrayList<Message>{
     private ArrayList<String> nameDataset;
     private ArrayList<String> contentDataset;
-    private ArrayList<String> dateDataset;
+    private ArrayList<Calendar> dateDataset;
     private ArrayList<Bitmap> photoDataset;
 
     public MessagesArrayList() {
@@ -60,7 +58,7 @@ public class MessagesArrayList extends ArrayList<Message>{
     private void addToDatasets(Message message) {
         nameDataset.add(extractReadableName(message.getNameList()));
         contentDataset.add(message.getContent());
-        dateDataset.add(extractReadableDate(message.getDateTime()));
+        dateDataset.add(message.getDateTime());
         photoDataset.add(message.getContactPhoto());
     }
 
@@ -73,7 +71,7 @@ public class MessagesArrayList extends ArrayList<Message>{
     private void addToDatasets(int index, Message message) {
         nameDataset.add(index, extractReadableName(message.getNameList()));
         contentDataset.add(index, message.getContent());
-        dateDataset.add(index, extractReadableDate(message.getDateTime()));
+        dateDataset.add(index, message.getDateTime());
         photoDataset.add(index, message.getContactPhoto());
     }
 
@@ -99,7 +97,7 @@ public class MessagesArrayList extends ArrayList<Message>{
     }
 
     public void setDateDataset(int index) {
-        dateDataset.set(index, extractReadableDate(this.get(index).getDateTime()));
+        dateDataset.set(index, this.get(index).getDateTime());
     }
 
     public void setPhotoDataset(int index) {
@@ -123,7 +121,7 @@ public class MessagesArrayList extends ArrayList<Message>{
     public void updateDateDatset() {
         dateDataset.clear();
         for (Message message : this) {
-            dateDataset.add( extractReadableDate(message.getDateTime()) );
+            dateDataset.add( message.getDateTime() );
         }
     }
 
@@ -142,7 +140,7 @@ public class MessagesArrayList extends ArrayList<Message>{
         return contentDataset;
     }
 
-    public ArrayList<String> getDateDataset() {
+    public ArrayList<Calendar> getDateDataset() {
         return dateDataset;
     }
 
@@ -167,17 +165,6 @@ public class MessagesArrayList extends ArrayList<Message>{
             nameCondensed.append(nameListCopy.size());
         }
         return nameCondensed.toString();
-    }
-
-    /**Get full date string in a human readable format*/
-    private static String extractReadableDate(Calendar inputDate){
-        CharSequence readableSequence;
-        GregorianCalendar dateNow = new GregorianCalendar();
-        readableSequence = DateUtils.getRelativeTimeSpanString(
-                inputDate.getTimeInMillis(),
-                dateNow.getTimeInMillis(),
-                DateUtils.MINUTE_IN_MILLIS);
-        return readableSequence.toString();
     }
 
     public int getAlarmIndex(int alarmNumber) {

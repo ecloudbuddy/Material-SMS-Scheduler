@@ -1,10 +1,14 @@
 package com.kyleszombathy.sms_scheduler;
 
+import android.os.CountDownTimer;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import java.util.Calendar;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -58,10 +62,12 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.nameHeader.setText(messages.getNameDataset().get(position));
         holder.messageContentHeader.setText(messages.getContentDataset().get(position));
-        holder.dateTimeHeader.setText(messages.getDateDataset().get(position));
+
+        ReadableDateCountdownTimer countdownTimer = new ReadableDateCountdownTimer(messages.getDateDataset().get(position), holder);
+        countdownTimer.start();
 
         // Set image
         if (messages.getPhotoDataset().get(position) != null) {
@@ -71,6 +77,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         holder.getSwipableView().bringToFront();
         holder.getSwipableView().setX(0);
         holder.getSwipableView().setY(0);
+
     }
 
     @Override
@@ -84,4 +91,40 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         return messages.size();
     }
 
+
+
+    private class ReadableDateCountdownTimer extends CountDownTimer {
+        private ViewHolder holder;
+
+        /**
+         * @param millisInFuture    The number of millis in the future from the call
+         *                          to {@link #start()} until the countdown is done and {@link #onFinish()}
+         *                          is called.
+         * @param countDownInterval The interval along the way to receive
+         *                          {@link #onTick(long)} callbacks.
+         */
+        public ReadableDateCountdownTimer(long millisInFuture, long countDownInterval, final ViewHolder holder) {
+            super(millisInFuture, countDownInterval);
+            this.holder = holder;
+        }
+
+        public ReadableDateCountdownTimer(Calendar futureTime, final ViewHolder holder) {
+            super(futureTime.getTimeInMillis() - System.currentTimeMillis(), 1000);
+            this.holder = holder;
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            Long currentTimeInMillis = System.currentTimeMillis();
+            holder.dateTimeHeader.setText(DateUtils.getRelativeTimeSpanString(
+                    millisUntilFinished + currentTimeInMillis,
+                    currentTimeInMillis,
+                    DateUtils.SECOND_IN_MILLIS).toString());
+        }
+
+        @Override
+        public void onFinish() {
+            holder.dateTimeHeader.setText("Sending now ...");
+        }
+    }
 }
