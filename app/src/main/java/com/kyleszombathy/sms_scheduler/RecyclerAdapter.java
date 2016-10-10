@@ -3,6 +3,7 @@ package com.kyleszombathy.sms_scheduler;
 import android.os.CountDownTimer;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -96,13 +97,6 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     private class ReadableDateCountdownTimer extends CountDownTimer {
         private ViewHolder holder;
 
-        /**
-         * @param millisInFuture    The number of millis in the future from the call
-         *                          to {@link #start()} until the countdown is done and {@link #onFinish()}
-         *                          is called.
-         * @param countDownInterval The interval along the way to receive
-         *                          {@link #onTick(long)} callbacks.
-         */
         public ReadableDateCountdownTimer(long millisInFuture, long countDownInterval, final ViewHolder holder) {
             super(millisInFuture, countDownInterval);
             this.holder = holder;
@@ -111,10 +105,15 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         public ReadableDateCountdownTimer(Calendar futureTime, final ViewHolder holder) {
             super(futureTime.getTimeInMillis() - System.currentTimeMillis(), 1000);
             this.holder = holder;
+            updateHolderTextWithTimeUntilEvent(futureTime.getTimeInMillis() - System.currentTimeMillis());
         }
 
         @Override
         public void onTick(long millisUntilFinished) {
+            updateHolderTextWithTimeUntilEvent(millisUntilFinished);
+        }
+
+        private void updateHolderTextWithTimeUntilEvent(long millisUntilFinished) {
             Long currentTimeInMillis = System.currentTimeMillis();
             holder.dateTimeHeader.setText(DateUtils.getRelativeTimeSpanString(
                     millisUntilFinished + currentTimeInMillis,
@@ -125,6 +124,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         @Override
         public void onFinish() {
             holder.dateTimeHeader.setText("Sending now ...");
+            Log.i(TAG, "ReadableDateCountdownTimer finished. Should send now.");
         }
     }
 }
