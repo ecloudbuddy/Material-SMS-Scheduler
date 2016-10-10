@@ -72,24 +72,8 @@ public class Message {
         this.dateTime = dateTime;
     }
 
-    public void setYear(int year) {
-        dateTime.set(Calendar.YEAR, year);
-    }
-
-    public void setMonth(int month) {
-        dateTime.set(Calendar.MONTH, month);
-    }
-
-    public void setDay(int day) {
-        dateTime.set(Calendar.DAY_OF_MONTH, day);
-    }
-
-    public void setHour(int hour) {
-        dateTime.set(Calendar.HOUR_OF_DAY, hour);
-    }
-
-    public void setMinute(int minute) {
-        dateTime.set(Calendar.MINUTE, minute);
+    public void setDateTime(int year, int month, int dayOfMonth, int hourOfDay, int minute) {
+        dateTime = new GregorianCalendar(year, month, dayOfMonth, hourOfDay, minute);
     }
 
     public void setContent(String content) {
