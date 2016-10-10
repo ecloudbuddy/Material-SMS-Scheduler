@@ -65,7 +65,6 @@ public class AddMessage extends AppCompatActivity
 
     // Edit Message Toggle
     private boolean editMessage = false;
-    private int editMessageNewAlarmNumber;
 
     // User input info
     private Message message = new Message();
@@ -89,7 +88,6 @@ public class AddMessage extends AppCompatActivity
     private static final int ERROR_ANIMATION_DURATION = 700;
     private static final String PHONERETV_FULL_REGEX = "^.*<[^\n\ra-zA-Z]+>$";
     private static final String PHONERETV_PHONE_REGEX_STRICT = "^[^,<>a-zA-Z]{4,}$";
-    private static final String PHONERETV_PHONE_REGEX_LOOSE = "^[^a-zA-Z]+$";
     private static final String[] PHONERETV_CUSTOM_ENDKEYS = {",", " "};
     private static final String[] PHONERETV_CUSTOM_ENDKEYS_BAD = {", ", ",,", ",  "};
 
@@ -127,9 +125,8 @@ public class AddMessage extends AppCompatActivity
     private void getExtrasFromHome() {
         // Get "Edit" extras from Home
         Bundle extras = getIntent().getExtras();
-        message.setAlarmNumber(extras.getInt("alarmNumber", -1));
-        editMessageNewAlarmNumber = extras.getInt("NEW_ALARM", -1);
         editMessage = extras.getBoolean("EDIT_MESSAGE", false);
+        message.setAlarmNumber(extras.getInt("alarmNumber", -1));
     }
 
     private void setUpToolbar() {
@@ -154,115 +151,7 @@ public class AddMessage extends AppCompatActivity
         return true;
     }
 
-    /**Checks if READ_CONTACTS permission exists and prompts user*/
-    @TargetApi(Build.VERSION_CODES.M)
-    private void askForContactsReadPermission() {
-        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
-
-        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
-            if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
-                showMessageOKCancel(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                requestPermissions(new String[] {Manifest.permission.READ_CONTACTS},
-                                        MY_PERMISSIONS_REQUEST_READ_CONTACTS);
-                            }
-                        });
-                return;
-            }
-            requestPermissions(new String[] {Manifest.permission.READ_CONTACTS},
-                    MY_PERMISSIONS_REQUEST_READ_CONTACTS);
-        }
-    }
-    /**Checks if other permissions exists and prompts user*/
-    @TargetApi(Build.VERSION_CODES.M)
-    private boolean askForSmsSendPermission() {
-        List<String> permissionsNeeded = new ArrayList<>();
-        final List<String> permissionsList = new ArrayList<>();
-
-        if (!addPermission(permissionsList, Manifest.permission.SEND_SMS)) {
-            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_SMSMessages));
-        }
-        if (!addPermission(permissionsList, Manifest.permission.READ_PHONE_STATE)) {
-            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_PhoneCalls));
-        }
-
-        if (permissionsList.size() > 0) {
-            if (permissionsNeeded.size() > 0) {
-                // Need Rationale
-                String message = getString(R.string.AddMessage_Permissions_PermissionsPrompt1) + permissionsNeeded.get(0);
-                for (int i = 1; i < permissionsNeeded.size(); i++)
-                    message = message + ", " + permissionsNeeded.get(i);
-
-                message = message + getString(R.string.AddMessage_Permissions_PermissionPromt2);
-                showMessageOKCancel(message, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
-                    }
-                });
-            }
-            requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
-
-            Log.i(TAG, "askForSmsSendPermission: allPermissionsGranted value is " + allPermissionsGranted);
-            return allPermissionsGranted;
-        } else {
-            Log.i(TAG, "askForSmsSendPermission: All permissions are granted");
-            return true;
-        }
-    }
-    /**Utility method for askForSmsSendPermission*/
-    @TargetApi(Build.VERSION_CODES.M)
-    private boolean addPermission(List<String> permissionsList, String permission) {
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-            permissionsList.add(permission);
-            // Check for Rationale Option
-            if (!shouldShowRequestPermissionRationale(permission))
-                return false;
-        }
-        return true;
-    }
-    /** Shows a dialog box with OK/cancel boxes*/
-    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(AddMessage.this)
-                .setMessage(message)
-                .setPositiveButton(R.string.ok, okListener)
-                .setNegativeButton(R.string.AddMessage_ButtonDeny, null)
-                .create()
-                .show();
-    }
-    /**Retrieves result of askForSmsSendPermission*/
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,  int[] grantResults) {
-        switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS:
-            {
-                Map<String, Integer> perms = new HashMap<>();
-                // Initial
-                perms.put(Manifest.permission.SEND_SMS, PackageManager.PERMISSION_GRANTED);
-                perms.put(Manifest.permission.READ_PHONE_STATE, PackageManager.PERMISSION_GRANTED);
-                // Fill with results
-                for (int i = 0; i < permissions.length; i++)
-                    perms.put(permissions[i], grantResults[i]);
-                // Check for ACCESS_FINE_LOCATION
-                if (perms.get(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED
-                        && perms.get(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                    Log.i(TAG, "onRequestPermissionsResult: All Permissions Granted");
-                    allPermissionsGranted = true;
-                } else {
-                    // Permission Denied
-                    Log.i(TAG, "onRequestPermissionsResult: Permissions were denied");
-                    Toast.makeText(AddMessage.this, R.string.AddMessage_Permissions_SomePermissionDenied, Toast.LENGTH_SHORT).show();
-                    allPermissionsGranted = false;
-                }
-            }
-            break;
-            default:
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-                allPermissionsGranted = false;
-        }
-    }
+    //============= Initialize data ================//
 
     /** Called when fragment view is created*/
     @Override
@@ -296,6 +185,7 @@ public class AddMessage extends AppCompatActivity
                 return false;
             }
         });
+        // Listener for any changes to phoneRetv
         phoneRetv.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -333,34 +223,79 @@ public class AddMessage extends AppCompatActivity
 
         /** If we are editing the message, pull values form sql database and insert them into the view*/
         if (editMessage) {
-            try {
-                getValuesFromSQL();
-                phoneRetv.requestFocus();
-                // Ran after view is created
-                phoneRetv.getViewTreeObserver().addOnGlobalLayoutListener(
-                        new ViewTreeObserver.OnGlobalLayoutListener() {
-                            @Override
-                            public void onGlobalLayout() {
-                                // Submit chips to phoneRetv while pulling icons from database
-                                for (int i = 0; i < message.getNameList().size(); i++) {
-                                    Uri uri = message.getUriList().get(i);
-                                    addNewChip(message.getNameList().get(i), message.getPhoneList().get(i), uri);
-                                }
-
-                                clearArrayLists();
-                                message.setAlarmNumber(editMessageNewAlarmNumber);
-                                phoneRetv.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                            }
-                });
-                // Set new data to view
-                messageContentEditText.setText(message.getContent());
-                datePicker.setSelectedDate(message.getDateTime());
-            } catch (Exception e) {
-                // To catch sql error on return to app because onResume is called again.
-                // It's okay if this happens
-                Log.e(TAG, "EditMessage: While adding data to activity an error was encountered", e);
-            }
+            retrieveEditMessageDataFromDB();
+            setFieldData();
         }
+    }
+
+
+
+    //============= Edit Mode data population ===============//
+
+    /**Get Edit message data from SQL*/
+    private void retrieveEditMessageDataFromDB() {
+        try {
+            retrieveAndUpdateMessageDataFromDB(getIntent().getExtras().getInt("OLD_ALARM", -1));
+        } catch (Exception e) {
+            // catch sql error on return to app because onResume is called again.
+            Log.e(TAG, "EditMessage: While adding data to activity an error was encountered", e);
+        }
+    }
+
+    /**Sets the field data with data in message object. Only call if fields are empty.*/
+    private void setFieldData() {
+        setPhoneRetvFieldData();
+        setMessageContentFieldData();
+        setDatePickerData();
+    }
+
+    /**Resubmit all chips that are present in message object. Make Sure phoneRetv is empty if calling this*/
+    private void setPhoneRetvFieldData() {
+        phoneRetv.requestFocus();
+        // addOnGlobalLayoutListener is ran after phoneRetv view is created
+        phoneRetv.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        // Loop through and add all chips manually
+                        for (int i = 0; i < message.getNameList().size(); i++) {
+                            Uri uri = message.getUriList().get(i);
+                            addNewChip(message.getNameList().get(i), message.getPhoneList().get(i), uri);
+                        }
+
+                        // Close the tree observer
+                        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+                            phoneRetv.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                        } else {
+                            phoneRetv.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        }
+                    }
+                });
+    }
+
+    /**Resubmit all chips that are present in message object. Make sure messageContentEditText is clear*/
+    private void setMessageContentFieldData() {
+        messageContentEditText.setText(message.getContent());
+    }
+
+    /**Sets date picker to the data present in message object.*/
+    private void setDatePickerData() {
+        // Wait until datePicker's view has been established:
+        datePicker.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        datePicker.setSelectedDate(message.getYear(), message.getMonth(), message.getDay());
+                        datePicker.setSelectedTime(message.getHour(), message.getMinute());
+
+                        // Close the tree observer
+                        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+                            datePicker.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                        } else {
+                            datePicker.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                        }
+                    }
+                });
     }
 
     //=============Date/Time Picker Fragments===============//
@@ -423,7 +358,7 @@ public class AddMessage extends AppCompatActivity
         Intent returnIntent = new Intent();
         Bundle extras = new Bundle();
         extras.putInt("ALARM_EXTRA", message.getAlarmNumber());
-        extras.putInt("OLD_ALARM", getIntent().getExtras().getInt("alarmNumber", -1));
+        extras.putInt("OLD_ALARM", getIntent().getExtras().getInt("OLD_ALARM", -1));
         returnIntent.putExtras(extras);
 
         // Return to HOME
@@ -812,13 +747,15 @@ public class AddMessage extends AppCompatActivity
 
     //===============Edit Message SQL Retrieval===============//
     /** Pulls values from sql db on editMessage*/
-    private void getValuesFromSQL() {
+    private void retrieveAndUpdateMessageDataFromDB(int alarmNumber) {
+        if (alarmNumber == -1) throw new IllegalArgumentException("alarmNumber cannot be -1");
+
         SQLDbHelper mDbHelper = new SQLDbHelper(AddMessage.this);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         // Which row to update, based on the ID
         String selection = SQLContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
-        String[] selectionArgs = { String.valueOf(message.getAlarmNumber()) };
+        String[] selectionArgs = { String.valueOf(alarmNumber) };
         String[] projection = {
                 SQLContract.MessageEntry.NAME,
                 SQLContract.MessageEntry.MESSAGE,
@@ -828,8 +765,7 @@ public class AddMessage extends AppCompatActivity
                 SQLContract.MessageEntry.DAY,
                 SQLContract.MessageEntry.HOUR,
                 SQLContract.MessageEntry.MINUTE,
-                SQLContract.MessageEntry.PHOTO_URI,
-                SQLContract.MessageEntry.ALARM_NUMBER
+                SQLContract.MessageEntry.PHOTO_URI
         };
 
         Cursor cursor = db.query(
@@ -848,16 +784,12 @@ public class AddMessage extends AppCompatActivity
                 (SQLContract.MessageEntry.NAME))));
         message.setPhoneList(Tools.stringToArrayList(cursor.getString(cursor.getColumnIndexOrThrow
                 (SQLContract.MessageEntry.PHONE))));
-        message.setYear(cursor.getInt(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.YEAR)));
-        message.setMonth(cursor.getInt(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.MONTH)));
-        message.setDay(cursor.getInt(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.DAY)));
-        message.setHour(cursor.getInt(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.HOUR)));
-        message.setMinute(cursor.getInt(cursor.getColumnIndexOrThrow
-                (SQLContract.MessageEntry.MINUTE)));
+        message.setDateTime(
+                cursor.getInt(cursor.getColumnIndexOrThrow(SQLContract.MessageEntry.YEAR)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(SQLContract.MessageEntry.MONTH)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(SQLContract.MessageEntry.DAY)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(SQLContract.MessageEntry.HOUR)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(SQLContract.MessageEntry.MINUTE)));
         message.setPhotoUriString(Tools.stringToArrayList(cursor.getString(cursor.getColumnIndexOrThrow
                 (SQLContract.MessageEntry.PHOTO_URI))));
         message.setContent(cursor.getString(cursor.getColumnIndexOrThrow
@@ -867,7 +799,118 @@ public class AddMessage extends AppCompatActivity
         cursor.close();
         mDbHelper.close();
 
-        Log.d(TAG, "getValuesFromSQL: Values retrieved");
+        Log.d(TAG, "retrieveAndUpdateMessageDataFromDB: Values retrieved");
+    }
+
+    //============= Permissions ================//
+    /**Checks if READ_CONTACTS permission exists and prompts user*/
+    @TargetApi(Build.VERSION_CODES.M)
+    private void askForContactsReadPermission() {
+        int hasWriteContactsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
+
+        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
+            if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
+                showMessageOKCancel(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                requestPermissions(new String[] {Manifest.permission.READ_CONTACTS},
+                                        MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+                            }
+                        });
+                return;
+            }
+            requestPermissions(new String[] {Manifest.permission.READ_CONTACTS},
+                    MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+        }
+    }
+    /**Checks if other permissions exists and prompts user*/
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean askForSmsSendPermission() {
+        List<String> permissionsNeeded = new ArrayList<>();
+        final List<String> permissionsList = new ArrayList<>();
+
+        if (!addPermission(permissionsList, Manifest.permission.SEND_SMS)) {
+            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_SMSMessages));
+        }
+        if (!addPermission(permissionsList, Manifest.permission.READ_PHONE_STATE)) {
+            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_PhoneCalls));
+        }
+
+        if (permissionsList.size() > 0) {
+            if (permissionsNeeded.size() > 0) {
+                // Need Rationale
+                String message = getString(R.string.AddMessage_Permissions_PermissionsPrompt1) + permissionsNeeded.get(0);
+                for (int i = 1; i < permissionsNeeded.size(); i++)
+                    message = message + ", " + permissionsNeeded.get(i);
+
+                message = message + getString(R.string.AddMessage_Permissions_PermissionPromt2);
+                showMessageOKCancel(message, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
+                    }
+                });
+            }
+            requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
+
+            Log.i(TAG, "askForSmsSendPermission: allPermissionsGranted value is " + allPermissionsGranted);
+            return allPermissionsGranted;
+        } else {
+            Log.i(TAG, "askForSmsSendPermission: All permissions are granted");
+            return true;
+        }
+    }
+    /**Utility method for askForSmsSendPermission*/
+    @TargetApi(Build.VERSION_CODES.M)
+    private boolean addPermission(List<String> permissionsList, String permission) {
+        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            permissionsList.add(permission);
+            // Check for Rationale Option
+            if (!shouldShowRequestPermissionRationale(permission))
+                return false;
+        }
+        return true;
+    }
+    /** Shows a dialog box with OK/cancel boxes*/
+    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(AddMessage.this)
+                .setMessage(message)
+                .setPositiveButton(R.string.ok, okListener)
+                .setNegativeButton(R.string.AddMessage_ButtonDeny, null)
+                .create()
+                .show();
+    }
+    /**Retrieves result of askForSmsSendPermission*/
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,  int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS:
+            {
+                Map<String, Integer> perms = new HashMap<>();
+                // Initial
+                perms.put(Manifest.permission.SEND_SMS, PackageManager.PERMISSION_GRANTED);
+                perms.put(Manifest.permission.READ_PHONE_STATE, PackageManager.PERMISSION_GRANTED);
+                // Fill with results
+                for (int i = 0; i < permissions.length; i++)
+                    perms.put(permissions[i], grantResults[i]);
+                // Check for ACCESS_FINE_LOCATION
+                if (perms.get(Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED
+                        && perms.get(Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+                    Log.i(TAG, "onRequestPermissionsResult: All Permissions Granted");
+                    allPermissionsGranted = true;
+                } else {
+                    // Permission Denied
+                    Log.i(TAG, "onRequestPermissionsResult: Permissions were denied");
+                    Toast.makeText(AddMessage.this, R.string.AddMessage_Permissions_SomePermissionDenied, Toast.LENGTH_SHORT).show();
+                    allPermissionsGranted = false;
+                }
+            }
+            break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                allPermissionsGranted = false;
+        }
     }
 }
 

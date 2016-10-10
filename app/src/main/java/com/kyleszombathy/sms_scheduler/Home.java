@@ -315,12 +315,13 @@ public class Home extends Activity {
                             public void onItemClick(View view, int clickedPosition) {
                                 // Tie to global values for use after AddMessage return
                                 int oldAlarmNumber = messages.get(clickedPosition).getAlarmNumber();
+                                if (oldAlarmNumber == -1) throw new ArithmeticException("oldAlarmNumber cannot be -1 if passing to AddMessage");
                                 int newAlarmNumber = getRandomInt(MIN_INT, MAX_INT);
 
                                 // Bundle extras
                                 Bundle extras = new Bundle();
-                                extras.putInt(ALARM_EXTRA, oldAlarmNumber);
-                                extras.putInt("NEW_ALARM", newAlarmNumber);
+                                extras.putInt(ALARM_EXTRA, newAlarmNumber);
+                                extras.putInt("OLD_ALARM", oldAlarmNumber);
                                 extras.putBoolean(EDIT_MESSAGE_EXTRA, true);
 
                                 // Create new intent to AddMessage with data from item in position
