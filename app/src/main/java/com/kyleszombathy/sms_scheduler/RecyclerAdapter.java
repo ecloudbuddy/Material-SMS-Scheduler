@@ -1,5 +1,6 @@
 package com.kyleszombathy.sms_scheduler;
 
+import android.content.Context;
 import android.os.CountDownTimer;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
@@ -10,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -20,6 +22,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
     private static final String TAG = "RecyclerAdapter";
     private MessagesArrayList messages;
+    private Context context;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -57,7 +60,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     @Override
     public RecyclerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v;
-        v = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_text_view, parent, false);
+        context = parent.getContext();
+        v = LayoutInflater.from(context).inflate(R.layout.recycler_text_view, parent, false);
         return new ViewHolder(v);
     }
 
@@ -96,29 +100,133 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
 
     private class ReadableDateCountdownTimer extends CountDownTimer {
         private ViewHolder holder;
-
-        public ReadableDateCountdownTimer(long millisInFuture, long countDownInterval, final ViewHolder holder) {
-            super(millisInFuture, countDownInterval);
-            this.holder = holder;
-        }
+        private Calendar futureTime;
+        GregorianCalendar dateToday, dateTomorrow, dateNextWeek;
 
         public ReadableDateCountdownTimer(Calendar futureTime, final ViewHolder holder) {
             super(futureTime.getTimeInMillis() - System.currentTimeMillis(), 1000);
             this.holder = holder;
-            updateHolderTextWithTimeUntilEvent(futureTime.getTimeInMillis() - System.currentTimeMillis());
+            this.futureTime = futureTime;
+            updateDates();
+            updateHolderTextWithTimeUntilEvent();
+        }
+
+        /**Update all the date objects*/
+        private void updateDates() {
+            dateToday = getDateToday();
+            dateTomorrow = getDateTomorrow();
+            dateNextWeek = getDateNextWeek();
+        }
+
+        private GregorianCalendar getDateToday() {
+            GregorianCalendar timeNow = new GregorianCalendar();
+            GregorianCalendar dateToday = new  GregorianCalendar(timeNow.get(Calendar.YEAR), timeNow.get(Calendar.MONTH), timeNow.get(Calendar.DAY_OF_MONTH));
+            dateToday.add(Calendar.DAY_OF_MONTH, 1);
+            return dateToday;
+        }
+
+        private GregorianCalendar getDateTomorrow() {
+            GregorianCalendar dateTomorrow = (GregorianCalendar) dateToday.clone();
+            dateTomorrow.add(Calendar.DAY_OF_MONTH, 1);
+            return dateTomorrow;
+        }
+
+        private GregorianCalendar getDateNextWeek() {
+            GregorianCalendar dateNextWeek = (GregorianCalendar) dateToday.clone();
+            dateNextWeek.add(Calendar.DAY_OF_MONTH, 7);
+            return dateNextWeek;
         }
 
         @Override
         public void onTick(long millisUntilFinished) {
-            updateHolderTextWithTimeUntilEvent(millisUntilFinished);
+            updateHolderTextWithTimeUntilEvent();
         }
 
-        private void updateHolderTextWithTimeUntilEvent(long millisUntilFinished) {
-            Long currentTimeInMillis = System.currentTimeMillis();
-            holder.dateTimeHeader.setText(DateUtils.getRelativeTimeSpanString(
-                    millisUntilFinished + currentTimeInMillis,
-                    currentTimeInMillis,
-                    DateUtils.SECOND_IN_MILLIS).toString());
+
+        /**Get a readable string of the time remaining*/
+        private void updateHolderTextWithTimeUntilEvent() {
+            String textToDisplay;
+
+            // If time equals midnight, then update all the dates
+            if (isMidnight(futureTime)) {
+                updateDates();
+            }
+
+            if (futureTime.before(dateToday) ) {
+                textToDisplay = getReadableHoursSecondsUntilTime(futureTime);
+            } else if(futureTime.before(dateTomorrow)) {
+                textToDisplay = getTomorrowAndTime();
+            } else if (futureTime.before(dateNextWeek)) {
+                textToDisplay = getDayOfWeekAndTime();
+            } else if (isOneWeekFromNow(futureTime)) {
+                textToDisplay = context.getString(R.string.Next) + " " + getDayOfWeekAndTime();
+            } else {
+                textToDisplay = getDateAndTime();
+            }
+            holder.dateTimeHeader.setText(textToDisplay);
+        }
+
+        /**
+         * Returns true if the time is midnight
+         * @param time the time
+         * @return true if the time is midnight
+         */
+        private boolean isMidnight(Calendar time) {
+            return (time.get(Calendar.HOUR_OF_DAY) == 0) && (time.get(Calendar.MINUTE) == 0);
+        }
+
+        /**
+         * Returns a readable string of hours/time until the future time
+         * @param futureTime the future time.
+         * @return a readable string of hours/time until the future time
+         */
+        private String getReadableHoursSecondsUntilTime(Calendar futureTime) {
+            return DateUtils.getRelativeTimeSpanString(futureTime.getTimeInMillis(), System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS ).toString();
+        }
+
+        private String getTime() {
+            int flags = DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_TIME ;
+            return DateUtils.formatDateTime(context, futureTime.getTimeInMillis(), flags);
+        }
+
+        /**
+         * Gets a readable date/time string in the form "Tomorrow, 3pm"
+         * @return a readable date/time string in the form "Tomorrow, 3pm"
+         */
+        private String getTomorrowAndTime() {
+            return context.getString(com.simplicityapks.reminderdatepicker.lib.R.string.date_tomorrow) + ", " + getTime();
+        }
+
+
+
+        /**
+         * Gets a readable date/time string in the form "Thursday, 3pm"
+         * @return a readable date/time string in the form "Thursday, 3pm"
+         */
+        private String getDayOfWeekAndTime() {
+            int flags = DateUtils.FORMAT_SHOW_WEEKDAY | DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_TIME;
+            return DateUtils.formatDateTime(context, futureTime.getTimeInMillis(), flags);
+        }
+
+        /**
+         * Gets a readable date/time string in the form "Oct 26, 3pm"
+         * @return a readable date/time string in the form "Oct 26, 3pm"
+         */
+        private String getDateAndTime() {
+            int flags = DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_ABBREV_MONTH | DateUtils.FORMAT_SHOW_TIME | DateUtils.FORMAT_ABBREV_TIME;
+            return DateUtils.formatDateTime(context, futureTime.getTimeInMillis(), flags);
+        }
+
+        /**
+         * Returns true if the time is one week from the current date.
+         * @param futureTime The time to test
+         * @return true if the time is one week from the current date.
+         */
+        private boolean isOneWeekFromNow(Calendar futureTime) {
+            GregorianCalendar futureTimeIgnoringHours = (GregorianCalendar) futureTime.clone();
+            futureTimeIgnoringHours.set(Calendar.HOUR_OF_DAY, 0);
+            futureTimeIgnoringHours.set(Calendar.MINUTE, 0);
+            return futureTimeIgnoringHours.equals(dateNextWeek);
         }
 
         @Override
