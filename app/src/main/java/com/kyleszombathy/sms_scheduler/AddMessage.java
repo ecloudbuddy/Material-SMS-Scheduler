@@ -47,7 +47,6 @@ import com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +70,7 @@ public class AddMessage extends AppCompatActivity
 
     // ReminderDatePicker Library
     private ReminderDatePicker datePicker;
+    private boolean dateTimeIsValid;
 
     // Contact Picker Field
     private RecipientEditTextView phoneRetv;
@@ -228,8 +228,6 @@ public class AddMessage extends AppCompatActivity
         }
     }
 
-
-
     //============= Edit Mode data population ===============//
 
     /**Get Edit message data from SQL*/
@@ -299,6 +297,7 @@ public class AddMessage extends AppCompatActivity
     }
 
     //=============Date/Time Picker Fragments===============//
+
     /**Shows a time picker dialog fragment*/
     private void showTimePickerDialog() {
         TimePickerFragment timePicker = new TimePickerFragment();
@@ -309,6 +308,7 @@ public class AddMessage extends AppCompatActivity
         DatePickerFragment datePicker = new DatePickerFragment();
         datePicker.show(getSupportFragmentManager(), "datePicker");
     }
+
     /** Retrieves data from DatePickerFragment on completion*/
     public void onComplete(int year, int month, int day) {
         GregorianCalendar calendar = new GregorianCalendar(year, month, day);
@@ -324,12 +324,19 @@ public class AddMessage extends AppCompatActivity
     }
 
     private void fixDateIfBeforeCurrentTime() {
-        Calendar dateTimeNow = Calendar.getInstance();
-        Date selDateTime = datePicker.getSelectedDate().getTime();
+        Calendar selDateTime = datePicker.getSelectedDate();
 
-        if (selDateTime.before(dateTimeNow.getTime())) {
-            datePicker.setSelectedDate(dateTimeNow);
+        Calendar oneMinuteAgo = Calendar.getInstance();
+        oneMinuteAgo.add(Calendar.MINUTE, -1);
+
+        if (selDateTime.before(oneMinuteAgo)) {
+            fixDateTime();
+            Toast.makeText(this, "The time you have selected is before the current time and has been updated.", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void fixDateTime() {
+        datePicker.setSelectedDate(Calendar.getInstance());
     }
 
     //============="Done" button press actions================//
@@ -367,15 +374,7 @@ public class AddMessage extends AppCompatActivity
     }
 
     /**Verifies that user data is correct and makes error messages*/
-    private boolean verifyData() throws ArrayIndexOutOfBoundsException {
-        boolean result = true;
-        Pattern regex = Pattern.compile(PHONERETV_FULL_REGEX);
-        Pattern regexStrict = Pattern.compile(PHONERETV_PHONE_REGEX_STRICT);
-
-        final String phoneRetvToString = phoneRetv.getText().toString();
-        String lastTypedChar = getLastCharOfString(phoneRetvToString);
-        String[] fieldTextArray = getValidFieldTextArray(phoneRetvToString, lastTypedChar);
-
+    private boolean verifyData() {
         clearArrayLists();
         clearPhoneRetvError();
         clearMessageContentError();
@@ -389,11 +388,22 @@ public class AddMessage extends AppCompatActivity
         // Get time from datePicker
         message.setDateTime(datePicker.getSelectedDate());
 
+        validateDateTime();
+        return validatePhoneRetv() && validateMessageContent() && dateTimeIsValid;
+    }
+
+    private boolean validatePhoneRetv() {
+        Pattern regex = Pattern.compile(PHONERETV_FULL_REGEX);
+        Pattern regexStrict = Pattern.compile(PHONERETV_PHONE_REGEX_STRICT);
+
+        final String phoneRetvToString = phoneRetv.getText().toString();
+        String lastTypedChar = getLastCharOfString(phoneRetvToString);
+        String[] fieldTextArray = getValidFieldTextArray(phoneRetvToString, lastTypedChar);
+
         if (chips.length != fieldTextArray.length) {
             // Arrays should be the same length. If they are not, there is something wrong in getValidFieldTextArray()
             Log.e(TAG + "verifyData:", "Error: chips length is not equal to phoneRetv length");
             Log.e(TAG + "verifyData:", "chips is " + Arrays.toString(chips) + " fieldTextArray " + Arrays.toString(fieldTextArray));
-            //throw new ArrayIndexOutOfBoundsException(); //TODO: In Prod, change this to an Error code so it does not impact user experience
         }
 
         // PhoneRetv error handling
@@ -429,14 +439,49 @@ public class AddMessage extends AppCompatActivity
                 }
             }
         }
+        return true;
+    }
 
-        // Message Content error handling
+    private boolean validateMessageContent() {
         if (message.getContent().length() == 0) {
             errorMessageContentWrong();
             return false;
         }
-
         return true;
+    }
+
+    private void validateDateTime() {
+        Calendar selDateTime = datePicker.getSelectedDate();
+        // Get time 5 minutes from now
+        GregorianCalendar in5Mins = new GregorianCalendar();
+        in5Mins.add(Calendar.MINUTE, 5);
+
+        if ( selDateTime.before(new GregorianCalendar()) ) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle(R.string.ValidateDateTimeDialogTitle1)
+                    .setMessage(R.string.ValidateDateTimeDialogMessage1)
+                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            // Do nothing
+                        }
+                    }).show();
+            dateTimeIsValid = false;
+        } else if (selDateTime.before(in5Mins)) {
+            showValidateDateTimeDialog();
+            dateTimeIsValid = false;
+        } else {
+            dateTimeIsValid = true;
+        }
+    }
+
+    private void showValidateDateTimeDialog() {
+        ValidateDateTimeDialogFragment validateDateTimeDialogFragment = new ValidateDateTimeDialogFragment();
+        validateDateTimeDialogFragment.show(getSupportFragmentManager(), "ValidateDateTimeDialog");
+    }
+
+    public void validateDateTimePositiveClick() {
+        dateTimeIsValid = true;
+        finishAndReturn();
     }
 
     private void updateChips() {
@@ -810,7 +855,7 @@ public class AddMessage extends AppCompatActivity
 
         if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
-                showMessageOKCancel(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
+                showMessageOKDeny(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -845,7 +890,7 @@ public class AddMessage extends AppCompatActivity
                     message = message + ", " + permissionsNeeded.get(i);
 
                 message = message + getString(R.string.AddMessage_Permissions_PermissionPromt2);
-                showMessageOKCancel(message, new DialogInterface.OnClickListener() {
+                showMessageOKDeny(message, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
@@ -872,12 +917,21 @@ public class AddMessage extends AppCompatActivity
         }
         return true;
     }
+    /** Shows a dialog box with OK/deny boxes*/
+    private void showMessageOKDeny(String message, DialogInterface.OnClickListener okListener) {
+        new AlertDialog.Builder(AddMessage.this)
+                .setMessage(message)
+                .setPositiveButton(R.string.ok, okListener)
+                .setNegativeButton(R.string.AddMessage_ButtonDeny, null)
+                .create()
+                .show();
+    }
     /** Shows a dialog box with OK/cancel boxes*/
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
         new AlertDialog.Builder(AddMessage.this)
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, okListener)
-                .setNegativeButton(R.string.AddMessage_ButtonDeny, null)
+                .setNegativeButton(R.string.picker_cancel, null)
                 .create()
                 .show();
     }

@@ -29,4 +29,10 @@
     <string name="AddMessage.Permissions.PermissionsPrompt1">"You need to grant access to "</string>
     <string name="AddMessage.Permissions.PermissionPromt2">" for vital app functions."</string>
     <string name="AddMessage.PhoneRetv.DuplicatePhone">Cannot have duplicate phone number</string>
+    <string name="Next">Next</string>
+    <string name="ValidateDateTimeDialogTitle1">Invalid Date/Time</string>
+    <string name="ValidateDateTimeDialogMessage1">The date/time you have selected is in the past. Please select a valid date/time.</string>
+    <string name="ValidateDateTimeDialogTitle2">Warning: Time is within 5 minutes from now.</string>
+    <string name="ValidateDateTimeDialogMessage2">The time you selected is within 5 minutes of the current time. Are you sure you want to schedule this message?</string>
+    <string name="YES">YES</string>
 </resources>
