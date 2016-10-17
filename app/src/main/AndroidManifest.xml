@@ -30,6 +30,7 @@
         <activity
             android:name=".AddMessage"
             android:label="@string/Title.AddMessage"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:parentActivityName=".Home"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data

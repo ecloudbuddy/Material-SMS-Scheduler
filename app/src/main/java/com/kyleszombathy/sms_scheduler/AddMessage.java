@@ -157,11 +157,10 @@ public class AddMessage extends AppCompatActivity
 
     //============= Initialize data ================//
 
-    /** Called when fragment view is created*/
+
     @Override
-    protected void onResume() {
-        super.onResume();
-        // Setup
+    protected void onStart() {
+        super.onStart();
         initializeViewFromXML();
         setupPhoneRetvLibrary();
         setupDateTimePickers();
@@ -176,6 +175,14 @@ public class AddMessage extends AppCompatActivity
             setFieldData();
         }
     }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Log.i(TAG, "onRestart called");
+    }
+
+
 
     //============= Setup ===============//
     private void initializeViewFromXML() {
