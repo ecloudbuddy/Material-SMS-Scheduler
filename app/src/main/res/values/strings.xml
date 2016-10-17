@@ -35,4 +35,5 @@
     <string name="ValidateDateTimeDialogTitle2">Warning: Time is within 5 minutes from now.</string>
     <string name="ValidateDateTimeDialogMessage2">The time you selected is within 5 minutes of the current time. Are you sure you want to schedule this message?</string>
     <string name="YES">YES</string>
+    <string name="FixDateTimeToast">The time you have selected is before the current time and has been updated.</string>
 </resources>

@@ -27,7 +27,6 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnKeyListener;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.inputmethod.EditorInfo;
@@ -110,18 +109,21 @@ public class AddMessage extends AppCompatActivity
         askForContactsReadPermission();
     }
 
+    /**Set the animation from Home*/
     private void setWindowTransitionAnimation() {
         getWindow().setAllowEnterTransitionOverlap(true);
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         getWindow().setEnterTransition(new Fade());
     }
 
+    /**Create the Activity view (the view is not entirely created until after onResume)*/
     private void createView(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_message);
         Log.d(TAG, "Activity View Created");
     }
 
+    /**Retrieve extras*/
     private void getExtrasFromHome() {
         // Get "Edit" extras from Home
         Bundle extras = getIntent().getExtras();
@@ -129,6 +131,7 @@ public class AddMessage extends AppCompatActivity
         message.setAlarmNumber(extras.getInt("alarmNumber", -1));
     }
 
+    /**Set the top toolbar*/
     private void setUpToolbar() {
         Toolbar myChildToolbar = (Toolbar) findViewById(R.id.SMSScheduler_Toolbar);
         setSupportActionBar(myChildToolbar);
@@ -136,6 +139,7 @@ public class AddMessage extends AppCompatActivity
         if (ab != null) ab.setDisplayHomeAsUpEnabled(true);
     }
 
+    /**Set up the fragment view (this is the view that everything is displayed in)*/
     private void createFragmentView() {
         AddMessageFragment firstFragment = new AddMessageFragment();
         firstFragment.setArguments(getIntent().getExtras());
@@ -157,7 +161,24 @@ public class AddMessage extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        // Setup
+        initializeViewFromXML();
+        setupPhoneRetvLibrary();
+        setupDateTimePickers();
+        addListeners();
 
+        // Remove any leftover error messages
+        clearErrorMessages();
+
+        /** If we are editing the message, pull values form sql database and insert them into the view*/
+        if (editMessage) {
+            retrieveEditMessageDataFromDB();
+            setFieldData();
+        }
+    }
+
+    //============= Setup ===============//
+    private void initializeViewFromXML() {
         // Get views from xml
         phoneRetv = (RecipientEditTextView) findViewById(R.id.AddMessage_PhoneRetv);
         phoneRetvErrorMessage = (TextView) findViewById(R.id.AddMessage_PhoneRetv_Error);
@@ -165,16 +186,114 @@ public class AddMessage extends AppCompatActivity
         messageContentErrorMessage = (TextView) findViewById(R.id.AddMessage_MessageContent_Error);
         counterTextView = (TextView) findViewById(R.id.AddMessage_MessageContent_Counter);
         datePicker = (ReminderDatePicker) findViewById(R.id.AddMessage_DatePicker);
+    }
 
-        // Text change listener to message content
-        messageContentEditText.addTextChangedListener(messageContentEditTextWatcher);
-
-        // Setup phoneRetv autocomplete contacts and listeners
+    private void setupPhoneRetvLibrary() {
         phoneRetv.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
         phoneRetv.setAdapter(new BaseRecipientAdapter(BaseRecipientAdapter.QUERY_TYPE_PHONE, this));
         phoneRetv.setImeOptions(EditorInfo.IME_ACTION_DONE);
+    }
+
+    //============= Date/Time Pickers ===============//
+    private void setupDateTimePickers() {
+        datePicker.setCustomDatePicker(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showDatePickerDialog();
+            }
+        });
+        datePicker.setCustomTimePicker(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showTimePickerDialog();
+            }
+        });
+    }
+
+    /**Shows a date picker dialog fragment*/
+    private void showDatePickerDialog() {
+        DatePickerFragment datePicker = new DatePickerFragment();
+        datePicker.show(getSupportFragmentManager(), "datePicker");
+    }
+
+    /**Shows a time picker dialog fragment*/
+    private void showTimePickerDialog() {
+        TimePickerFragment timePicker = new TimePickerFragment();
+        timePicker.show(getSupportFragmentManager(), "timePicker");
+    }
+
+    /** Retrieves data from DatePickerFragment on completion*/
+    @Override
+    public void onComplete(int year, int month, int day) {
+        GregorianCalendar calendar = new GregorianCalendar(year, month, day);
+        datePicker.setSelectedDate(calendar);
+        fixDateIfBeforeCurrentTime();
+    }
+
+    /** Retrieves data from TimePickerFragment on completion*/
+    @Override
+    public void onComplete(int hourOfDay, int minute) {
+        datePicker.setSelectedTime(hourOfDay, minute);
+        fixDateIfBeforeCurrentTime();
+    }
+
+    /**Sets date/time to current time if selected time is before the current time*/
+    private void fixDateIfBeforeCurrentTime() {
+        Calendar selDateTime = datePicker.getSelectedDate();
+
+        Calendar oneMinuteAgo = Calendar.getInstance();
+        oneMinuteAgo.add(Calendar.MINUTE, -1);
+
+        if (selDateTime.before(oneMinuteAgo)) {
+            fixDateTime();
+            Toast.makeText(this, R.string.FixDateTimeToast, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**Set date/time to current time*/
+    private void fixDateTime() {
+        datePicker.setSelectedDate(Calendar.getInstance());
+    }
+
+    //====================== Add Listeners =======================//
+    private void addListeners() {
+        addPhoneRetvListeners();
+        addMessageContentListeners();
+    }
+
+    //====================== PhoneRetvListeners =======================//
+
+    private void addPhoneRetvListeners() {
+        addPhoneRetvTextChangedListener();
+        addPhoneRetvBackspaceListener();
+        addPhoneRetvEnterKeyListener();
+    }
+
+    /*Begin phoneRetvEditTextWatcher*/
+    /**Add a listener to all the text changed in phoneRetv in order to detect errors upon user typing*/
+    private void addPhoneRetvTextChangedListener() {
         phoneRetv.addTextChangedListener(phoneRetvEditTextWatcher);
-        phoneRetv.setOnKeyListener(new OnKeyListener() {
+    }
+
+    /** Watches phoneRetv and removes error text*/
+    private final TextWatcher phoneRetvEditTextWatcher = new TextWatcher() {
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+        public void onTextChanged(CharSequence charactersPressed, int start, int before, int count) {
+            if (count == 1) {
+                Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Count is " + count + "charactersPressed: " + charactersPressed + "start: " + start + "before: " + before);
+                tryAddChipFromTextEntered(false);
+            } else {
+                Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Count is " + count);
+            }
+        }
+        public void afterTextChanged(Editable s) {
+        }
+    };
+
+    /**Add onkeyListener to clear the error message once backspace is pressed*/
+    private void addPhoneRetvBackspaceListener() {
+        phoneRetv.setOnKeyListener(new View.OnKeyListener() {
             @Override
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 if(keyCode == KEYCODE_DEL) {
@@ -185,7 +304,10 @@ public class AddMessage extends AppCompatActivity
                 return false;
             }
         });
-        // Listener for any changes to phoneRetv
+    }
+
+    /**Detect if enter key on keyboard is pressed*/
+    private void addPhoneRetvEnterKeyListener() {
         phoneRetv.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -201,32 +323,194 @@ public class AddMessage extends AppCompatActivity
                 return result;
             }
         });
+    }
 
-        // Remove any ghost errors
+
+    /**If user enters a phone number and clicks 'Enter', 'comma', or 'space', try to detect if
+     * that phone number is valid or if the phone number is a duplicate. If it's valid, add it
+     * as a manual chip entry.*/
+    private boolean tryAddChipFromTextEntered(boolean enterKeyPressed) {
+        boolean isChipAddSuccessful = false;
+        final String chipLastPhone, fieldText;
+        String fieldLastPhone, lastTypedChar;
+
+        // Get PhoneRetv Field Data
+        fieldText = phoneRetv.getText().toString(); // Field text, including chips in a toString format
+        lastTypedChar = getLastCharOfString(fieldText); // Gets the last character of the "typed" text
+        fieldLastPhone = getFieldLastPhone(fieldText, lastTypedChar);  // Get the supposed phone number the user entered
+
+        // Get chip data
+        updateChips();
+        chipLastPhone = getLastPhoneFromChip(chips);
+
+        // Display some logging info
+        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: BEGINNING TO SEARCH ==============================================================");
+        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: lastCharPhoneRetvToString pressed - '" + lastTypedChar + "'");
+        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: phoneRetvToString - '" + fieldText + "'");
+        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: phoneRetvToStringLastArrayIndex - '" + fieldLastPhone + "'");
+        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Arrays.toString(chips) - '" + Arrays.toString(chips) + "'");
+        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: lastChipPhoneString - " + chipLastPhone);
+        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: regex_strict.matcher(isPhoneValid(phoneRetvToStringLastArrayIndex) - " + isPhoneValid(fieldLastPhone));
+
+        // Clear error upon user typing
         clearPhoneRetvError();
-        clearMessageContentError();
 
-        // Set up Date and Time pickers
-        datePicker.setCustomDatePicker(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showDatePickerDialog();
-            }
-        });
-        datePicker.setCustomTimePicker(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showTimePickerDialog();
-            }
-        });
+        // Fix duplicates after 1.Selecting contact 2.backspacing 3.clicking ","
+        if (fieldText.endsWith(", ")) {
+            displayErrorIfDuplicate(chips);
+        }
 
+        // First, check if the conditions are correct to add a new phone number, then check if it's valid and add it
+        if (!doesPhoneEndWithBadKeys(fieldText) // Reject any endkeys that cause bugs
+                && (enterKeyPressed || isLastCharValid(lastTypedChar)) // Check if valid endkey is pressed
+                && !displayErrorIfDuplicate(chips) // Check for duplicates
+                && isPhoneValid(fieldLastPhone)) { // Check if the entered number is valid
 
-        /** If we are editing the message, pull values form sql database and insert them into the view*/
-        if (editMessage) {
-            retrieveEditMessageDataFromDB();
-            setFieldData();
+            addNewChip(fieldLastPhone, fieldLastPhone);
+            displayErrorIfDuplicate(chips);
+            Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Created chip with phoneRetvToStringLastArrayIndex - '" + fieldLastPhone + " <------CHIP CREATED------");
+            isChipAddSuccessful = true;
+        }
+        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: ENDING SEARCH ====================================================================");
+        return isChipAddSuccessful;
+    }
+
+    private String getLastCharOfString(String str) {
+        if (str.length()>0)
+            return str.substring(str.length() - 1);
+        else return EMPTY_STRING;
+    }
+
+    /**Try to retrieve the phone number that the user entered*/
+    private String getFieldLastPhone(String fieldText, String lastTypedChar) {
+        String[] fieldTextArray = getValidFieldTextArray(fieldText, lastTypedChar);
+        return fieldTextArray[fieldTextArray.length - 1].trim();
+    }
+
+    /**Gets an array filled with "valid" information. It cleans or deletes invalid index's*/
+    private String[] getValidFieldTextArray(String fieldText, String lastTypedChar){
+        String[] fieldTextArray;
+
+        // Split phoneRetvToString by commas and spaces depending on what it ends with
+        if (lastTypedChar.equals(PHONERETV_CUSTOM_ENDKEYS[0])) {
+            fieldTextArray = fieldText.split(PHONERETV_CUSTOM_ENDKEYS[0]);
+        } else {
+            fieldTextArray = fieldText.split(PHONERETV_CUSTOM_ENDKEYS[0] + PHONERETV_CUSTOM_ENDKEYS[1]);
+        }
+
+        // Remove all non-numericals from array
+        for (int i =0; i < fieldTextArray.length; i++) {
+            fieldTextArray[i] = deleteAllNonNumbericals(fieldTextArray[i]);
+        }
+
+        // Trim last array index if last index is an empty string
+        if ((fieldTextArray[fieldTextArray.length - 1].trim().equals(EMPTY_STRING)
+                || fieldTextArray[fieldTextArray.length - 1].trim().equals(",") )
+                && fieldTextArray.length > 1) { // fieldTextArray.length is needed to avoid Exception
+            ArrayList<String> fieldTextArrayList = new ArrayList<>(Arrays.asList(fieldTextArray));
+            fieldTextArrayList.remove(fieldTextArray.length - 1);
+            //noinspection ToArrayCallWithZeroLengthArrayArgument
+            return fieldTextArrayList.toArray(new String[0]);
+        } else {
+            return fieldTextArray;
         }
     }
+
+    /**Replace all non numericals with an empty string*/
+    private String deleteAllNonNumbericals(String fieldText) {
+        final String nonNumericalRegex = "[^0-9]";
+        return fieldText.replaceAll(nonNumericalRegex,EMPTY_STRING);
+    }
+
+    /**Detects duplicates in a chips array. O(n^2) but it's a small array, so doesn't matter.*/
+    private boolean displayErrorIfDuplicate(DrawableRecipientChip[] chips) {
+        final int arrayLength = chips.length;
+        String phones[] = new String[arrayLength];
+
+        for (int i = 0; i < arrayLength; i++) {
+            // Replace all non-numericals with an empty string
+            phones[i] = deleteAllNonNumbericals(getPhoneNumbersFromChip(chips[i]));
+            // If phone is has a preceding "1", remove it
+            if (phones[i].startsWith("1")) phones[i] = phones[i].substring(1);
+        }
+
+        for (int i = 0; i < arrayLength; i++) {
+            for (int j = i + 1; j < arrayLength; j++) {
+                if (j != i && arePhoneNumbersDuplicate(phones[i], phones[j])) {
+                    Log.e(TAG, "displayErrorIfDuplicate: " +
+                            "Duplicates found for chipPhoneArray[j] - '" + phones[i] + "' " +
+                            "chipPhoneArray[k] - '" + phones[j] + "' " + " <------DUPLICATES FOUND 1------");
+                    errorPhoneWrong(getString(R.string.AddMessage_PhoneRetv_DuplicatePhone));
+                    return true;
+                }
+                Log.d(TAG, "displayErrorIfDuplicate: " +
+                        "Duplicates not found for chipPhoneArray[j] - '" + phones[i] + "' " +
+                        "chipPhoneArray[k] - '" + phones[j] + "' " + " <------DUPLICATES NOT FOUND 1------");
+            }
+        }
+        return false;
+    }
+
+    /**Detects if two phone numbers are duplicates*/
+    private boolean arePhoneNumbersDuplicate(String phone1, String phone2) {
+        return !phone1.equals(EMPTY_STRING) && !phone2.equals(EMPTY_STRING) && phone2.equals(phone1);
+    }
+
+    /**Detect if the last key entered is a valid key (e.g. comma)*/
+    private boolean doesPhoneEndWithBadKeys(String phone) {
+        for (String badKey : PHONERETV_CUSTOM_ENDKEYS_BAD) {
+            if (phone.endsWith(badKey)) return true;
+        }
+        return false;
+    }
+
+    /**Check if the last character is a valid endkey*/
+    private boolean isLastCharValid(String lastChar) {
+        for (String endKey : PHONERETV_CUSTOM_ENDKEYS) if (lastChar.equalsIgnoreCase(endKey)) return true;
+        return false;
+    }
+
+    /**Check if the entered phone number is in a valid form*/
+    private boolean isPhoneValid(String phone) {
+        final Pattern phone_regex_strict = Pattern.compile(PHONERETV_PHONE_REGEX_STRICT);
+        return phone_regex_strict.matcher(phone).matches();
+    }
+
+    private String getLastPhoneFromChip(DrawableRecipientChip[] chips) {
+        if (chips.length > 0)
+            return getPhoneNumbersFromChip( chips[chips.length - 1].toString().trim() );
+        else return null;
+    }
+
+    //============= Message Content Listeners ===============//
+
+    private void addMessageContentListeners() {
+        // Text change listener to message content
+        messageContentEditText.addTextChangedListener(messageContentEditTextWatcher);
+    }
+
+    /**Watches message content, makes a counter, and handles errors*/
+    private final TextWatcher messageContentEditTextWatcher = new TextWatcher() {
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            //This sets a textview to the current length
+            int length = s.length();
+            // Begins counting length of message
+            if (length == 1) {
+                clearMessageContentError();
+            }
+            // If length exceeds 1 message, shows user
+            if (length <= SMS_MAX_LENGTH && length >= SMS_MAX_LENGTH_BEFORE_SHOWING_WARNING) {
+                counterTextView.setText(String.valueOf(SMS_MAX_LENGTH - length));
+            } else if (length > SMS_MAX_LENGTH){
+                counterTextView.setText(String.valueOf(SMS_MAX_LENGTH - length % SMS_MAX_LENGTH)
+                        + " / " + String.valueOf(1 + (length / SMS_MAX_LENGTH)));
+            } else {
+                counterTextView.setText(EMPTY_STRING);
+            }
+        }
+        public void afterTextChanged(Editable s) {}
+    };
 
     //============= Edit Mode data population ===============//
 
@@ -296,50 +580,7 @@ public class AddMessage extends AppCompatActivity
                 });
     }
 
-    //=============Date/Time Picker Fragments===============//
-
-    /**Shows a time picker dialog fragment*/
-    private void showTimePickerDialog() {
-        TimePickerFragment timePicker = new TimePickerFragment();
-        timePicker.show(getSupportFragmentManager(), "timePicker");
-    }
-    /**Shows a date picker dialog fragment*/
-    private void showDatePickerDialog() {
-        DatePickerFragment datePicker = new DatePickerFragment();
-        datePicker.show(getSupportFragmentManager(), "datePicker");
-    }
-
-    /** Retrieves data from DatePickerFragment on completion*/
-    public void onComplete(int year, int month, int day) {
-        GregorianCalendar calendar = new GregorianCalendar(year, month, day);
-        datePicker.setSelectedDate(calendar);
-        fixDateIfBeforeCurrentTime();
-    }
-
-    @Override
-    /** Retrieves data from TimePickerFragment on completion*/
-    public void onComplete(int hourOfDay, int minute) {
-        datePicker.setSelectedTime(hourOfDay, minute);
-        fixDateIfBeforeCurrentTime();
-    }
-
-    private void fixDateIfBeforeCurrentTime() {
-        Calendar selDateTime = datePicker.getSelectedDate();
-
-        Calendar oneMinuteAgo = Calendar.getInstance();
-        oneMinuteAgo.add(Calendar.MINUTE, -1);
-
-        if (selDateTime.before(oneMinuteAgo)) {
-            fixDateTime();
-            Toast.makeText(this, "The time you have selected is before the current time and has been updated.", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private void fixDateTime() {
-        datePicker.setSelectedDate(Calendar.getInstance());
-    }
-
-    //============="Done" button press actions================//
+    //============= Finish ("Done") button pressed ================//
     @Override
     /** Called when user hits finish button*/
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -351,26 +592,6 @@ public class AddMessage extends AppCompatActivity
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    /**Adds to sql, creates alarms, returns to Home*/
-    private void finishAndReturn() {
-        // Add to sql database and schedule the alarm
-        SQLUtilities.addDataToSQL(AddMessage.this, message);
-        scheduleMessage();
-        hideKeyboard();
-        createSnackBar(getString(R.string.AddMessage_Notifications_CreateSuccess));
-
-        // Create bundle of extras to pass back to Home
-        Intent returnIntent = new Intent();
-        Bundle extras = new Bundle();
-        extras.putInt("ALARM_EXTRA", message.getAlarmNumber());
-        extras.putInt("OLD_ALARM", getIntent().getExtras().getInt("OLD_ALARM", -1));
-        returnIntent.putExtras(extras);
-
-        // Return to HOME
-        setResult(RESULT_OK, returnIntent);
-        finish();
     }
 
     /**Verifies that user data is correct and makes error messages*/
@@ -424,7 +645,7 @@ public class AddMessage extends AppCompatActivity
                     return false;
                 }
 
-                if (throwErrorIfDuplicate(chips)) {
+                if (displayErrorIfDuplicate(chips)) {
                     return false;
                 }
 
@@ -484,9 +705,50 @@ public class AddMessage extends AppCompatActivity
         finishAndReturn();
     }
 
-    private void updateChips() {
-        chips = phoneRetv.getRecipients();
+    /**Adds to sql, creates alarms, returns to Home*/
+    private void finishAndReturn() {
+        // Add to sql database and schedule the alarm
+        SQLUtilities.addDataToSQL(AddMessage.this, message);
+        scheduleMessage();
+        hideKeyboard();
+        createSnackBar(getString(R.string.AddMessage_Notifications_CreateSuccess));
+
+        // Create bundle of extras to pass back to Home
+        Intent returnIntent = new Intent();
+        Bundle extras = new Bundle();
+        extras.putInt("ALARM_EXTRA", message.getAlarmNumber());
+        extras.putInt("OLD_ALARM", getIntent().getExtras().getInt("OLD_ALARM", -1));
+        returnIntent.putExtras(extras);
+
+        // Return to HOME
+        setResult(RESULT_OK, returnIntent);
+        finish();
     }
+
+    /**Utility method to schedule alarm*/
+    private void scheduleMessage() {
+        // Starts alarm
+        new MessageAlarmReceiver().createAlarm(this, message);
+    }
+
+    /**Puts away keyboard*/
+    private void hideKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
+    /**Makes a snackbar with given string*/
+    private void createSnackBar(String snackbarText) {
+        Snackbar snackbar = Snackbar
+                .make(findViewById(android.R.id.content), snackbarText, Snackbar.LENGTH_LONG);
+        snackbar.show();
+        Log.i(TAG, "createSnackBar: Snackbar Created with string " + snackbarText);
+    }
+
+    //================ Error Message Utility Methods ==================//
 
     /**Creates error message if phone number is wrong*/
     private void errorPhoneWrong(String errorMessage) {
@@ -512,45 +774,13 @@ public class AddMessage extends AppCompatActivity
         messageContentEditText.requestFocus();
     }
 
-    /**Utility method to schedule alarm*/
-    private void scheduleMessage() {
-        // Starts alarm
-        new MessageAlarmReceiver().createAlarm(this, message);
+    private boolean isPhoneRetvInError() {
+        return phoneRetvErrorMessage.getText() != "";
     }
 
-    // Detects duplicates in an array. O(n^2) but it's a small array, so doesn't matter.
-    private boolean throwErrorIfDuplicate(DrawableRecipientChip[] chips) {
-                final int arrayLength = chips.length;
-        String phones[] = new String[arrayLength];
-
-
-        for (int i = 0; i < arrayLength; i++) {
-            // Replace all non-numericals with an empty string
-            phones[i] = replaceAllNonNumbericals(getPhoneNumbersFromChip(chips[i]));
-
-            // If phone is has a preceding "1", remove it
-            if (phones[i].startsWith("1")) phones[i] = phones[i].substring(1);
-        }
-
-        for (int i = 0; i < arrayLength; i++) {
-            for (int j = i + 1; j < arrayLength; j++) {
-                if (j != i && arePhonesDuplicate(phones[i], phones[j])) {
-                    Log.e(TAG, "throwErrorIfDuplicate: " +
-                            "Duplicates found for chipPhoneArray[j] - '" + phones[i] + "' " +
-                            "chipPhoneArray[k] - '" + phones[j] + "' " + " <------DUPLICATES FOUND 1------");
-                    errorPhoneWrong(getString(R.string.AddMessage_PhoneRetv_DuplicatePhone));
-                    return true;
-                }
-                Log.d(TAG, "throwErrorIfDuplicate: " +
-                        "Duplicates not found for chipPhoneArray[j] - '" + phones[i] + "' " +
-                        "chipPhoneArray[k] - '" + phones[j] + "' " + " <------DUPLICATES NOT FOUND 1------");
-            }
-        }
-        return false;
-    }
-
-    private boolean arePhonesDuplicate(String phone1, String phone2) {
-        return !phone1.equals(EMPTY_STRING) && !phone2.equals(EMPTY_STRING) && phone2.equals(phone1);
+    private void clearErrorMessages() {
+        clearPhoneRetvError();
+        clearMessageContentError();
     }
 
     private void clearPhoneRetvError() {
@@ -558,73 +788,18 @@ public class AddMessage extends AppCompatActivity
                 getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
         phoneRetvErrorMessage.setText(EMPTY_STRING);
     }
+
     private void clearMessageContentError() {
         messageContentEditText.getBackground().setColorFilter(getResources().
                 getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
         messageContentErrorMessage.setText(EMPTY_STRING);
     }
 
-    private boolean isPhoneRetvInError() {
-        return phoneRetvErrorMessage.getText() != "";
-    }
+    //================ PhoneRetv Utility Methods ==================//
 
-    //======================PhoneRetvListeners & Utility =======================//
-
-    /** Watches phoneRetv and removes error text*/
-    private final TextWatcher phoneRetvEditTextWatcher = new TextWatcher() {
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-        }
-        public void onTextChanged(CharSequence charactersPressed, int start, int before, int count) {
-            if (count == 1) {
-                Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Count is " + count + "charactersPressed: " + charactersPressed + "start: " + start + "before: " + before);
-                tryAddChipFromTextEntered(false);
-            } else {
-                Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Count is " + count);
-            }
-        }
-        public void afterTextChanged(Editable s) {
-        }
-    };
-
-
-    private boolean tryAddChipFromTextEntered(boolean enterKeyPressed) {
-        boolean isChipAddSuccessful = false;
-        final String chipLastPhone, fieldText;
-        String fieldLastPhone, lastTypedChar;
-
-        // PhoneRetv Field data
-        fieldText = phoneRetv.getText().toString();
-        lastTypedChar = getLastCharOfString(fieldText);
-        fieldLastPhone = getFieldLastPhone(fieldText, lastTypedChar);
-
-        updateChips();
-        chipLastPhone = getLastPhoneFromChip(chips);
-        clearPhoneRetvError(); // Clear error upon user typing
-
-        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: BEGINNING TO SEARCH ==============================================================");
-        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: lastCharPhoneRetvToString pressed - '" + lastTypedChar + "'");
-        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: phoneRetvToString - '" + fieldText + "'");
-        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: phoneRetvToStringLastArrayIndex - '" + fieldLastPhone + "'");
-        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Arrays.toString(chips) - '" + Arrays.toString(chips) + "'");
-        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: lastChipPhoneString - " + chipLastPhone);
-        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: regex_strict.matcher(isPhoneValid(phoneRetvToStringLastArrayIndex) - " + isPhoneValid(fieldLastPhone));
-
-        if (fieldText.endsWith(", ")) {
-            // Fixes duplicates after 1.Selecting contact 2.backspacing 3.clicking ","
-            throwErrorIfDuplicate(chips);
-        }
-
-        if (!doesPhoneEndWithBadKeys(fieldText)
-                && (enterKeyPressed || isLastCharValid(lastTypedChar))
-                && !throwErrorIfDuplicate(chips)
-                && isPhoneValid(fieldLastPhone)) {
-            addNewChip(fieldLastPhone, fieldLastPhone);
-            throwErrorIfDuplicate(chips);
-            Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: Created chip with phoneRetvToStringLastArrayIndex - '" + fieldLastPhone + " <------CHIP CREATED------");
-            isChipAddSuccessful = true;
-        }
-        Log.d(TAG, "phoneRetvEditTextWatcher:onTextChanged: ENDING SEARCH ====================================================================");
-        return isChipAddSuccessful;
+    /**Updates chips object from the phoneRetv library*/
+    private void updateChips() {
+        chips = phoneRetv.getRecipients();
     }
 
     private void addNewChip(String name, String phone) {
@@ -639,132 +814,6 @@ public class AddMessage extends AppCompatActivity
         }
         updateChips();
     }
-
-    private boolean isPhoneValid(String phone) {
-        final Pattern phone_regex_strict = Pattern.compile(PHONERETV_PHONE_REGEX_STRICT);
-        return phone_regex_strict.matcher(phone).matches();
-    }
-
-    private String getFieldLastPhone(String fieldText, String lastTypedChar) {
-        String[] fieldTextArray = getValidFieldTextArray(fieldText, lastTypedChar);
-        return fieldTextArray[fieldTextArray.length - 1].trim();
-    }
-
-    /**Gets an array of phoneRetvToString, trimming empty array indexs on the end*/
-    private String[] getValidFieldTextArray(String fieldText, String lastTypedChar){
-        String[] fieldTextArray;
-        ArrayList<String> fieldTextArrayList;
-
-        // Split phoneRetvToString
-        if (lastTypedChar.equals(PHONERETV_CUSTOM_ENDKEYS[0])) {
-            fieldTextArray = fieldText.split(PHONERETV_CUSTOM_ENDKEYS[0]);
-        } else {
-            fieldTextArray = fieldText.split(PHONERETV_CUSTOM_ENDKEYS[0] + PHONERETV_CUSTOM_ENDKEYS[1]);
-        }
-
-        // Remove all non-numericals from array
-        for (int i =0; i < fieldTextArray.length; i++) {
-            fieldTextArray[i] = replaceAllNonNumbericals(fieldTextArray[i]);
-        }
-
-        // Trim last array index if last index is an empty string
-        if ((fieldTextArray[fieldTextArray.length - 1].trim().equals(EMPTY_STRING)
-                || fieldTextArray[fieldTextArray.length - 1].trim().equals(",") )
-                && fieldTextArray.length > 1) { // fieldTextArray.length is needed to avoid Exception
-            fieldTextArrayList = new ArrayList<>(Arrays.asList(fieldTextArray));
-            fieldTextArrayList.remove(fieldTextArray.length - 1);
-            //noinspection ToArrayCallWithZeroLengthArrayArgument
-            return fieldTextArrayList.toArray(new String[0]);
-        }
-
-        return fieldTextArray;
-
-    }
-
-    private String replaceAllNonNumbericals(String fieldText) {
-        final String nonNumericalRegex = "[^0-9]";
-        return fieldText.replaceAll(nonNumericalRegex,EMPTY_STRING);
-    }
-
-    private String getFieldLastPhone(String[] phoneArray) {
-        String lastPhone = phoneArray[phoneArray.length - 1].trim();
-        if (lastPhone.equals(EMPTY_STRING) && phoneArray.length >= 2) {
-            lastPhone = phoneArray[phoneArray.length - 2].trim();
-        }
-        return lastPhone;
-    }
-
-    private String getLastPhoneFromChip(DrawableRecipientChip[] chips) {
-        if (chips.length > 0)
-            return getPhoneNumbersFromChip( chips[chips.length - 1].toString().trim() );
-        else return null;
-    }
-
-    private String getLastCharOfString(String str) {
-        if (str.length()>0)
-            return str.substring(str.length() - 1);
-        else return EMPTY_STRING;
-    }
-
-    private boolean isLastCharValid(String lastChar) {
-        for (String endKey : PHONERETV_CUSTOM_ENDKEYS) if (lastChar.equalsIgnoreCase(endKey)) return true;
-        return false;
-    }
-
-    private boolean doesPhoneEndWithBadKeys(String phone) {
-        for (String badKey : PHONERETV_CUSTOM_ENDKEYS_BAD) {
-            if (phone.endsWith(badKey)) return true;
-        }
-        return false;
-    }
-
-    //======================Listeners=======================//
-    /**Watches message content, makes a counter, and handles errors*/
-    private final TextWatcher messageContentEditTextWatcher = new TextWatcher() {
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            //This sets a textview to the current length
-            int length = s.length();
-            // Begins counting length of message
-            if (length == 1) {
-                clearMessageContentError();
-            }
-            // If length exceeds 1 message, shows user
-            if (length <= SMS_MAX_LENGTH && length >= SMS_MAX_LENGTH_BEFORE_SHOWING_WARNING) {
-                counterTextView.setText(String.valueOf(SMS_MAX_LENGTH - length));
-            } else if (length > SMS_MAX_LENGTH){
-                counterTextView.setText(String.valueOf(SMS_MAX_LENGTH - length % SMS_MAX_LENGTH)
-                        + " / " + String.valueOf(1 + (length / SMS_MAX_LENGTH)));
-            } else {
-                counterTextView.setText(EMPTY_STRING);
-            }
-        }
-        public void afterTextChanged(Editable s) {}
-    };
-
-    //================Utility Methods==================//
-    /**Clears all Arraylist Values*/
-    private void clearArrayLists() {
-        message.clearLists();
-    }
-
-    /**Puts away keyboard*/
-    private void hideKeyboard() {
-        View view = this.getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
-    }
-
-    /**Makes a snackbar with given string*/
-    private void createSnackBar(String snackbarText) {
-        Snackbar snackbar = Snackbar
-                .make(findViewById(android.R.id.content), snackbarText, Snackbar.LENGTH_LONG);
-        snackbar.show();
-        Log.i(TAG, "createSnackBar: Snackbar Created with string " + snackbarText);
-    }
-
 
     /**Gets phone number from chip Overloaded*/
     private String getPhoneNumbersFromChip(DrawableRecipientChip chip) {
@@ -788,6 +837,12 @@ public class AddMessage extends AppCompatActivity
                 break;
             }
         } return temp.trim();
+    }
+
+    //================Misc Methods==================//
+    /**Clears all Arraylist Values*/
+    private void clearArrayLists() {
+        message.clearLists();
     }
 
     //===============Edit Message SQL Retrieval===============//
@@ -847,7 +902,7 @@ public class AddMessage extends AppCompatActivity
         Log.d(TAG, "retrieveAndUpdateMessageDataFromDB: Values retrieved");
     }
 
-    //============= Permissions ================//
+    //============= Permissions ================// TODO: Move to new class
     /**Checks if READ_CONTACTS permission exists and prompts user*/
     @TargetApi(Build.VERSION_CODES.M)
     private void askForContactsReadPermission() {
@@ -967,5 +1022,3 @@ public class AddMessage extends AppCompatActivity
         }
     }
 }
-
-
