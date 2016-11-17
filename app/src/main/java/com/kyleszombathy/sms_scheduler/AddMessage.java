@@ -603,6 +603,7 @@ public class AddMessage extends AppCompatActivity
 
     /**Verifies that user data is correct and makes error messages*/
     private boolean verifyData() {
+        boolean allDataCorrect = true;
         clearArrayLists();
         clearPhoneRetvError();
         clearMessageContentError();
@@ -616,8 +617,14 @@ public class AddMessage extends AppCompatActivity
         // Get time from datePicker
         message.setDateTime(datePicker.getSelectedDate());
 
-        validateDateTime();
-        return validatePhoneRetv() && validateMessageContent() && dateTimeIsValid;
+        if (allDataCorrect) allDataCorrect = validatePhoneRetv();
+        if (allDataCorrect) allDataCorrect = validateMessageContent();
+        if (allDataCorrect) {
+            validateDateTime();
+            allDataCorrect = dateTimeIsValid;
+        }
+
+        return allDataCorrect;
     }
 
     private boolean validatePhoneRetv() {
