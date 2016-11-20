@@ -1,13 +1,14 @@
-# SMS_Scheduler
-Originally a class project by Kyle Szombathy and Jonah Johnson, SMS_Scheduler (title TBD) is an android app to schedule SMS messages with a simple user interface. Development is continuing and a full release is being planned. 
-Currently issues are being tracked [here](smsscheduler.myjetbrains.com). This project is open to contribution, feel free to contact me!
-##Software Design Documents
-Here are the documents we were required to make for the class. They include formal documents detailing the work we set out to do, including goals, plans, priorities, prototypes, diagrams, and much more. I reccommend taking a look at our final report if you want to get a quick overview of the project.
+# Material SMS Scheduler
+Originally a class project by myself, Kyle Szombathy and classmate Jonah Johnson, I have taken over this project and have developed it from an idea into a full-fledged app. 
+This project has helped me learn the Android ecosystem as well as features like SQLite, implementing and modifying 3rd party libraries, and much more.
+Alpha testing is underway and you can expect this application to be released in early 2017.
 
-[Project Proposal](https://docs.google.com/document/d/1efzTsEw1inr2mXrxXwuoVNOFE59F9Sk-FUQuUHFvvyw/edit?usp=sharing)
+##Screenshots
+<p>
+    <img src="Screenshot_1479368904.png" width="350" style="float:left">
+    <img class="middle-img" src="Screenshot_1479368949.png"/ width="350">
+    <img src="Screenshot_1479369014.png"/width="350">
+</p>
 
-[Software Requirements Specification](https://docs.google.com/document/d/1daLjtKMLiuih_huSBqRAsDTB8EQWL7X6eT3G8d3-O7s/edit?usp=sharing)
-
-[Software Design Document](https://docs.google.com/document/d/1yvRWUUnNm5BNZx5caEsiW9ZuqBMA9uo7byBH4kzL020/edit?usp=sharing)
-
-[Final Report](https://drive.google.com/file/d/0B4ela-k3pZerYzd0emFLb1VJOVk/view?usp=sharing)
+##Project documents
+[This document was the commulation of our efforts in CSC 131 at Sac State. Since the document has been written, many more features have been develope and smoothed out.](https://drive.google.com/file/d/0B4ela-k3pZerYzd0emFLb1VJOVk/view?usp=sharing)
