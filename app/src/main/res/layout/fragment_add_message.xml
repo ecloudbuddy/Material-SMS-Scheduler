@@ -9,151 +9,149 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<com.kyleszombathy.sms_scheduler.CustomVerticalScrollview
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_top_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="com.kyleszombathy.sms_scheduler.AddMessageFragment"
-    android:theme="@style/AppTheme"
-    android:orientation="vertical"
-    android:weightSum="1"
-    >
-   <!-- tools:showIn="@layout/activity_add_message"-->
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/primary_text_material_light"
-        android:text="@string/subtitle_content"
-        android:id="@+id/subtitle1"
-        android:height="48dp"
-        />
-
-
-    <com.android.ex.chips.RecipientEditTextView
-        android:id="@+id/phone_retv"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/phone_numbers"
-        android:paddingBottom="16dp"
-        android:paddingTop="16dp"
-        android:layout_below="@+id/subtitle1"
-        android:layout_alignParentStart="true"
-        />
-
-    <RelativeLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="16dp"
-        android:id="@+id/relativeLayout2"
-        android:layout_below="@+id/phone_retv"
-        android:layout_alignParentStart="true"
-        >
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/error_primary"
-            android:id="@+id/phone_retv_error"
-            />
-
-    </RelativeLayout>
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="8dp"
-        android:id="@+id/space"
-        android:layout_below="@+id/phone_retv"
-        android:layout_alignParentEnd="true"
-        />
-
-    <EditText
-        android:id="@+id/messageContent"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:hint="@string/message_content"
-        android:inputType="textCapSentences|textAutoCorrect|textMultiLine"
-        android:paddingTop="16dp"
-        android:nestedScrollingEnabled="true"
-        android:paddingBottom="16dp"
-        android:layout_below="@+id/space"
-        android:layout_alignParentStart="true"
-        android:maxHeight="175dp"
-        android:scrollIndicators="right"
-        />
-
-    <RelativeLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="16dp"
-        android:id="@+id/relativeLayout"
-        android:layout_below="@+id/messageContent"
-        android:layout_alignParentStart="true"
-        >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textColor="@color/error_primary"
-            android:id="@+id/messageContentError"
-            />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="160"
-            android:id="@+id/count"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentEnd="true"
-            />
-
-    </RelativeLayout>
-
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/primary_text_material_light"
-        android:text="@string/set_date_time"
-        android:id="@+id/subtitle2"
-        android:height="48dp"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/relativeLayout"
-        />
+    android:layout_height="wrap_content"
+    android:id="@+id/AddMessage_ScrollView">
 
     <LinearLayout
-        android:orientation="horizontal"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="top"
-        android:id="@+id/spinnerLinearLayout"
-        android:layout_below="@+id/subtitle2"
-        android:layout_alignParentStart="true">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_top_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        tools:context="com.kyleszombathy.sms_scheduler.AddMessageFragment"
+        android:theme="@style/AppTheme"
+        android:orientation="vertical"
+        android:weightSum="1"
+        >
 
-        <com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker
-            android:id="@+id/date_picker"
-            app:flags="mode_google|numbers"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/primary_text_material_light"
+            android:text="@string/AddMessage.Content.SubtitleContent"
+            android:id="@+id/subtitle1"
+            android:height="48dp"
+            />
+
+
+        <com.android.ex.chips.RecipientEditTextView
+            android:id="@+id/AddMessage_PhoneRetv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/AddMessage.Content.PhoneRetv"
+            android:paddingBottom="16dp"
+            android:paddingTop="16dp"
+            />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="16dp"
+            android:id="@+id/relativeLayout2"
+            >
+            <Space
+                android:layout_width="4dp"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textSize="12sp"
+                android:textColor="@color/error_primary"
+                android:id="@+id/AddMessage_PhoneRetv_Error"
+                />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/AddMessage_Message_Content"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:hint="@string/AddMessage.Content.MessageContent"
+            android:inputType="textCapSentences|textAutoCorrect|textMultiLine"
+            android:paddingTop="16dp"
+            android:nestedScrollingEnabled="true"
+            android:scrollbars = "vertical"
+            android:paddingBottom="16dp"
+            android:maxHeight="175dp"
+            android:fillViewport="true"
+            />
+
+        <RelativeLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="16dp"
+            android:id="@+id/relativeLayout"
+            >
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <Space
+                    android:layout_width="4dp"
+                    android:layout_height="wrap_content"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceSmall"
+                    android:textSize="12sp"
+                    android:textColor="@color/error_primary"
+                    android:id="@+id/AddMessage_MessageContent_Error"
+                    />
+            </LinearLayout>
 
 
-<!--        <Space
-            android:layout_width="8dp"
-            android:layout_height="match_parent" />-->
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:textSize="12sp"
+                android:id="@+id/AddMessage_MessageContent_Counter"
+                android:layout_alignParentTop="true"
+                android:layout_alignParentEnd="true"
+                />
+
+        </RelativeLayout>
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="@color/primary_text_material_light"
+            android:text="@string/AddMessage.Content.DateTime"
+            android:id="@+id/subtitle2"
+            android:height="48dp"
+            />
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:gravity="top"
+            android:id="@+id/spinnerLinearLayout">
+
+            <com.simplicityapks.reminderdatepicker.lib.ReminderDatePicker
+                android:id="@+id/AddMessage_DatePicker"
+                app:flags="mode_google|numbers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
 
     </LinearLayout>
-</RelativeLayout>
+</com.kyleszombathy.sms_scheduler.CustomVerticalScrollview>
 
 

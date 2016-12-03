@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 24
     buildToolsVersion '23.0.2'
 
     defaultConfig {
-        minSdkVersion 8
-        targetSdkVersion 23
+        minSdkVersion 9
+        targetSdkVersion 24
         versionCode Integer.parseInt(project.VERSION_CODE)
         versionName project.VERSION_NAME
     }
@@ -26,9 +26,9 @@ repositories{
 
 dependencies {
     compile 'com.nineoldandroids:library:2.4.0'
-    compile 'com.android.support:support-v4:23.1.1'
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:support-annotations:23.1.1'
+    compile 'com.android.support:support-v4:24.2.1'
+    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.android.support:support-annotations:24.2.1'
     //compile 'com.github.jaydeep17:datetimepicker:0.0.4'
     // if above doesn't work, use
     compile 'com.github.flavienlaurent.datetimepicker:library:0.0.2'

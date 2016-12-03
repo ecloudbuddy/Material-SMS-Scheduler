@@ -1,49 +1,61 @@
+/**
+ * Copyright 2016 Kyle Szombathy
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
 package com.kyleszombathy.sms_scheduler;
 
-import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.text.format.DateUtils;
 import android.transition.Fade;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 import android.widget.Toolbar;
 
 import com.amulyakhare.textdrawable.TextDrawable;
 import com.amulyakhare.textdrawable.util.ColorGenerator;
-import com.github.amlcurran.showcaseview.ShowcaseView;
-import com.github.amlcurran.showcaseview.targets.Target;
-import com.github.amlcurran.showcaseview.targets.ViewTarget;
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
 
-import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.Objects;
+import java.util.Calendar;
 
 import jp.wasabeef.recyclerview.animators.SlideInDownAnimator;
 
@@ -51,76 +63,49 @@ public class Home extends Activity {
     private static final String TAG = "HOME";
     private static final String ALARM_EXTRA = "alarmNumber";
     private static final String EDIT_MESSAGE_EXTRA = "EDIT_MESSAGE";
-    public final int circleImageViewWidth = 56;
-    private SwipeRefreshLayout swipeContainer;
+    private final int circleImageViewWidth = 112;
+    private final int circleImageViewTextSize = 60;
+    private final int screenFadeDuration = 700;
+    private final int offScreenRecyclerDistance = 10000;
+    private View parentView;
     // Recyclerview adapter dataset
+    private RelativeLayout mRecyclerEmptyState;
     private RecyclerView mRecyclerView;
-    public RecyclerView.Adapter mAdapter;
-    public RecyclerView.LayoutManager mLayoutManager;
-    public ArrayList<String> nameDataset = new ArrayList<>();
-    public ArrayList<String> messageContentDataset = new ArrayList<>();
-    public ArrayList<String> dateDataset = new ArrayList<>();
-    public ArrayList<String> timeDataSet = new ArrayList<>();
-    public ArrayList<Integer> alarmNumberDataset = new ArrayList<>();
-    public ArrayList<String> uriDataset = new ArrayList<>();
-    private ArrayList<Bitmap> photoDataset= new ArrayList<>();
+    private RecyclerAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
+    private MessagesArrayList messages = new MessagesArrayList();
     // For random number retrieval
     private final int MAX_INT = Integer.MAX_VALUE ;
     private final int MIN_INT = 1;
     // For edit message function
     private static final int NEW_MESSAGE = 1;
     private static final int EDIT_MESSAGE = 0;
-    private int tempSelectedPosition;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "Activity View Created");
 
         // Setting up transitions
         getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         getWindow().setExitTransition(new Fade());
 
         setContentView(R.layout.activity_home);
-        ObjectAnimator mAnimator;
-        //mAnimator = ObjectAnimator.ofFloat(Home.this, View.X, View.Y, path);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.SMSScheduler_Toolbar);
         setActionBar(toolbar);
 
-        // Showcase TODO
-        //showcase();
-
-        readFromSQLDatabase();
+        populateDatasets();
         setUpRecyclerView();
-
-        swipeContainer = (SwipeRefreshLayout) findViewById(R.id.swipeContainer);
-        // Setup refresh listener which triggers new data loading
-        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-
-            @Override
-            public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
-                    @Override public void run() {
-                        readFromSQLDatabase();
-                        mAdapter.notifyDataSetChanged();
-                        swipeContainer.setRefreshing(false);
-                    }
-                }, 1000);
-            }
-        });
-        // Configure the refreshing colors
-        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
-                android.R.color.holo_green_light,
-                android.R.color.holo_orange_light,
-                android.R.color.holo_red_light);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mMessageReceiver,
                 new IntentFilter("custom-event-name"));
 
+        parentView = findViewById(R.id.Home_coordLayout);
+
 
         // Floating action button start activity
-        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.Home_fab).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Random alarm number
@@ -138,6 +123,8 @@ public class Home extends Activity {
                 PendingIntent resultPendingIntent =
                         stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
+                Log.d(TAG, "Starting Activity AddMessage");
+
                 startActivityForResult(intent, NEW_MESSAGE,
                         ActivityOptions.makeSceneTransitionAnimation(Home.this).toBundle());
             }
@@ -149,233 +136,190 @@ public class Home extends Activity {
         return min + (int) (Math.random() * ((max - min) + 1));
     }
 
-    //=============== SQL Retrieval ===============//
-    /**Retrieves values from sql Database*/
-    private void readFromSQLDatabase() {
-        nameDataset.clear();
-        messageContentDataset.clear();
-        dateDataset.clear();
-        timeDataSet.clear();
-        alarmNumberDataset.clear();
-        uriDataset.clear();
-        photoDataset.clear();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(TAG, "OnResume called");
+    }
 
-        MessageDbHelper mDbHelper = new MessageDbHelper(Home.this);
+    //=============== Data Retrieval and Initialization ===============//
+    private void populateDatasets() {
+        clearDatasets();
+        SQLDbHelper mDbHelper = new SQLDbHelper(Home.this);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
-        // Define a projection that specifies which columns from the database
-        // you will actually use after this query.
-        String[] projection = {
-            MessageContract.MessageEntry.NAME,
-            MessageContract.MessageEntry.MESSAGE,
-            MessageContract.MessageEntry.YEAR,
-            MessageContract.MessageEntry.MONTH,
-            MessageContract.MessageEntry.DAY,
-            MessageContract.MessageEntry.HOUR,
-            MessageContract.MessageEntry.MINUTE,
-            MessageContract.MessageEntry.ALARM_NUMBER,
-            MessageContract.MessageEntry.PHOTO_URI
-        };
-
-        // How you want the results sorted in the resulting Cursor
-        String sortOrder =
-                MessageContract.MessageEntry.DATETIME+ " ASC";
-        String selection = MessageContract.MessageEntry.ARCHIVED + " LIKE ?";
-        String[] selectionArgs = { String.valueOf(0) };
-
-        Cursor cursor = db.query(
-                MessageContract.MessageEntry.TABLE_NAME,  // The table to query
-                projection,                               // The columns to return
-                selection,                                // The columns for the WHERE clause
-                selectionArgs,                            // The values for the WHERE clause
-                null,                                     // don't group the rows
-                null,                                     // don't filter by row groups
-                sortOrder                                 // The sort order
-        );
+        Cursor cursor = dbRetrieveContactData(mDbHelper, db);
 
         // Moves to first row
         cursor.moveToFirst();
 
+        // Loop through db
         for (int i = 0; i < cursor.getCount(); i++) {
-            extractName(cursor.getString(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.NAME)));
-            int year = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.YEAR));
-            int month = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.MONTH));
-            int day = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.DAY));
-            int hour = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.HOUR));
-            int minute = cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.MINUTE));
-            messageContentDataset.add(cursor.getString(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.MESSAGE)));
-            alarmNumberDataset.add(cursor.getInt(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.ALARM_NUMBER)));
-            ArrayList<String> tempUri = Tools.parseString(cursor.getString(cursor.getColumnIndexOrThrow
-                    (MessageContract.MessageEntry.PHOTO_URI)));
+            int year, month, day, hour, minute, alarmNumber;
+            String name, messageContent, uriString, phone;
+            Calendar dateTime;
+            ArrayList<String> uriArrayList;
+            Uri uri;
 
-            if (tempUri.size() == 1 && !Objects.equals(tempUri.get(0).trim(), "null")) {
-                uriDataset.add(tempUri.get(0).trim());
-            } else {
-                uriDataset.add(null);
-            }
-            // Get date in a format for viewing by user
-            setFullDateAndTime(year, month, day, hour, minute);
+            // Retriever data from cursor
+            name = cursor.getString(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.NAME));
+            phone = cursor.getString(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.PHONE));
+            year = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.YEAR));
+            month = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.MONTH));
+            day = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.DAY));
+            hour = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.HOUR));
+            minute = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.MINUTE));
+            alarmNumber = cursor.getInt(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.ALARM_NUMBER));
+            messageContent = cursor.getString(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.MESSAGE));
+            uriString = cursor.getString(cursor.getColumnIndexOrThrow
+                    (SQLContract.MessageEntry.PHOTO_URI));
+
+            //Extract URI
+            uriArrayList = Tools.stringToArrayList(uriString.trim());
+
+            Message message = new Message(Tools.stringToArrayList(name),
+                    Tools.stringToArrayList(phone),
+                    year, month, day, hour, minute,
+                    messageContent, alarmNumber, Message.stringListToUriList(uriArrayList));
+            messages.add(message);
+
             // Move to next row
             cursor.moveToNext();
         }
-        // Close everything so android doesn't complain
         cursor.close();
-        db.close();
         mDbHelper.close();
-
         // Get bitmaps
-        getPhotoBytes();
+        setContactImages();
+    }
+
+    /**Retrieves values from sql Database and store locally*/
+    private Cursor dbRetrieveContactData(SQLDbHelper mDbHelper, SQLiteDatabase db) {
+        Cursor cursor = null;
+
+        String[] projection = {
+                SQLContract.MessageEntry.NAME,
+                SQLContract.MessageEntry.MESSAGE,
+                SQLContract.MessageEntry.YEAR,
+                SQLContract.MessageEntry.MONTH,
+                SQLContract.MessageEntry.DAY,
+                SQLContract.MessageEntry.HOUR,
+                SQLContract.MessageEntry.MINUTE,
+                SQLContract.MessageEntry.ALARM_NUMBER,
+                SQLContract.MessageEntry.PHOTO_URI,
+                SQLContract.MessageEntry.PHONE
+        };
+
+        // Sort the contact data by date/time, then by Name, then by Message Content
+        String sortOrder = SQLContract.MessageEntry.DATETIME+ " ASC, " + SQLContract.MessageEntry.NAME + " ASC, " + SQLContract.MessageEntry.MESSAGE + " ASC";
+        String selection = SQLContract.MessageEntry.ARCHIVED + " LIKE ?";
+        String[] selectionArgs = { String.valueOf(0) };
+
+        try {
+            cursor =  db.query(
+                    SQLContract.MessageEntry.TABLE_NAME,      // The table to query
+                    projection,                               // The columns to return
+                    selection,                                // The columns for the WHERE clause
+                    selectionArgs,                            // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    sortOrder                                 // The sort order
+            );
+        } catch(Exception e) {
+            Log.e(TAG, "dbRetrieveContactData: Retrieve encountered exception", e);
+        } if (cursor != null) {
+            Log.i(TAG, "dbRetrieveContactData: Retrieve successful. Found " + cursor.getCount() + " contact entries");
+        }
+
+        return cursor;
+    }
+
+    private void clearDatasets() {
+        messages.clear();
     }
 
     /**Retreieves bitmap from database*/
-    private void getPhotoBytes() {
-        for (int i = 0; i < uriDataset.size(); i++) {
-            if (uriDataset.get(i)!= null) {
-                // Get byte array
-                byte[] byteArray = Tools.getPhotoValuesFromSQL(Home.this, uriDataset.get(i));
-                // Convert to bitmap and drawable
-                ByteArrayInputStream arrayInputStream = new ByteArrayInputStream(byteArray);
-                Bitmap bitmap = BitmapFactory.decodeStream(arrayInputStream);
-                photoDataset.add(bitmap);
+    // TODO: Move this off the UI thread
+    private void setContactImages() {
+        for (int msgIndex = 0; msgIndex < messages.size(); msgIndex++) {
+            Message message = messages.get(msgIndex);
+            ArrayList<Uri> uriList = message.getUriList();
+            Bitmap contactPhoto = null;
+
+            if (uriList != null) {
+                contactPhoto = retrieveContactImage(uriList.get(0));
             } else {
-                // Get first letter
-                Character nameFirstLetter = nameDataset.get(i).charAt(0);
-                // Get color
-                ColorGenerator generator = ColorGenerator.MATERIAL;
-                int color = generator.getColor(nameDataset.get(i));
-                TextDrawable drawable = TextDrawable.builder()
-                        .beginConfig()
-                        .useFont(Typeface.DEFAULT_BOLD)
-                        .fontSize(60)
-                        .height(circleImageViewWidth * 2)
-                        .width(circleImageViewWidth * 2)
-                        .endConfig()
-                        .buildRound(nameFirstLetter.toString().toUpperCase(), color);
-                Bitmap bitmap = Tools.drawableToBitmap(drawable);
-                photoDataset.add(bitmap);
+                // Set custom contact image based off first letter of contact name
+                String firstName = message.getNameList().get(0);
+                // Ensure character is not a number
+                if (Character.isLetter(firstName.charAt(0))) {
+                    contactPhoto = createCircleImageFromFirstLetterOfName(firstName);
+                    Log.i(TAG, "setContactImages: Created custom image based off first letter: " + firstName.charAt(0));
+                } else {
+                    // TODO: Write code for handling messages to multiple people
+                }
+
             }
-        }
-    }
-
-    /**Extracts name from given string */
-    private void extractName(String names) {
-        String nameCondensedString;
-        ArrayList<String> nameList = new ArrayList<>();
-        // Trim brackets
-        names = names.replace("[", "");
-        names = names.replace("]", "");
-
-        if(names.contains(",")) {
-            for (String name: names.split(",")) {
-                name = name.trim();
-                nameList.add(name);
-            }
-            nameCondensedString = nameList.remove(0) + ", " + nameList.remove(0);
-        } else {
-            nameCondensedString = names;
+            message.setContactPhoto(contactPhoto);
+            messages.setPhotoDataset(msgIndex);
         }
 
-        int nameListSize = nameList.size();
-        if (nameListSize > 0) {
-            nameCondensedString += ", +" + (nameListSize);
-        }
-        nameDataset.add(nameCondensedString.trim());
     }
 
-    /**Adds date and time string as relative time to now to database*/
-    public void setFullDateAndTime(int year, int month, int day, int hour, int minute) {
-        //Calendar date = new GregorianCalendar(year, month, day, hour, minute);
-        GregorianCalendar date = new GregorianCalendar(year, month, day, hour, minute);
-        GregorianCalendar dateNow = new GregorianCalendar();
-
-        long time = date.getTimeInMillis();
-        long timeNow = dateNow.getTimeInMillis();
-        CharSequence dateString;
-        String timeString = "";
-
-        dateString = DateUtils.getRelativeTimeSpanString(time, timeNow, DateUtils.MINUTE_IN_MILLIS);
-
-        dateDataset.add(dateString.toString());
-        timeDataSet.add(timeString);
+    private Bitmap createCircleImageFromFirstLetterOfName(String firstName) {
+        // Get color
+        ColorGenerator generator = ColorGenerator.MATERIAL;
+        int color = generator.getColor(firstName); //Always use same color for a specific person
+        TextDrawable drawable = TextDrawable.builder(this)
+                .beginConfig()
+                .useFont(Typeface.DEFAULT_BOLD)
+                .fontSize(circleImageViewTextSize)
+                .height(circleImageViewWidth)
+                .width(circleImageViewWidth)
+                .endConfig()
+                .buildRound(Character.toString(firstName.charAt(0)).toUpperCase(), color);
+        return Tools.drawableToBitmap(drawable); // Convert to bitmap
     }
 
-    /**Sets given item as archived in database*/
-    private void setAsArchived(int alarmNumb) {
-        MessageDbHelper mDbHelper = new MessageDbHelper(Home.this);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // New value for one column
-        ContentValues values = new ContentValues();
-        values.put(MessageContract.MessageEntry.
-                ARCHIVED, 1);
-
-        // Which row to update, based on the ID
-        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
-        String[] selectionArgs = { String.valueOf(alarmNumb) };
-
-        int count = db.update(
-                MessageContract.MessageEntry.TABLE_NAME,
-                values,
-                selection,
-                selectionArgs);
-        db.close();
-        mDbHelper.close();
-    }
-    /**Removes Item given alarm Number from database*/
-    private void deleteFromDatabase(int alarmNumb) {
-        MessageDbHelper mDbHelper = new MessageDbHelper(Home.this);
-        SQLiteDatabase db = mDbHelper.getReadableDatabase();
-
-        // Which row to delete, based on the ID
-        String selection = MessageContract.MessageEntry.ALARM_NUMBER + " LIKE ?";
-        String[] selectionArgs = { String.valueOf(alarmNumb) };
-
-        db.delete(
-                MessageContract.MessageEntry.TABLE_NAME,
-                selection,
-                selectionArgs);
-        db.close();
-        mDbHelper.close();
+    private Bitmap retrieveContactImage(Uri uri) {
+        InputStream arrayInputStream =SQLUtilities.getPhoto(Home.this, uri);
+        return BitmapFactory.decodeStream(arrayInputStream);
     }
 
-    private void getNextAlarmClock() {
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        Long alarmTime = alarmManager.getNextAlarmClock().getTriggerTime();
-        Log.i(TAG, "Next Alarm : " + alarmTime);
-    }
 
-    /**Cancels alarm given alarm number*/
-    private void cancelAlarm(int alarmNumb) {
+    /**Cancels alarm given alarm service number
+     * @param alarmNumb alarmNumber to delete*/
+    private void cancelAlarmInAndroidSystem(int alarmNumb) {
         Intent intent = new Intent(this, MessageAlarmReceiver.class);
         PendingIntent sender = PendingIntent.getBroadcast(this, alarmNumb, intent, 0);
         AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarmManager.cancel(sender);
-        Log.i(TAG, "Alarm Canceled");
+        Log.i(TAG, "cancelAlarmInAndroidSystem: Alarm number " + alarmNumb + " Canceled");
     }
 
 
-    //=============== Recyclerview edit and delete ===============//
+    //=============== Recycler View ===============//
     /**Sets up recycler view and adapter*/
     private void setUpRecyclerView() {
+        // Empty state
+        mRecyclerEmptyState = (RelativeLayout) findViewById(R.id.Home_recycler_empty_state);
         // Setting up RecyclerView
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-/*        mRecyclerView.addItemDecoration(new DividerItemDecoration(Home.this,
-                DividerItemDecoration.VERTICAL_LIST));*/
+        mRecyclerView = (RecyclerView) findViewById(R.id.Home_recycler_view);
         mRecyclerView.setHasFixedSize(true);
 
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setItemAnimator(new SlideInDownAnimator());
 
-        updateRecyclerViewAdapter();
+        initializeRecyclerAdapter();
 
         // Item touch listener for editing message
         itemTouchHelper.attachToRecyclerView(mRecyclerView);
@@ -383,32 +327,51 @@ public class Home extends Activity {
                 new RecyclerItemClickListener(Home.this,
                         new RecyclerItemClickListener.OnItemClickListener() {
                             @Override
-                            public void onItemClick(View view, int position) {
-                                tempSelectedPosition = position;
+                            public void onItemClick(View view, int clickedPosition) {
+                                // Tie to global values for use after AddMessage return
+                                int oldAlarmNumber = messages.get(clickedPosition).getAlarmNumber();
+                                if (oldAlarmNumber == -1) throw new ArithmeticException("oldAlarmNumber cannot be -1 if passing to AddMessage");
+                                int newAlarmNumber = getRandomInt(MIN_INT, MAX_INT);
+
+                                // Bundle extras
+                                Bundle extras = new Bundle();
+                                extras.putInt(ALARM_EXTRA, newAlarmNumber);
+                                extras.putInt("OLD_ALARM", oldAlarmNumber);
+                                extras.putBoolean(EDIT_MESSAGE_EXTRA, true);
 
                                 // Create new intent to AddMessage with data from item in position
                                 Intent intent = new Intent(new Intent(Home.this, AddMessage.class));
-                                Bundle extras = new Bundle();
-                                // Older alarm. For SQL retrieval
-                                extras.putInt(ALARM_EXTRA, alarmNumberDataset.get(position));
-                                // New alarm number
-                                extras.putInt("NEW_ALARM", getRandomInt(MIN_INT, MAX_INT));
-                                // Designates that we're editing the message
-                                extras.putBoolean(EDIT_MESSAGE_EXTRA, true);
                                 intent.putExtras(extras);
 
-                                // Go to addMessage
+                                // Go to AddMessage
                                 startActivityForResult(intent, EDIT_MESSAGE,
                                         ActivityOptions.makeSceneTransitionAnimation(Home.this).toBundle());
                             }
                         })
         );
+        Log.i(TAG, "setUpRecyclerView: Successfully set up recycler view");
     }
 
-    private void updateRecyclerViewAdapter() {
-        mAdapter = new RecyclerAdapter(
-                nameDataset, messageContentDataset, dateDataset, timeDataSet, uriDataset, photoDataset);
-        mRecyclerView.setAdapter(mAdapter);
+    /**Initializes the Recycler Adapter*/
+    private void initializeRecyclerAdapter() {
+       mAdapter = new RecyclerAdapter(messages);
+       mRecyclerView.setAdapter(mAdapter);
+
+        updateRecyclerEmptyState();
+        Log.i(TAG, "initializeRecyclerAdapter: Successfully updated recycler view adapter");
+    }
+
+    /**Removes a ghost recycler row if needed*/
+    private void updateRecyclerEmptyState() {
+        if (messages.isEmpty()) {
+            mRecyclerEmptyState.setX(0);
+            YoYo.with(Techniques.FadeIn)
+                    .duration(screenFadeDuration)
+                    .playOn(mRecyclerEmptyState);
+        } else {
+            // Moves view out of way. If turned off, creates weird bug on swipe
+            mRecyclerEmptyState.setX(offScreenRecyclerDistance);
+        }
     }
 
     /**Swipe to delete function*/
@@ -431,61 +394,48 @@ public class Home extends Activity {
                 public void onSwiped(final RecyclerView.ViewHolder viewHolder, int swipeDir) {
                     // Remove values from dataset and store them in temp values
                     final int position = viewHolder.getAdapterPosition();
-                    final String TEMP_NAME = nameDataset.remove(position);
-                    final String TEMP_CONTENT = messageContentDataset.remove(position);
-                    final String TEMP_DATE = dateDataset.remove(position);
-                    final String TEMP_TIME = timeDataSet.remove(position);
-                    final Integer TEMP_ALARM = alarmNumberDataset.remove(position);
-                    final String TEMP_URI = uriDataset.remove(position);
-                    final Bitmap TEMP_PHOTO = photoDataset.remove(position);
+                    final Message swipedMessage = removeFromDataset(position);
+                    if (swipedMessage == null) throw new NullPointerException("swipedMessage should not be null");
+                    final int swipedAlarm = swipedMessage.getAlarmNumber();
                     mAdapter.notifyItemRemoved(position);
 
+                    // Solves ghost issue and insert empty state
+                    updateRecyclerEmptyState();
+
+                    // Archive and Delete alarm
+                    if (messages.getAlarmIndex(swipedAlarm) == -1) {
+                        archiveAndDeleteAlarm(swipedAlarm);
+                    }
+
                     // Makes snackbar with undo button
-                    Snackbar.make(findViewById(R.id.coordLayout),
-                            "1 "+ getString(R.string.archived),
-                            Snackbar.LENGTH_LONG).setCallback( new Snackbar.Callback() {
-                        @Override
-                        public void onDismissed(Snackbar snackbar, int event) {
-                            switch(event) {
-                                // Case for all events when the dataset needs to be deleted
-                                case Snackbar.Callback.DISMISS_EVENT_TIMEOUT:
-                                case Snackbar.Callback.DISMISS_EVENT_CONSECUTIVE:
-                                case Snackbar.Callback.DISMISS_EVENT_SWIPE:
-                                    if (alarmNumberDataset.indexOf(TEMP_ALARM) == -1) {
-                                        cancelAlarm(TEMP_ALARM);
-                                        setAsArchived(TEMP_ALARM);
-                                    }
-                                    returnToDefaultPosition();
-                                    // Update Recyclerview
-                                    mAdapter.notifyItemRangeChanged(position,nameDataset.size());
-                                    break;
-                            }
-                        }
-                        @Override
-                        public void onShown(Snackbar snackbar) {
-                        }
-                    }).setAction("Undo", new View.OnClickListener() {
+                    Snackbar.make(parentView,"1 "+ getString(R.string.Home_Notifications_archived), Snackbar.LENGTH_LONG).setAction(R.string.Home_Notifications_Undo, new View.OnClickListener() {
+                        // When Undo button is pressed
                         @Override
                         public void onClick(View v) {
                             // Add back temp values
-                            nameDataset.add(position, TEMP_NAME);
-                            messageContentDataset.add(position, TEMP_CONTENT);
-                            dateDataset.add(position, TEMP_DATE);
-                            timeDataSet.add(position, TEMP_TIME);
-                            alarmNumberDataset.add(position, TEMP_ALARM);
-                            uriDataset.add(position, TEMP_URI);
-                            photoDataset.add(position, TEMP_PHOTO);
-                            // Return to default position
-                            returnToDefaultPosition();
+                            messages.add(position, swipedMessage);
+
+                            // Add back alarm
+                            new MessageAlarmReceiver().createAlarm(Home.this, swipedMessage);
+
+                            // Add to sql
+                            SQLUtilities.addDataToSQL(Home.this, swipedMessage);
+
+                            // Remove zero state screen
+                            updateRecyclerEmptyState();
+
+                            // Re-add to adapter
+                            setRecyclerStateToDefault();
                             mAdapter.notifyItemInserted(position);
                             mRecyclerView.scrollToPosition(position);
+                            setRecyclerStateToDefault();
                         }
                     }).show();
                 }
 
                 /** Returns selected view to default position*/
-                private void returnToDefaultPosition() {
-                    getDefaultUIUtil().onDraw(c, recyclerView, ((RecyclerAdapter.ViewHolder) viewHolder).getSwipableView(), 0, 0,    actionState, isCurrentlyActive);
+                private void setRecyclerStateToDefault() {
+                    getDefaultUIUtil().onDraw(c, recyclerView, ((RecyclerAdapter.ViewHolder) viewHolder).getSwipableView(), 0, 0, actionState, isCurrentlyActive);
                 }
 
                 @Override
@@ -501,6 +451,7 @@ public class Home extends Activity {
                 public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
                     if (viewHolder != null) {
                         getDefaultUIUtil().onSelected(((RecyclerAdapter.ViewHolder) viewHolder).getSwipableView());
+                        this.viewHolder = viewHolder;
                     }
                 }
 
@@ -510,13 +461,6 @@ public class Home extends Activity {
                     this.viewHolder = viewHolder;
                     this.actionState = actionState;
                     this.isCurrentlyActive = isCurrentlyActive;
-                    if (dX < 0) {
-                        ((RecyclerAdapter.ViewHolder) viewHolder).getmRevealRightView().setVisibility(View.GONE);
-                        ((RecyclerAdapter.ViewHolder) viewHolder).getmRevealLeftView().setVisibility(View.VISIBLE);
-                    } else {
-                        ((RecyclerAdapter.ViewHolder) viewHolder).getmRevealRightView().setVisibility(View.VISIBLE);
-                        ((RecyclerAdapter.ViewHolder) viewHolder).getmRevealLeftView().setVisibility(View.GONE);
-                    }
                     getDefaultUIUtil().onDraw(c, recyclerView, ((RecyclerAdapter.ViewHolder) viewHolder).getSwipableView(), dX, dY,    actionState, isCurrentlyActive);
                 }
 
@@ -524,22 +468,11 @@ public class Home extends Activity {
                     getDefaultUIUtil().onDrawOver(c, recyclerView, ((RecyclerAdapter.ViewHolder) viewHolder).getSwipableView(), dX, dY,    actionState, isCurrentlyActive);
                 }
             };
+
     ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
 
 
     //=============== Other ===============//
-    /**Showcase on first run giving a tutorial*/
-    private void showcase() {
-        Target viewTarget = new ViewTarget(R.id.fab, this);
-        new ShowcaseView.Builder(this)
-                .withMaterialShowcase()
-                .setTarget(viewTarget)
-                .setContentTitle("Welcome to SMS Scheduler")
-                .setContentText("Click here to add a message")
-                .singleShot(42)
-                .build();
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -555,7 +488,7 @@ public class Home extends Activity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.Home_action_settings) {
             return true;
         }
 
@@ -568,71 +501,93 @@ public class Home extends Activity {
         super.onRestart();
         //When BACK BUTTON is pressed, the activity on the stack is restarted
         //Do what you want on the refresh procedure here
-        //readFromSQLDatabase();
+        //dbRetrieveContactData();
     }
     /** Retrieves results on return from AddMessage and creates animations*/
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        displayErrorMessageIfDeviceCannotSendMessages();
+        Log.i(TAG, "onActivityResult: resultCode = " + resultCode);
+
         if (resultCode == RESULT_OK) {
-
-            // Delete old stuff
-            if (requestCode == EDIT_MESSAGE) {
-                int oldAlarmNumber = alarmNumberDataset.get(tempSelectedPosition);
-                cancelAlarm(oldAlarmNumber);
-                deleteFromDatabase(oldAlarmNumber);
-            }
-
-            // Update all items
-            readFromSQLDatabase();
-
-            // Get new alarm number position
             Bundle extras = data.getExtras();
-            int position = alarmNumberDataset.indexOf(extras.getInt("ALARM_EXTRA"));
+            int oldAlarmNumber = extras.getInt("OLD_ALARM");
+            int newPosition = messages.getAlarmIndex(extras.getInt("ALARM_EXTRA"));
 
+            // Remove adapter position and db entry if edit message
+            if (requestCode == EDIT_MESSAGE) cancelAndDeleteAlarm(oldAlarmNumber);
 
-            // Remove previous position if edit message
-            // Deisgnates that user did not cancel edit message function
-            if (requestCode == EDIT_MESSAGE) {
-                mAdapter.notifyItemChanged(position);
-                mRecyclerView.scrollToPosition(position);
-            }
+            updateAllMessagesAndRecyclerAdapter();
 
-            if (requestCode == NEW_MESSAGE) {
-                mAdapter.notifyItemInserted(position);
-                mRecyclerView.scrollToPosition(position);
-            }
+            // do recyclerview animations
+            if (requestCode == EDIT_MESSAGE) mAdapter.notifyItemChanged(newPosition);
+            if (requestCode == NEW_MESSAGE) mAdapter.notifyItemInserted(newPosition);
+            mRecyclerView.scrollToPosition(newPosition);
+        }
+    }
+
+    private void updateAllMessagesAndRecyclerAdapter() {
+        // Update all items from db.
+        populateDatasets();
+        // Remove empty state
+        initializeRecyclerAdapter();
+    }
+
+    /**Cancel alarm in system and delete alarm from DB*/
+    private void cancelAndDeleteAlarm(int oldAlarmNumber) {
+        cancelAlarmInAndroidSystem(oldAlarmNumber);
+        SQLUtilities.deleteAlarmFromDB(Home.this, oldAlarmNumber);
+    }
+
+    /**Cancel alrm in system and Archive DB entry*/
+    private void archiveAndDeleteAlarm(int alarmNumber) {
+        cancelAlarmInAndroidSystem(alarmNumber);
+        SQLUtilities.setAsArchived(Home.this, alarmNumber);
+    }
+
+    private void displayErrorMessageIfDeviceCannotSendMessages() {
+        PackageManager pm = this.getPackageManager();
+        if (!pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY) &&
+                !pm.hasSystemFeature(PackageManager.FEATURE_TELEPHONY_CDMA)) {
+            Toast.makeText(this, R.string.Home_Notifications_CantSendMessages, Toast.LENGTH_SHORT).show();
         }
     }
 
     /** Removes given position from dataset*/
-    private void removeFromDataset(int position) {
-        // Remove from dataset
-        nameDataset.remove(position);
-        messageContentDataset.remove(position);
-        dateDataset.remove(position);
-        timeDataSet.remove(position);
-        alarmNumberDataset.remove(position);
-        uriDataset.remove(position);
-        photoDataset.remove(position);
+    private Message removeFromDataset(int position) {
+        if (position >= 0) {
+            // Remove from dataset
+            Message returnMsg = messages.remove(position);
+            // Show empty state if necessary
+            if (messages.isEmpty()) {
+                initializeRecyclerAdapter();
+            }
+            return returnMsg;
+        }
+        return null;
     }
 
-    //=============== Broadcast Receiver ===============//
+    //=============== Broadcast Receiver for Sent Message ===============//
     /**Broadcast receiver that receives broadcast on message send to delete message in adapter*/
     private BroadcastReceiver mMessageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             // Get extra data included in the Intent
+            String notificationMessage = intent.getStringExtra("notificationMessage");
             int alarmNumber = intent.getIntExtra("alarmNumber", -1);
-            if (alarmNumber != -1) {
-                setAsArchived(alarmNumber);
+            int sentMessageDatasetPosition = messages.getAlarmIndex(alarmNumber);
+            if(sentMessageDatasetPosition != -1) {
+                removeFromDataset(sentMessageDatasetPosition);
+                mAdapter.notifyItemRemoved(sentMessageDatasetPosition);
             }
-            int position = alarmNumberDataset.indexOf(alarmNumber);
-            if(position != -1) {
-                removeFromDataset(position);
-                mAdapter.notifyItemRemoved(position);
-            }
+            createSnackbar(notificationMessage);
         }
     };
+
+    private void createSnackbar(String messsageToShow) {
+        Snackbar snackbar = Snackbar.make(parentView, messsageToShow, Snackbar.LENGTH_LONG);
+        snackbar.show();
+    }
 
     @Override
     protected void onDestroy() {
