@@ -608,7 +608,7 @@ public class AddMessage extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.AddMessage_DoneButton:
-                if (verifyData() && askForSmsSendPermission()) {
+                if (verifyData() && (allPermissionsGranted || askForSmsSendPermission())) {
                     finishAndReturn();
                 } else return false;
             default:
@@ -956,30 +956,31 @@ public class AddMessage extends AppCompatActivity
     /**Checks if other permissions exists and prompts user*/
     @TargetApi(Build.VERSION_CODES.M)
     private boolean askForSmsSendPermission() {
-        List<String> permissionsNeeded = new ArrayList<>();
+        List<String> permissionPromptsForPermissionsNeeded = new ArrayList<>();
         final List<String> permissionsList = new ArrayList<>();
 
-        if (!addPermission(permissionsList, Manifest.permission.SEND_SMS)) {
-            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_SMSMessages));
+        if (!addPermissionToPermissionListIfNeeded(permissionsList, Manifest.permission.SEND_SMS)) {
+            permissionPromptsForPermissionsNeeded.add(getString(R.string.AddMessage_Permissions_SMSMessages));
         }
-        if (!addPermission(permissionsList, Manifest.permission.READ_PHONE_STATE)) {
-            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_PhoneCalls));
+        if (!addPermissionToPermissionListIfNeeded(permissionsList, Manifest.permission.READ_PHONE_STATE)) {
+            permissionPromptsForPermissionsNeeded.add(getString(R.string.AddMessage_Permissions_PhoneCalls));
         }
 
         if (permissionsList.size() > 0) {
-            if (permissionsNeeded.size() > 0) {
-                // Need Rationale
-                String message = getString(R.string.AddMessage_Permissions_PermissionsPrompt1) + permissionsNeeded.get(0);
-                for (int i = 1; i < permissionsNeeded.size(); i++)
-                    message = message + ", " + permissionsNeeded.get(i);
+            if (permissionPromptsForPermissionsNeeded.size() > 0) {
+                StringBuilder totalMessagePrompt = new StringBuilder(getString(R.string.AddMessage_Permissions_PermissionsPrompt1));
+                for(String permissionPrompt : permissionPromptsForPermissionsNeeded) {
+                    totalMessagePrompt.append("\n");
+                    totalMessagePrompt.append(permissionPrompt);
+                }
 
-                message = message + getString(R.string.AddMessage_Permissions_PermissionPromt2);
-                showMessageOKDeny(message, new DialogInterface.OnClickListener() {
+                showMessageOKDeny(totalMessagePrompt.toString(), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
                     }
                 });
+                return false;
             }
             requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
 
@@ -992,7 +993,7 @@ public class AddMessage extends AppCompatActivity
     }
     /**Utility method for askForSmsSendPermission*/
     @TargetApi(Build.VERSION_CODES.M)
-    private boolean addPermission(List<String> permissionsList, String permission) {
+    private boolean addPermissionToPermissionListIfNeeded(List<String> permissionsList, String permission) {
         if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
             permissionsList.add(permission);
             // Check for Rationale Option
@@ -1007,15 +1008,6 @@ public class AddMessage extends AppCompatActivity
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, okListener)
                 .setNegativeButton(R.string.AddMessage_ButtonDeny, null)
-                .create()
-                .show();
-    }
-    /** Shows a dialog box with OK/cancel boxes*/
-    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(AddMessage.this)
-                .setMessage(message)
-                .setPositiveButton(R.string.ok, okListener)
-                .setNegativeButton(R.string.picker_cancel, null)
                 .create()
                 .show();
     }

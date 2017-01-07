@@ -21,13 +21,12 @@
     <string name="Notifications.Success">Scheduled message sent successfully</string>
     <string name="Notifications.MessageFailure">Scheduled message failed to send</string>
     <!--Permissions Prompt-->
-    <string name="AddMessage.Permissions.ReadContactsRationalle">This app needs access to contacts for autocomplete suggestions. Denying this permission will result in an incomplete user experience, though entering a number manually will still work.</string>
+    <string name="AddMessage.Permissions.ReadContactsRationalle">This app needs access to contacts for autocomplete suggestions. You can deny this permission and still enter a number manually if you prefer.</string>
     <string name="AddMessage.ButtonDeny">Deny</string>
     <string name="AddMessage.Permissions.SomePermissionDenied">Please allow all permissions.</string>
-    <string name="AddMessage.Permissions.SMSMessages">\'Send and view SMS messages\'</string>
-    <string name="AddMessage.Permissions.PhoneCalls">\'make and manage phone calls\'</string>
-    <string name="AddMessage.Permissions.PermissionsPrompt1">"You need to grant access to "</string>
-    <string name="AddMessage.Permissions.PermissionPromt2">" for vital app functions."</string>
+    <string name="AddMessage.Permissions.SMSMessages">1. \"Send and view SMS messages\" \n Needed to provide basic SMS sending functionality. This app does not use the reading functionality.</string>
+    <string name="AddMessage.Permissions.PhoneCalls">2. \"Make and manage phone calls\" \n Needed to provide basic SMS sending functionality. This app does not use the phone calling functionality. </string>
+    <string name="AddMessage.Permissions.PermissionsPrompt1">"This app requires the following permissions to function correctly: "</string>
     <string name="AddMessage.PhoneRetv.DuplicatePhone">Cannot have duplicate phone number</string>
     <string name="Next">Next</string>
     <string name="ValidateDateTimeDialogTitle1">Invalid Date/Time</string>
