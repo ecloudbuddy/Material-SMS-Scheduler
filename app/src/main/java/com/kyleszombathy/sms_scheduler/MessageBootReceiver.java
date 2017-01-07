@@ -20,6 +20,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -34,7 +35,8 @@ import java.util.Collections;
  */
 // BEGIN_INCLUDE(autostart)
 public class MessageBootReceiver extends BroadcastReceiver {
-    MessageAlarmReceiver alarm = new MessageAlarmReceiver();
+    private static final String TAG = "MessageBootReceiver";
+    private MessageAlarmReceiver alarm = new MessageAlarmReceiver();
 
     private ArrayList<String> nameDataset = new ArrayList<>();
     private ArrayList<String> phoneDataset = new ArrayList<>();
@@ -44,8 +46,9 @@ public class MessageBootReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED"))
-        {
+        if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
+            Log.i(TAG, "Received Boot completed message from system");
+
             readFromSQLDatabase(context);
             for (int i = 0; i < phoneDataset.size(); i++) {
                 ArrayList<String> phoneNumbers = parsePhoneNumbers(phoneDataset.get(i));
