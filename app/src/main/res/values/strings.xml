@@ -18,7 +18,7 @@
     <string name="Home.Notifications.Undo">Undo</string>
     <string name="Home.Notifications.CantSendMessages">Sorry, your device probably can\'t send SMS…</string>
     <!--Notifications-->
-    <string name="Notifications.Success">Scheduled message sent successfully</string>
+    <string name="Notifications.Success">Scheduled message sent successfully to </string>
     <string name="Notifications.MessageFailure">Scheduled message failed to send</string>
     <!--Permissions Prompt-->
     <string name="AddMessage.Permissions.ReadContactsRationalle">This app needs access to contacts for autocomplete suggestions. You can deny this permission and still enter a number manually if you prefer.</string>
