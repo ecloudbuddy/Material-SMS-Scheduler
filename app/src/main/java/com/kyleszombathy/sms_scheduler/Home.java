@@ -539,7 +539,7 @@ public class Home extends Activity {
         SQLUtilities.deleteAlarmFromDB(Home.this, oldAlarmNumber);
     }
 
-    /**Cancel alrm in system and Archive DB entry*/
+    /**Cancel alarm in system and Archive DB entry*/
     private void archiveAndDeleteAlarm(int alarmNumber) {
         cancelAlarmInAndroidSystem(alarmNumber);
         SQLUtilities.setAsArchived(Home.this, alarmNumber);

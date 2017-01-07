@@ -107,7 +107,10 @@ public class SQLUtilities {
      * @param context Application Context
      * @param alarmNumb Alarm number to archive*/
     public static void setAsArchived(Context context, int alarmNumb) {
-        SQLDbHelper mDbHelper = new SQLDbHelper(context);
+        deleteAlarmFromDB(context, alarmNumb);
+        //TODO: Implement Archived UI feature, for now just delete the alarm as not to use up space.
+        // Keeping commented functionality below for future use
+        /*SQLDbHelper mDbHelper = new SQLDbHelper(context);
         SQLiteDatabase db = mDbHelper.getReadableDatabase();
 
         // New value for one column
@@ -126,7 +129,7 @@ public class SQLUtilities {
                 selectionArgs);
 
         Log.i(TAG, "setAsArchived: "+ count + " rows deleted.");
-        mDbHelper.close();
+        mDbHelper.close();*/
     }
 
     /**Removes Item given alarm Number from database
