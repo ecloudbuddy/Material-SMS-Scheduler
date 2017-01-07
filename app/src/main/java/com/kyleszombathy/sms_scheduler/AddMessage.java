@@ -148,10 +148,15 @@ public class AddMessage extends AppCompatActivity
 
     /**Set the top toolbar*/
     private void setUpToolbar() {
-        Toolbar myChildToolbar = (Toolbar) findViewById(R.id.SMSScheduler_Toolbar);
+        Toolbar myChildToolbar = (Toolbar) findViewById(R.id.addMessageToolbar);
         setSupportActionBar(myChildToolbar);
         ActionBar ab = getSupportActionBar();
-        if (ab != null) ab.setDisplayHomeAsUpEnabled(true);
+        if (ab != null){
+            ab.setDisplayHomeAsUpEnabled(true);
+            if (editMessage) {
+                ab.setTitle(R.string.Title_EditMessage);
+            }
+        }
     }
 
     /**Set up the fragment view (this is the view that everything is displayed in)*/
@@ -604,13 +609,16 @@ public class AddMessage extends AppCompatActivity
 
     //============= Finish ("Done") button pressed ================//
     @Override
-    /** Called when user hits finish button*/
+    /** Called when user hits finish or up button*/
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.AddMessage_DoneButton:
                 if (verifyData() && (allPermissionsGranted || askForSmsSendPermission())) {
                     finishAndReturn();
                 } else return false;
+            case android.R.id.home:
+                handleBackButtonPressed();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -775,6 +783,29 @@ public class AddMessage extends AppCompatActivity
                 .make(findViewById(android.R.id.content), snackbarText, Snackbar.LENGTH_LONG);
         snackbar.show();
         Log.i(TAG, "createSnackBar: Snackbar Created with string " + snackbarText);
+    }
+
+    @Override
+    public void onBackPressed() {
+        handleBackButtonPressed();
+    }
+
+    private void handleBackButtonPressed() {
+        new AlertDialog.Builder(this)
+                .setMessage(getCancelMessage())
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        finish();
+                    }
+                })
+                .setNegativeButton(R.string.no, null)
+                .setCancelable(false)
+                .show();
+    }
+
+    private int getCancelMessage() {
+        if (editMessage) return R.string.AddMessage_CancelEditMessage;
+        else return R.string.AddMessage_CancelMessage;
     }
 
     //================ Error Message Utility Methods ==================//
