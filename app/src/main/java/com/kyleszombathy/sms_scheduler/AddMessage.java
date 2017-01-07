@@ -615,6 +615,7 @@ public class AddMessage extends AppCompatActivity
             case R.id.AddMessage_DoneButton:
                 if (verifyData() && (allPermissionsGranted || askForSmsSendPermission())) {
                     finishAndReturn();
+                    return true;
                 } else return false;
             case android.R.id.home:
                 handleBackButtonPressed();
@@ -970,7 +971,7 @@ public class AddMessage extends AppCompatActivity
 
         if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
-                showMessageOKDeny(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
+                showPermissionsPrompt(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -1005,7 +1006,7 @@ public class AddMessage extends AppCompatActivity
                     totalMessagePrompt.append(permissionPrompt);
                 }
 
-                showMessageOKDeny(totalMessagePrompt.toString(), new DialogInterface.OnClickListener() {
+                showPermissionsPrompt(totalMessagePrompt.toString(), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
@@ -1034,8 +1035,9 @@ public class AddMessage extends AppCompatActivity
         return true;
     }
     /** Shows a dialog box with OK/deny boxes*/
-    private void showMessageOKDeny(String message, DialogInterface.OnClickListener okListener) {
+    private void showPermissionsPrompt(String message, DialogInterface.OnClickListener okListener) {
         new AlertDialog.Builder(AddMessage.this)
+                .setTitle(R.string.AddMessage_PermissionsPromptTitle)
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, okListener)
                 .setNegativeButton(R.string.AddMessage_ButtonDeny, null)

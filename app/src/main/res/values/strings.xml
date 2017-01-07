@@ -40,4 +40,7 @@
     <string name="AddMessage.CancelEditMessage">Are you sure you want to cancel editing this message?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="Home.TutorialAddMsgTtitle">Add your first Scheduled Message!</string>
+    <string name="Home.TutorialAddMsgBody">Tap this button to start composing your first scheduled message</string>
+    <string name="AddMessage.PermissionsPromptTitle">Permissions Needed</string>
 </resources>
