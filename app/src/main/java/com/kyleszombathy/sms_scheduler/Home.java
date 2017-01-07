@@ -408,7 +408,7 @@ public class Home extends Activity {
                     }
 
                     // Makes snackbar with undo button
-                    Snackbar.make(parentView,"1 "+ getString(R.string.Home_Notifications_archived), Snackbar.LENGTH_LONG).setAction(R.string.Home_Notifications_Undo, new View.OnClickListener() {
+                    Snackbar.make(parentView,"1 "+ getString(R.string.Home_Notifications_deleted), Snackbar.LENGTH_LONG).setAction(R.string.Home_Notifications_Undo, new View.OnClickListener() {
                         // When Undo button is pressed
                         @Override
                         public void onClick(View v) {

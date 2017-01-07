@@ -14,7 +14,7 @@
     <string name="AddMessage.PhoneRetv.InvalidEntries">One or more entries are invalid</string>
     <!--Home Tooltips-->
     <string name="AddMessage.Notifications.CreateSuccess">Message Saved</string>
-    <string name="Home_Notifications_archived">Deleted</string>
+    <string name="Home_Notifications_deleted">Deleted</string>
     <string name="Home.Notifications.Undo">Undo</string>
     <string name="Home.Notifications.CantSendMessages">Sorry, your device probably can\'t send SMS…</string>
     <!--Notifications-->
