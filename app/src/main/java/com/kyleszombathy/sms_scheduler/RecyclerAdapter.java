@@ -16,7 +16,9 @@
 package com.kyleszombathy.sms_scheduler;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.CountDownTimer;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -38,6 +40,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     private static final String TAG = "RecyclerAdapter";
     private MessagesArrayList messages;
     private Context context;
+    private static final int Grey_300 = 0xFFE0E0E0;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -90,14 +93,27 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         countdownTimer.start();
 
         // Set image
-        if (messages.getPhotoDataset().get(position) != null) {
+        if (messages.get(position).getNameList().size() > 1) {
+            Drawable groupDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_group_white_24dp, null);
+            setMBadgeWithDrawable(holder.mBadge, groupDrawable);
+        } else if (messages.getPhotoDataset().get(position) != null) {
             holder.mBadge.setImageBitmap(messages.getPhotoDataset().get(position));
+        } else {
+            Drawable singleDrawable = ResourcesCompat.getDrawable(context.getResources(), R.drawable.ic_person_white_24dp, null);
+            setMBadgeWithDrawable(holder.mBadge, singleDrawable);
         }
 
         holder.getSwipableView().bringToFront();
         holder.getSwipableView().setX(0);
         holder.getSwipableView().setY(0);
 
+    }
+
+    private void setMBadgeWithDrawable(CircleImageView mBadge, Drawable drawable) {
+        mBadge.setImageDrawable(drawable);
+        mBadge.setBorderWidth(30);
+        mBadge.setBorderColor(Grey_300);
+        mBadge.setFillColor(Grey_300);
     }
 
     @Override

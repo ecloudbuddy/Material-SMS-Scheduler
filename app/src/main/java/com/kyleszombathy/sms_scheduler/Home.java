@@ -66,8 +66,8 @@ public class Home extends Activity {
     private static final String TAG = "HOME";
     private static final String ALARM_EXTRA = "alarmNumber";
     private static final String EDIT_MESSAGE_EXTRA = "EDIT_MESSAGE";
-    private final int circleImageViewWidth = 112;
-    private final int circleImageViewTextSize = 60;
+    private final int circleImageViewWidth = 224;
+    private final int circleImageViewTextSize = 120;
     private final int screenFadeDuration = 700;
     private final int offScreenRecyclerDistance = 10000;
     private View parentView;
@@ -289,20 +289,18 @@ public class Home extends Activity {
             ArrayList<Uri> uriList = message.getUriList();
             Bitmap contactPhoto = null;
 
-            if (uriList != null) {
+            if (uriList != null && uriList.size() == 1 && uriList.get(0) != null && !uriList.get(0).toString().equals("null")) {
                 contactPhoto = retrieveContactImage(uriList.get(0));
-            } else {
+            } else if(message.getNameList().size() == 1) {
                 // Set custom contact image based off first letter of contact name
                 String firstName = message.getNameList().get(0);
                 // Ensure character is not a number
                 if (Character.isLetter(firstName.charAt(0))) {
                     contactPhoto = createCircleImageFromFirstLetterOfName(firstName);
                     Log.i(TAG, "setContactImages: Created custom image based off first letter: " + firstName.charAt(0));
-                } else {
-                    // TODO: Write code for handling messages to multiple people
                 }
-
             }
+
             message.setContactPhoto(contactPhoto);
             messages.setPhotoDataset(msgIndex);
         }
