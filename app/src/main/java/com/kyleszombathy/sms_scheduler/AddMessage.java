@@ -148,10 +148,15 @@ public class AddMessage extends AppCompatActivity
 
     /**Set the top toolbar*/
     private void setUpToolbar() {
-        Toolbar myChildToolbar = (Toolbar) findViewById(R.id.SMSScheduler_Toolbar);
+        Toolbar myChildToolbar = (Toolbar) findViewById(R.id.addMessageToolbar);
         setSupportActionBar(myChildToolbar);
         ActionBar ab = getSupportActionBar();
-        if (ab != null) ab.setDisplayHomeAsUpEnabled(true);
+        if (ab != null){
+            ab.setDisplayHomeAsUpEnabled(true);
+            if (editMessage) {
+                ab.setTitle(R.string.Title_EditMessage);
+            }
+        }
     }
 
     /**Set up the fragment view (this is the view that everything is displayed in)*/
@@ -604,13 +609,17 @@ public class AddMessage extends AppCompatActivity
 
     //============= Finish ("Done") button pressed ================//
     @Override
-    /** Called when user hits finish button*/
+    /** Called when user hits finish or up button*/
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.AddMessage_DoneButton:
-                if (verifyData() && askForSmsSendPermission()) {
+                if (verifyData() && (allPermissionsGranted || askForSmsSendPermission())) {
                     finishAndReturn();
+                    return true;
                 } else return false;
+            case android.R.id.home:
+                handleBackButtonPressed();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -777,6 +786,29 @@ public class AddMessage extends AppCompatActivity
         Log.i(TAG, "createSnackBar: Snackbar Created with string " + snackbarText);
     }
 
+    @Override
+    public void onBackPressed() {
+        handleBackButtonPressed();
+    }
+
+    private void handleBackButtonPressed() {
+        new AlertDialog.Builder(this)
+                .setMessage(getCancelMessage())
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        finish();
+                    }
+                })
+                .setNegativeButton(R.string.no, null)
+                .setCancelable(false)
+                .show();
+    }
+
+    private int getCancelMessage() {
+        if (editMessage) return R.string.AddMessage_CancelEditMessage;
+        else return R.string.AddMessage_CancelMessage;
+    }
+
     //================ Error Message Utility Methods ==================//
 
     /**Creates error message if phone number is wrong*/
@@ -939,7 +971,7 @@ public class AddMessage extends AppCompatActivity
 
         if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
             if (!shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
-                showMessageOKDeny(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
+                showPermissionsPrompt(getString(R.string.AddMessage_Permissions_ReadContactsRationalle),
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -956,30 +988,31 @@ public class AddMessage extends AppCompatActivity
     /**Checks if other permissions exists and prompts user*/
     @TargetApi(Build.VERSION_CODES.M)
     private boolean askForSmsSendPermission() {
-        List<String> permissionsNeeded = new ArrayList<>();
+        List<String> permissionPromptsForPermissionsNeeded = new ArrayList<>();
         final List<String> permissionsList = new ArrayList<>();
 
-        if (!addPermission(permissionsList, Manifest.permission.SEND_SMS)) {
-            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_SMSMessages));
+        if (!addPermissionToPermissionListIfNeeded(permissionsList, Manifest.permission.SEND_SMS)) {
+            permissionPromptsForPermissionsNeeded.add(getString(R.string.AddMessage_Permissions_SMSMessages));
         }
-        if (!addPermission(permissionsList, Manifest.permission.READ_PHONE_STATE)) {
-            permissionsNeeded.add(getString(R.string.AddMessage_Permissions_PhoneCalls));
+        if (!addPermissionToPermissionListIfNeeded(permissionsList, Manifest.permission.READ_PHONE_STATE)) {
+            permissionPromptsForPermissionsNeeded.add(getString(R.string.AddMessage_Permissions_PhoneCalls));
         }
 
         if (permissionsList.size() > 0) {
-            if (permissionsNeeded.size() > 0) {
-                // Need Rationale
-                String message = getString(R.string.AddMessage_Permissions_PermissionsPrompt1) + permissionsNeeded.get(0);
-                for (int i = 1; i < permissionsNeeded.size(); i++)
-                    message = message + ", " + permissionsNeeded.get(i);
+            if (permissionPromptsForPermissionsNeeded.size() > 0) {
+                StringBuilder totalMessagePrompt = new StringBuilder(getString(R.string.AddMessage_Permissions_PermissionsPrompt1));
+                for(String permissionPrompt : permissionPromptsForPermissionsNeeded) {
+                    totalMessagePrompt.append("\n");
+                    totalMessagePrompt.append(permissionPrompt);
+                }
 
-                message = message + getString(R.string.AddMessage_Permissions_PermissionPromt2);
-                showMessageOKDeny(message, new DialogInterface.OnClickListener() {
+                showPermissionsPrompt(totalMessagePrompt.toString(), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
                     }
                 });
+                return false;
             }
             requestPermissions(permissionsList.toArray(new String[permissionsList.size()]), MY_PERMISSIONS_REQUEST_MULTIPLE_PERMISSIONS);
 
@@ -992,7 +1025,7 @@ public class AddMessage extends AppCompatActivity
     }
     /**Utility method for askForSmsSendPermission*/
     @TargetApi(Build.VERSION_CODES.M)
-    private boolean addPermission(List<String> permissionsList, String permission) {
+    private boolean addPermissionToPermissionListIfNeeded(List<String> permissionsList, String permission) {
         if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
             permissionsList.add(permission);
             // Check for Rationale Option
@@ -1002,20 +1035,12 @@ public class AddMessage extends AppCompatActivity
         return true;
     }
     /** Shows a dialog box with OK/deny boxes*/
-    private void showMessageOKDeny(String message, DialogInterface.OnClickListener okListener) {
+    private void showPermissionsPrompt(String message, DialogInterface.OnClickListener okListener) {
         new AlertDialog.Builder(AddMessage.this)
+                .setTitle(R.string.AddMessage_PermissionsPromptTitle)
                 .setMessage(message)
                 .setPositiveButton(R.string.ok, okListener)
                 .setNegativeButton(R.string.AddMessage_ButtonDeny, null)
-                .create()
-                .show();
-    }
-    /** Shows a dialog box with OK/cancel boxes*/
-    private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
-        new AlertDialog.Builder(AddMessage.this)
-                .setMessage(message)
-                .setPositiveButton(R.string.ok, okListener)
-                .setNegativeButton(R.string.picker_cancel, null)
                 .create()
                 .show();
     }

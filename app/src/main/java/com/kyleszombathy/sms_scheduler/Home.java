@@ -24,6 +24,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -42,6 +43,7 @@ import android.transition.Fade;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.RelativeLayout;
@@ -58,13 +60,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import jp.wasabeef.recyclerview.animators.SlideInDownAnimator;
+import uk.co.samuelwall.materialtaptargetprompt.MaterialTapTargetPrompt;
 
 public class Home extends Activity {
     private static final String TAG = "HOME";
     private static final String ALARM_EXTRA = "alarmNumber";
     private static final String EDIT_MESSAGE_EXTRA = "EDIT_MESSAGE";
-    private final int circleImageViewWidth = 112;
-    private final int circleImageViewTextSize = 60;
+    private final int circleImageViewWidth = 224;
+    private final int circleImageViewTextSize = 120;
     private final int screenFadeDuration = 700;
     private final int offScreenRecyclerDistance = 10000;
     private View parentView;
@@ -80,6 +83,7 @@ public class Home extends Activity {
     // For edit message function
     private static final int NEW_MESSAGE = 1;
     private static final int EDIT_MESSAGE = 0;
+    private SharedPreferences prefs = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +106,8 @@ public class Home extends Activity {
                 new IntentFilter("custom-event-name"));
 
         parentView = findViewById(R.id.Home_coordLayout);
+
+        prefs = getSharedPreferences("com.kyleszombathy.sms_scheduler", MODE_PRIVATE);
 
 
         // Floating action button start activity
@@ -131,6 +137,8 @@ public class Home extends Activity {
         });
     }
 
+
+
     /** Returns random int between min and max*/
     private int getRandomInt(int min, int max) {
         return min + (int) (Math.random() * ((max - min) + 1));
@@ -140,6 +148,33 @@ public class Home extends Activity {
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "OnResume called");
+
+        if (prefs.getBoolean("firstrun", true)) {
+            addTapPromptsTutorial();
+            prefs.edit().putBoolean("firstrun", false).apply();
+        }
+    }
+
+    private void addTapPromptsTutorial() {
+        new MaterialTapTargetPrompt.Builder(Home.this)
+                .setTarget(findViewById(R.id.Home_fab))
+                .setPrimaryText(R.string.Home_TutorialAddMsgTtitle)
+                .setSecondaryText(R.string.Home_TutorialAddMsgBody)
+                .setOnHidePromptListener(new MaterialTapTargetPrompt.OnHidePromptListener()
+                {
+                    @Override
+                    public void onHidePrompt(MotionEvent event, boolean tappedTarget)
+                    {
+                        //Do something such as storing a value so that this prompt is never shown again
+                    }
+
+                    @Override
+                    public void onHidePromptComplete()
+                    {
+
+                    }
+                })
+                .show();
     }
 
     //=============== Data Retrieval and Initialization ===============//
@@ -254,20 +289,18 @@ public class Home extends Activity {
             ArrayList<Uri> uriList = message.getUriList();
             Bitmap contactPhoto = null;
 
-            if (uriList != null) {
+            if (uriList != null && uriList.size() == 1 && uriList.get(0) != null && !uriList.get(0).toString().equals("null")) {
                 contactPhoto = retrieveContactImage(uriList.get(0));
-            } else {
+            } else if(message.getNameList().size() == 1) {
                 // Set custom contact image based off first letter of contact name
                 String firstName = message.getNameList().get(0);
                 // Ensure character is not a number
                 if (Character.isLetter(firstName.charAt(0))) {
                     contactPhoto = createCircleImageFromFirstLetterOfName(firstName);
                     Log.i(TAG, "setContactImages: Created custom image based off first letter: " + firstName.charAt(0));
-                } else {
-                    // TODO: Write code for handling messages to multiple people
                 }
-
             }
+
             message.setContactPhoto(contactPhoto);
             messages.setPhotoDataset(msgIndex);
         }
@@ -408,7 +441,7 @@ public class Home extends Activity {
                     }
 
                     // Makes snackbar with undo button
-                    Snackbar.make(parentView,"1 "+ getString(R.string.Home_Notifications_archived), Snackbar.LENGTH_LONG).setAction(R.string.Home_Notifications_Undo, new View.OnClickListener() {
+                    Snackbar.make(parentView,"1 "+ getString(R.string.Home_Notifications_deleted), Snackbar.LENGTH_LONG).setAction(R.string.Home_Notifications_Undo, new View.OnClickListener() {
                         // When Undo button is pressed
                         @Override
                         public void onClick(View v) {
@@ -469,8 +502,7 @@ public class Home extends Activity {
                 }
             };
 
-    ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
-
+    private ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
 
     //=============== Other ===============//
     @Override
@@ -539,7 +571,7 @@ public class Home extends Activity {
         SQLUtilities.deleteAlarmFromDB(Home.this, oldAlarmNumber);
     }
 
-    /**Cancel alrm in system and Archive DB entry*/
+    /**Cancel alarm in system and Archive DB entry*/
     private void archiveAndDeleteAlarm(int alarmNumber) {
         cancelAlarmInAndroidSystem(alarmNumber);
         SQLUtilities.setAsArchived(Home.this, alarmNumber);

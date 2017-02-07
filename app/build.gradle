@@ -8,8 +8,8 @@ android {
         applicationId "com.kyleszombathy.sms_scheduler"
         minSdkVersion 21
         targetSdkVersion 24
-        versionCode 2
-        versionName "1.0.1"
+        versionCode 3
+        versionName "1.0.2"
         
     }
     buildTypes {
@@ -49,7 +49,7 @@ dependencies {
     compile 'com.github.amlcurran.showcaseview:library:5.3.0'
     compile 'jp.wasabeef:recyclerview-animators:2.1.0'
     compile 'de.hdodenhof:circleimageview:2.0.0'
-    //compile 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
+    compile 'uk.co.samuelwall:material-tap-target-prompt:1.7.0'
     compile 'com.klinkerapps:android-smsmms:0.3.1-SNAPSHOT'
     compile 'com.code-troopers.betterpickers:library:2.3.0'
     compile project(':lib')

@@ -1,8 +1,9 @@
 <resources>
     <!--App/Activity Names-->
-    <string name="Title.AppName">SMS Scheduler</string>
+    <string name="Title.AppName">Material SMS Scheduler</string>
     <string name="Title.Settings">Settings</string>
-    <string name="Title.AddMessage">Add/Edit Message</string>
+    <string name="Title.AddMessage">Add Message</string>
+    <string name="Title.EditMessage">Edit Message</string>
     <!--AddMessage page content-->
     <string name="AddMessage.Content.MessageContent"> Message</string>
     <string name="AddMessage.Content.PhoneRetv">To</string>
@@ -14,20 +15,19 @@
     <string name="AddMessage.PhoneRetv.InvalidEntries">One or more entries are invalid</string>
     <!--Home Tooltips-->
     <string name="AddMessage.Notifications.CreateSuccess">Message Saved</string>
-    <string name="Home_Notifications_archived">Archived</string>
+    <string name="Home_Notifications_deleted">Deleted</string>
     <string name="Home.Notifications.Undo">Undo</string>
     <string name="Home.Notifications.CantSendMessages">Sorry, your device probably can\'t send SMS…</string>
     <!--Notifications-->
-    <string name="Notifications.Success">Scheduled message sent successfully</string>
+    <string name="Notifications.Success">Scheduled message sent successfully to </string>
     <string name="Notifications.MessageFailure">Scheduled message failed to send</string>
     <!--Permissions Prompt-->
-    <string name="AddMessage.Permissions.ReadContactsRationalle">This app needs access to contacts for autocomplete suggestions. Denying this permission will result in an incomplete user experience, though entering a number manually will still work.</string>
+    <string name="AddMessage.Permissions.ReadContactsRationalle">This app needs access to contacts for autocomplete suggestions. You can deny this permission and still enter a number manually if you prefer.</string>
     <string name="AddMessage.ButtonDeny">Deny</string>
     <string name="AddMessage.Permissions.SomePermissionDenied">Please allow all permissions.</string>
-    <string name="AddMessage.Permissions.SMSMessages">\'Send and view SMS messages\'</string>
-    <string name="AddMessage.Permissions.PhoneCalls">\'make and manage phone calls\'</string>
-    <string name="AddMessage.Permissions.PermissionsPrompt1">"You need to grant access to "</string>
-    <string name="AddMessage.Permissions.PermissionPromt2">" for vital app functions."</string>
+    <string name="AddMessage.Permissions.SMSMessages">1. \"Send and view SMS messages\" \n Needed to provide basic SMS sending functionality. This app does not use the reading functionality.</string>
+    <string name="AddMessage.Permissions.PhoneCalls">2. \"Make and manage phone calls\" \n Needed to provide basic SMS sending functionality. This app does not use the phone calling functionality. </string>
+    <string name="AddMessage.Permissions.PermissionsPrompt1">"This app requires the following permissions to function correctly: "</string>
     <string name="AddMessage.PhoneRetv.DuplicatePhone">Cannot have duplicate phone number</string>
     <string name="Next">Next</string>
     <string name="ValidateDateTimeDialogTitle1">Invalid Date/Time</string>
@@ -36,4 +36,11 @@
     <string name="ValidateDateTimeDialogMessage2">The time you selected is within 5 minutes of the current time. Are you sure you want to schedule this message?</string>
     <string name="YES">YES</string>
     <string name="FixDateTimeToast">The time you have selected is before the current time and has been updated.</string>
+    <string name="AddMessage.CancelMessage">Are you sure you want to cancel creating this message?</string>
+    <string name="AddMessage.CancelEditMessage">Are you sure you want to cancel editing this message?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="Home.TutorialAddMsgTtitle">Add your first Scheduled Message!</string>
+    <string name="Home.TutorialAddMsgBody">Tap this button to start composing your first scheduled message</string>
+    <string name="AddMessage.PermissionsPromptTitle">Permissions Needed</string>
 </resources>
